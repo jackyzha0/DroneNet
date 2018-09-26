@@ -11,6 +11,9 @@ class drone():
     yv = 0
     zv = 0
 
+    #Drone Params
+    max_comm_dist = 0.5
+
     def __init__(self,x,y,z,x_vel,y_vel,z_vel):
         self.g_x = x
         self.g_y = y
@@ -30,7 +33,7 @@ class drone():
         dronepos = drone.getPos()
         raw = np.subtract(dronepos,selfpos)
         r = np.sqrt(np.square(raw[0])+np.square(raw[1])+np.square(raw[2])) #r = sqrt(x^2+y+^2+z^2)
-        theta = np.arccos(raw[3]/r)   #theta =arccos(z/r))
+        theta = np.arccos(raw[2]/r)   #theta =arccos(z/r))
         phi = np.arctan(raw[1]/raw[0])   #phi = arctan(y/x).
         #THETA is Elevation
         #PHI is Azimuth

@@ -27,6 +27,9 @@ def initDrone(n):
         dr.append(drone(x,y,z,x_vel,y_vel,z_vel))
     return dr
 
+def polartocart(r,theta,phi):
+    
+
 d_arr = initDrone(20)
 X = []
 Y = []
@@ -35,7 +38,9 @@ for d in d_arr:
     X.append(d.g_x)
     Y.append(d.g_y)
     Z.append(d.g_z)
-
+    for d1 in d_arr:
+        if d.getDistDet(d1)[0] < d.max_comm_dist:
+            ax.plot([d.g_x,d1.g_x],[d.g_y,d1.g_y],[d.g_z,d1.g_z],color="b", alpha=0.23)
 ax.scatter(X,Y,Z,s=10,c="r")
 plt.show()
 print(d_arr[0].getDistDet(d_arr[1]))

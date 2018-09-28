@@ -34,7 +34,10 @@ class drone():
         raw = np.subtract(dronepos,selfpos)
         r = np.sqrt(np.square(raw[0])+np.square(raw[1])+np.square(raw[2])) #r = sqrt(x^2+y+^2+z^2)
         theta = np.arccos(raw[2]/r)   #theta =arccos(z/r))
-        phi = np.arctan(raw[1]/raw[0])   #phi = arctan(y/x).
+        phi = np.arctan2(raw[1],raw[0])   #phi = arctan(y/x).
         #THETA is Elevation
         #PHI is Azimuth
         return r, phi, theta
+
+    def update(self):
+        self.g_x = self.g_x + self.x_vel

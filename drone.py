@@ -39,5 +39,15 @@ class drone():
         #PHI is Azimuth
         return r, phi, theta
 
+    def updateVels(dvx,dvy,dvz):
+        self.xv = self.xv + dvx
+        self.yv = self.yv + dvy
+        self.zv = self.zv + dvz
+
     def update(self):
-        self.g_x = self.g_x + self.x_vel
+        if np.abs(self.g_x) < 1:
+            self.g_x = self.g_x + self.xv
+        if np.abs(self.g_y) < 1:
+            self.g_y = self.g_y + self.yv
+        if self.g_z < 1 and self.g_z > 0:
+            self.g_z = self.g_z + self.zv

@@ -55,16 +55,16 @@ def update(d_arr):
         X.append(d.g_x)
         Y.append(d.g_y)
         Z.append(d.g_z)
-    replot(d_arr)
     return X,Y,Z
 
 d_arr = initDrone(20)
 
-
 plt.show(block=False)
+
 while True:
     ax.cla()
     X,Y,Z = update(d_arr)
+    replot(d_arr)
     ax.scatter3D(X,Y,Z,s=10,c="r")
     plt.pause(0.05)
 plt.show()

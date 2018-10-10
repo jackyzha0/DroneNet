@@ -31,3 +31,12 @@ http://pages.cs.wisc.edu/~chaol/cs766/
 
 http://journals.tubitak.gov.tr/elektrik/issues/elk-18-26-2/elk-26-2-11-1704-144.pdf
 > Paper detailing a proposed 3D reconstruction pipeline given camera calibration matrices
+
+https://rdmilligan.wordpress.com/2015/06/28/opencv-camera-calibration-and-pose-estimation-using-python/
+> Misc.
+
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/py_calibration/py_calibration.html
+> Misc.
+
+https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
+> Misc.

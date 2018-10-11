@@ -2,18 +2,41 @@
 ## Jacky Zhao
 ### Science Fair Project 2018-19
 
+## Summary
 Using neural networks controlled drone swarms for optimized 3D reconstruction
 
-More info to be added
+## Drone Assembly
+Using the 3D printed Firefly drone (http://firefly1504.com)
+### Mainframe
+Files located in ```Firefly Drone Parts\MainFrame```
+Print Bumper_v2_f.stl and 2x side.stld with 50% infill
+Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl with 25% infill
 
 ## TODO
 - [ ] Decide on 3D construction methodology
 - [ ] Send email to Campbell Wilson
 - [ ] Cost function for measuring accuracy of 3D reconstruction
+- [ ] Order Ports
+- [ ] Print Mainframe
+- [ ] Print Arms
+- [ ] Assemble Drones
 - [x] Realtime rendering of 3D Space
 - [x] Particle based display for drone
 - [x] Create initial variables for drones
 - [x] Create drone class
+
+## To buy (Firefly Parts)
+- [ ] 4x 400mm Carbon Fiber Tube w/ Diameter of 12mm
+- [ ] 4x M3 Washers
+- [ ] 32x M2x10mm
+- [ ] 8x M3x10mm
+- [ ] 8x M3x6mm
+- [ ] 12x M3x8mm
+- [ ] 4x M3 Locknuts
+- [ ] 2x M3x22mm spacers
+- [ ] 4x Dampener Balls
+- [ ] 4x M3x32mm
+- [ ] 1x Pi Camera
 
 
 ## Resources

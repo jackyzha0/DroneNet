@@ -16,7 +16,7 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [ ] Decide on 3D construction methodology
 - [ ] Send email to Campbell Wilson
 - [ ] Cost function for measuring accuracy of 3D reconstruction
-- [ ] Order Ports
+- [x] Order Ports
 - [ ] Print Mainframe
 - [ ] Print Arms
 - [ ] Assemble Drones
@@ -26,7 +26,9 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [x] Create drone class
 
 ## To buy (Firefly Parts)
-- [ ] 4x 400mm Carbon Fiber Tube w/ Diameter of 12mm
+- [x] 4x Gemfan 2040 3-Blade Propellers 2.0 Inch Triblade
+- [x] 4x FPVDrone 1104 7500KV Brushless Motor
+- [x] 4x 100mm Carbon Fiber Tube w/ Diameter of 12mm
 - [ ] 4x M3 Washers
 - [ ] 32x M2x10mm
 - [ ] 8x M3x10mm
@@ -34,9 +36,9 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [ ] 12x M3x8mm
 - [ ] 4x M3 Locknuts
 - [ ] 2x M3x22mm spacers
-- [ ] 4x Dampener Balls
+- [x] 4x Dampener Balls
 - [ ] 4x M3x32mm
-- [ ] 1x Pi Camera
+- [x] 1x Pi Camera at 5MP
 
 
 ## Resources

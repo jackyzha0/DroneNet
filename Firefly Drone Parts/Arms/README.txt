@@ -1,0 +1,1 @@
+Print all with 25% infill

@@ -14,11 +14,12 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 
 ## TODO
 - [ ] Decide on 3D construction methodology
-- [ ] Send email to Campbell Wilson
+- [x] Send email to Campbell Wilson
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [x] Order Ports
 - [ ] Print Mainframe
 - [ ] Print Arms
+- [ ] Print Carbon Fiber Jigs
 - [ ] Assemble Drones
 - [x] Realtime rendering of 3D Space
 - [x] Particle based display for drone
@@ -39,7 +40,6 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [x] 4x Dampener Balls
 - [ ] 4x M3x32mm
 - [x] 1x Pi Camera at 5MP
-
 
 ## Resources
 https://homes.cs.washington.edu/~seitz/papers/cvpr97.pdf

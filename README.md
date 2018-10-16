@@ -14,19 +14,24 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 
 ## TODO
 - [ ] Decide on 3D construction methodology
-- [x] Send email to Campbell Wilson
 - [ ] Cost function for measuring accuracy of 3D reconstruction
-- [x] Order Ports
-- [ ] Print Mainframe
+- [x] Print Bumpers (Completed Oct. 16th)
+- [ ] Print Sides
+- [ ] Print Lower Plate
+- [ ] Print Top Plate
 - [ ] Print Arms
 - [ ] Print Carbon Fiber Jigs
 - [ ] Assemble Drones
-- [x] Realtime rendering of 3D Space
-- [x] Particle based display for drone
-- [x] Create initial variables for drones
-- [x] Create drone class
+- [x] Order PXFMini parts (Completed Oct. 15th)
+- [x] Order Firefly Parts (Completed Oct. 12th)
+- [x] Realtime rendering of 3D Space (Completed Oct. 2)
+- [x] Particle based display for drone (Completed Sept. 28)
+- [x] Create initial variables for drones (Completed Sept. 26)
+- [x] Create drone class (Completed Sept. 26)
 
-## To buy (Firefly Parts)
+## Materials
+- [x] Erle Robotics PXFmini
+- [x] Erle Robotics PXFmini Power Module
 - [x] 4x Gemfan 2040 3-Blade Propellers 2.0 Inch Triblade
 - [x] 4x FPVDrone 1104 7500KV Brushless Motor
 - [x] 4x 100mm Carbon Fiber Tube w/ Diameter of 12mm
@@ -40,6 +45,10 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [x] 4x Dampener Balls
 - [ ] 4x M3x32mm
 - [x] 1x Pi Camera at 5MP
+
+## 3D Printing Log
+![Oct. 16th](Logs/Oct16.jpg?raw=true "Oct. 16th")
+Printed Bumper_v2.stl and side.stl successfully! Lower_plate_V2 printed with wrong orientation and extra support material. Requeued.
 
 ## Resources
 https://homes.cs.washington.edu/~seitz/papers/cvpr97.pdf

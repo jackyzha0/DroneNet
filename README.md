@@ -13,15 +13,19 @@ Print Bumper_v2_f.stl and 2x side.stld with 50% infill
 Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl with 25% infill
 
 ## TODO
-- [ ] Decide on 3D construction methodology
-- [ ] Cost function for measuring accuracy of 3D reconstruction
-- [x] Print Bumpers (Completed Oct. 16th)
-- [ ] Print Sides
-- [ ] Print Lower Plate
-- [ ] Print Top Plate
+- [ ] Calculate Approximate Weight of each Drone
+- [ ] Find Thrust and Voltages required given current motors
+- [ ] Decide on Power Supply
+- [ ] Determine right electronic speed controller (ESC) to buy
 - [ ] Print Arms
 - [ ] Print Carbon Fiber Jigs
+- [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Assemble Drones
+- [x] Decide on 3D construction methodology (Completed Oct. 16th)
+- [x] Print Bumpers (Completed Oct. 16th)
+- [x] Print Sides (Completed Oct. 16th)
+- [x] Print Lower Plate (Completed Oct. 16th)
+- [x] Print Top Plate (Completed Oct. 16th)
 - [x] Order PXFMini parts (Completed Oct. 15th)
 - [x] Order Firefly Parts (Completed Oct. 12th)
 - [x] Realtime rendering of 3D Space (Completed Oct. 2)
@@ -30,11 +34,6 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [x] Create drone class (Completed Sept. 26)
 
 ## Materials
-- [x] Erle Robotics PXFmini
-- [x] Erle Robotics PXFmini Power Module
-- [x] 4x Gemfan 2040 3-Blade Propellers 2.0 Inch Triblade
-- [x] 4x FPVDrone 1104 7500KV Brushless Motor
-- [x] 4x 100mm Carbon Fiber Tube w/ Diameter of 12mm
 - [ ] 4x M3 Washers
 - [ ] 32x M2x10mm
 - [ ] 8x M3x10mm
@@ -42,15 +41,32 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [ ] 12x M3x8mm
 - [ ] 4x M3 Locknuts
 - [ ] 2x M3x22mm spacers
-- [x] 4x Dampener Balls
+- [x] Erle Robotics PXFmini
+- [x] Erle Robotics PXFmini Power Module
+- [x] 4x Gemfan 2040 3-Blade Propellers 2.0 Inch Triblade
+- [x] 4x FPVDrone 1104 7500KV Brushless Motor
+- [x] 4x 100mm Carbon Fiber Tube w/ Diameter of 12mm
 - [ ] 4x M3x32mm
+- [x] 4x Dampener Balls
 - [x] 1x Pi Camera at 5MP
 
 ## 3D Printing Log
-![Oct. 16th](Logs/Oct16.jpg?raw=true "Oct. 16th")
+![Oct. 16th Update 1](Logs/Oct16_1.jpg?raw=true "Oct. 16th")
 Printed Bumper_v2.stl and side.stl successfully! Lower_plate_V2 printed with wrong orientation and extra support material. Requeued.
 
+![Oct. 16th Update 2](Logs/Oct16_2.jpg?raw=true "Oct. 16th")
+All Mainframe Materials printed successfully!
+
+![Oct. 16th Update 2](Logs/Oct16_3.jpg?raw=true "Oct. 16th")
+Motors, Propellers, Carbon Fiber Tubes, Dampener Balls, and Camera arrived!
+
 ## Resources
+https://www.dronetrest.com/t/what-to-consider-when-buying-a-esc-for-your-multirotor/1305
+> Determining Correct ESC
+
+https://www.dronetrest.com/t/how-to-choose-the-right-motor-for-your-multicopter-drone/568
+> Motor Information
+
 https://homes.cs.washington.edu/~seitz/papers/cvpr97.pdf
 > Paper detailing a proposal for coloured scene reconstruction by calibrated voxel colouring
 
@@ -67,10 +83,10 @@ http://journals.tubitak.gov.tr/elektrik/issues/elk-18-26-2/elk-26-2-11-1704-144.
 > Paper detailing a proposed 3D reconstruction pipeline given camera calibration matrices
 
 https://rdmilligan.wordpress.com/2015/06/28/opencv-camera-calibration-and-pose-estimation-using-python/
-> Misc.
+> OpenCV Camera Calibration
 
 https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/py_calibration/py_calibration.html
-> Misc.
+> OpenCV Camera Calibration
 
 https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
-> Misc.
+> Camera Calibration and 3D Reconstruction

@@ -5,12 +5,33 @@
 ## Summary
 Using neural networks controlled drone swarms for optimized 3D reconstruction
 
-## Drone Assembly
+## Drone
 Using the 3D printed Firefly drone (http://firefly1504.com)
 ### Mainframe
 Files located in ```Firefly Drone Parts\MainFrame```
 Print Bumper_v2_f.stl and 2x side.stld with 50% infill
 Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl with 25% infill
+### Arms
+Files located in ```Firefly Drone Parts\Arms```
+Print 4x all parts with 25% infill
+### Cutting Jigs
+Files located in ```Firefly Drone Parts\Drill Jig```
+Print all parts with 25% infill
+
+## Stats
+| Qty | Item | Total Weight (g) | Price |
+| 1x | 3D Printed Frame | 100g | N/A |
+| 1x | LiPo Battery | 245g | $18.87 |
+| 4x | Electronic Speed Controller | 24.00g | $41.36 |
+| 4x | 100mm Carbon Fiber Tubes | 45.20g | $7.99 |
+| 1x | PXFmini | 50.00g | $44.94 |
+| 1x | PXFmini Power Module | 15.00g | $103.36 |
+| 4x | Motors | 22.00g | $32.99 |
+| 4x | Propellers | 3.44g | $2.49 |
+| 1x | Pi Zero | 9.00g | $5.00 |
+| 1x | Pi Camera | 18.14g | $14.99 |
+| N/A | Misc. Wires | 20.0g | N/A |
+| Totals | N/A | 551.44g | $271.99 |
 
 ## TODO
 - [ ] Calculate Approximate Weight of each Drone
@@ -18,7 +39,7 @@ Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl wi
 - [ ] Decide on Power Supply
 - [ ] Determine right electronic speed controller (ESC) to buy
 - [ ] Print Arms
-- [ ] Print Carbon Fiber Jigs
+- [x] Print Carbon Fiber Jigs
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Assemble Drones
 - [x] Decide on 3D construction methodology (Completed Oct. 16th)

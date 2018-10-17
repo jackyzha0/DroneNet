@@ -20,6 +20,7 @@ Print all parts with 25% infill
 
 ## Stats
 | Qty | Item | Total Weight (g) | Price |
+-------------------------------------------
 | 1x | 3D Printed Frame | 100g | N/A |
 | 1x | LiPo Battery | 245g | $18.87 |
 | 4x | Electronic Speed Controller | 24.00g | $41.36 |

@@ -108,19 +108,32 @@ Print 8x cliplock and rest of parts with 25% infill
 ### Cutting Jigs
 Files located in ```Firefly Drone Parts\Drill Jig```
 Print all parts with 25% infill
+### Preparing Arms
+Using the jigs, cut 500mm tube into 4x 100mm tubes
+Drill 3mm and 4mm holes into the tubes through the jigs
+### Assembly
+TBD
 
 ## 3D Printing Log
+![Oct. 19th Update 1](Logs/Oct19.jpg?raw=true "Oct. 19th")
+___Oct. 19th Update 1___
+Began construction of actual drone! Still waiting for new motors to begin arm assembly but main frame is done!
+
 ![Oct. 18th Update 1](Logs/Oct18.jpg?raw=true "Oct. 18th")
+___Oct. 18th Update 1___
 Finished printing remaining pieces! Some issues cleaning support material off inner clamps but was sanded out. Carbon Fiber tube was cut with drill jig successfully!
 
-![Oct. 16th Update 1](Logs/Oct16_1.jpg?raw=true "Oct. 16th")
-Printed Bumper_v2.stl and side.stl successfully! Lower_plate_V2 printed with wrong orientation and extra support material. Requeued.
+![Oct. 16th Update 3](Logs/Oct16_3.jpg?raw=true "Oct. 16th")
+___Oct. 16th Update 3___
+Motors, Propellers, Carbon Fiber Tubes, Dampener Balls, and Camera arrived!
 
 ![Oct. 16th Update 2](Logs/Oct16_2.jpg?raw=true "Oct. 16th")
+___Oct. 16th Update 2___
 All Mainframe Materials printed successfully!
 
-![Oct. 16th Update 2](Logs/Oct16_3.jpg?raw=true "Oct. 16th")
-Motors, Propellers, Carbon Fiber Tubes, Dampener Balls, and Camera arrived!
+![Oct. 16th Update 1](Logs/Oct16_1.jpg?raw=true "Oct. 16th")
+___Oct. 16th Update 1___
+Printed Bumper_v2.stl and side.stl successfully! Lower_plate_V2 printed with wrong orientation and extra support material. Requeued.
 
 ## Resources
 https://www.unmannedtechshop.co.uk/tattu-1550mah-14-8v-45c-4s1p-lipo-battery-pack/

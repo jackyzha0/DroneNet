@@ -21,28 +21,30 @@ Print all parts with 25% infill
 ## Stats
 | Qty | Item | Total Weight (g) | Price |
 |-----|------|------------------|-------|
-| 1x | 3D Printed Frame | 100g | N/A |
-| 1x | LiPo Battery | 245g | $18.87 |
-| 4x | Electronic Speed Controller | 24.00g | $41.36 |
+| 1x | 3D Printed Frame | 50.00g | N/A |
+| 1x | LiPo Battery | 165.00g | $19.10 |
+| 4x | Electronic Speed Controller | 28.00g | $50.68 |
+| 1x | Power Distribution Board | 19.30g | $4.13 |
 | 4x | 100mm Carbon Fiber Tubes | 45.20g | $7.99 |
 | 1x | PXFmini | 50.00g | $44.94 |
 | 1x | PXFmini Power Module | 15.00g | $103.36 |
-| 4x | Motors | 22.00g | $32.99 |
-| 4x | Propellers | 3.44g | $2.49 |
+| 4x | Motors | 120.00g | $39.96 |
+| 4x | Propellers | 21.2g | $8.76 |
 | 1x | Pi Zero | 9.00g | $5.00 |
 | 1x | Pi Camera | 18.14g | $14.99 |
 | N/A | Misc. Wires | 20.0g | N/A |
-| Totals | N/A | 551.44g | $271.99 |
+| Totals | N/A | 560.84g | $298.91 |
 
 ## TODO
-- [ ] Calculate Approximate Weight of each Drone
-- [ ] Find Thrust and Voltages required given current motors
-- [ ] Decide on Power Supply
-- [ ] Determine right electronic speed controller (ESC) to buy
-- [ ] Print Arms
-- [x] Print Carbon Fiber Jigs
+- [ ] Cut and drill carbon fiber tubes
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Assemble Drones
+- [x] Find Thrust and Voltages required given current motors (Completed Oct.18th)
+- [x] Decide on Power Supply (Completed Oct.18th)
+- [x] Determine right electronic speed controller (ESC) to buy (Completed Oct.18th)
+- [x] Print Arms (Completed Oct.18th)
+- [x] Calculate Approximate Weight of each Drone (Completed Oct.17th)
+- [x] Print Carbon Fiber Jigs (Completed Oct.17th)
 - [x] Decide on 3D construction methodology (Completed Oct. 16th)
 - [x] Print Bumpers (Completed Oct. 16th)
 - [x] Print Sides (Completed Oct. 16th)
@@ -57,19 +59,21 @@ Print all parts with 25% infill
 
 ## Materials
 - [ ] 4x M3 Washers
-- [ ] 32x M2x10mm
+- [ ] 32x M2x10mm*
 - [ ] 8x M3x10mm
 - [ ] 8x M3x6mm
 - [ ] 12x M3x8mm
-- [ ] 4x M3 Locknuts
-- [ ] 2x M3x22mm spacers
-- [x] Erle Robotics PXFmini
-- [x] Erle Robotics PXFmini Power Module
-- [x] 4x Gemfan 2040 3-Blade Propellers 2.0 Inch Triblade
-- [x] 4x FPVDrone 1104 7500KV Brushless Motor
+- [ ] 4x M3 Locknuts*
+- [ ] 2x M3x22mm spacers*
+- [ ] 4x M3x32mm*
+- [x] 1x Power Distribution Board - HOBBY KING LITE
+- [x] 4x ESC - Favourite Little Bee 20A 2-4S
+- [x] 1x Erle Robotics PXFmini
+- [x] 1x Erle Robotics PXFmini Power Module
+- [x] 1x Turnigy Graphene 1300mAh 4S 45C LiPo Pack w/ XT60
+- [x] 4x EMAX RS2205 Brushless Motor
+- [x] 4x GEMFAN 5045 GRP 3-BLADE Propellers
 - [x] 4x 100mm Carbon Fiber Tube w/ Diameter of 12mm
-- [ ] 4x M3x32mm
-- [x] 4x Dampener Balls
 - [x] 1x Pi Camera at 5MP
 
 ## 3D Printing Log
@@ -83,6 +87,21 @@ All Mainframe Materials printed successfully!
 Motors, Propellers, Carbon Fiber Tubes, Dampener Balls, and Camera arrived!
 
 ## Resources
+https://www.unmannedtechshop.co.uk/tattu-1550mah-14-8v-45c-4s1p-lipo-battery-pack/
+> Battery
+
+https://hobbyking.com/en_us/favourite-little-bee-20a-2-4s-esc-no-bec.html
+> ESCs
+
+https://hobbyking.com/en_us/hobby-king-quadcopter-power-distribution-board-lite.html
+> Power Distribution Board
+
+https://emax-usa.com/emax-rs2205-racespec-motor-cooling-series.html
+> Motor
+
+https://www.banggood.com/4PCS-Bullnose-5045-2-Blade-Propellers-2CW2CCW-For-250-280-310-Frame-Kits-p-985839.html?ID=224&cur_warehouse=CN
+> Propeller
+
 https://www.dronetrest.com/t/what-to-consider-when-buying-a-esc-for-your-multirotor/1305
 > Determining Correct ESC
 

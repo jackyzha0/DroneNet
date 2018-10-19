@@ -1,15 +1,21 @@
 # DroneNet
-## Jacky Zhao
-### Science Fair Project 2018-19
+### Jacky Zhao - Science Fair Project 2018-19
 
 ## Summary
 Using neural networks controlled drone swarms for optimized 3D reconstruction
 
 ## TODO
 - [ ] Cut and drill carbon fiber tubes
-- [ ] Finish Drone Summary
-- [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Assemble Drones
+- [ ] Add Camera class and integrate into Drone class
+- [ ] Add directionality to Drone class
+- [ ] Evaluate plausibility of homogenous coordinate system
+- [ ] Evaluate types of 3D reconstruction
+- [ ] Evaluate types of machine learning
+- [ ] Cost function for measuring accuracy of 3D reconstruction
+- [ ] Construct Model
+- [ ] Drone Test Flight
+- [x] Finish Drone Summary (Completed Oct. 19th)
 - [x] Draw Circuits (Completed Oct. 19th)
 - [x] Explain details of motors, thrust, etc. (Completed Oct. 19th)
 - [x] Update Printing Logs (Completed Oct. 18th)
@@ -19,7 +25,6 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction
 - [x] Print Arms (Completed Oct. 18th)
 - [x] Calculate Approximate Weight of each Drone (Completed Oct. 17th)
 - [x] Print Carbon Fiber Jigs (Completed Oct.17th)
-- [x] Decide on 3D construction methodology (Completed Oct. 16th)
 - [x] Print Bumpers (Completed Oct. 16th)
 - [x] Print Sides (Completed Oct. 16th)
 - [x] Print Lower Plate (Completed Oct. 16th)
@@ -49,9 +54,10 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction
 | Totals | N/A | 560.84g | $298.91 |
 
 ## Drone Stats
-Battery: 1300mAh at 45C. Max recommended current draw = Capacity (Ah) * C Rating = 1.3*45 = 58.5A<br/>
-Thrust Required: Because the drone is not intended for racing, a thrust to weight ratio of 4:1 works well. A total thrust of 2.2433kg is required, meaning 560g of thrust per motor.<br/>
-Current: Looking at the thrust table below, we can see that 13A @ 16.8V on a RS2205-2300KV with GF5045BN Propellers nets us almost exactly 560g of thrust. Multiplying the current for each motor, we end up with a maximum total current of 52A, well below the 58.5 theoretical maximum of the LiPo battery used.<br/>
+__Battery:__ 1300mAh at 45C. Max recommended current draw = Capacity (Ah) * C Rating = 1.3*45 = ___58.5A___<br/>
+__Thrust Required:__ Because the drone is not intended for racing, a thrust to weight ratio of ___4:1___ works well. A total thrust of ___2.2433kg___ is required, meaning ___560g___ of thrust per motor.<br/>
+__Current:__ Looking at the thrust table below, we can see that 13A @ 16.8V on a RS2205-2300KV with GF5045BN Propellers nets us almost exactly 560g of thrust. Multiplying the current for each motor, we end up with a maximum total current of __52A__, well below the 58.5 theoretical maximum of the LiPo battery used.<br/>
+__Flight Time:__ We can find the current for which all motors provide enough thrust to keep the drone in the air (560g total or 140g each). Looking at the thrust table, we can see that a little less than 3A nets us around 140g of thrust. Assuming only 80% of capacity is effective, we 1.04mAh available. Multiplying by h/60min and dividing by the current draw 3A, we get a theoretical flight time of 20.8 minutes.
 
 ## Thrust Table for RS2205-2300KV @ 16.8V with GF5045BN
 | Current (A) | Thrust (g) | Efficiency (g/W) | Speed (RPM) |

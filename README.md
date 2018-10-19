@@ -18,7 +18,7 @@ Print 4x all parts with 25% infill
 Files located in ```Firefly Drone Parts\Drill Jig```
 Print all parts with 25% infill
 
-## Stats
+## Price and Weight Data
 | Qty | Item | Total Weight (g) | Price |
 |-----|------|------------------|-------|
 | 1x | 3D Printed Frame | 50.00g | N/A |
@@ -26,8 +26,8 @@ Print all parts with 25% infill
 | 4x | Electronic Speed Controller | 28.00g | $50.68 |
 | 1x | Power Distribution Board | 19.30g | $4.13 |
 | 4x | 100mm Carbon Fiber Tubes | 45.20g | $7.99 |
-| 1x | PXFmini | 50.00g | $44.94 |
-| 1x | PXFmini Power Module | 15.00g | $103.36 |
+| 1x | PXFmini Power Module | 50.00g | $44.94 |
+| 1x | PXFmini | 15.00g | $103.36 |
 | 4x | Motors | 120.00g | $39.96 |
 | 4x | Propellers | 21.2g | $8.76 |
 | 1x | Pi Zero | 9.00g | $5.00 |
@@ -35,15 +35,42 @@ Print all parts with 25% infill
 | N/A | Misc. Wires | 20.0g | N/A |
 | Totals | N/A | 560.84g | $298.91 |
 
+## Drone Stats
+Battery: 1300mAh at 45C. Max recommended current draw = Capacity (Ah) * C Rating = 1.3*45 = 58.5A
+Thrust Required: Because the drone is not intended for racing, a thrust to weight ratio of 4:1 works well. A total thrust of 2.2433kg is required, meaning 560g of thrust per motor.
+Current: Looking at the thrust table below, we can see that 13A @ 16.8V on a RS2205-2300KV with GF5045BN Propellers nets us almost exactly 560g of thrust. Multiplying the current for each motor, we end up with a maximum total current of 52A, well below the 58.5 theoretical maximum of the LiPo battery used.
+
+## Thrust Table for RS2205-2300KV @ 16.8V with GF5045BN
+| Current (A) | Thrust (g) | Efficiency (g/W) | Speed (RPM) |
+|-------------|------------|------------------|-------------|
+| 1 | 76 | 4.75 | 7220 |
+| 3 | 183 | 3.81 | 10790 |
+| 5 | 282 | 3.54 | 13030 |
+| 7 | 352 | 3.10 | 14720 |
+| 9 | 426 | 2.93 | 16180 |
+| 11 | 497 | 2.82 | 17150 |
+| 13 | 560 | 2.69 | 18460 |
+| 15 | 628 | 2.62 | 19270 |
+| ... | ... | ... | ... |
+| 27 | 997 | 2.28 | 23920 |
+| 30 | 1024 | 2.14 | 24560 |
+
+![Rough Diagram of circuit](Logs/fig1.jpg?raw=true "Circuit Diagram ")
+Rough Diagram of circuit.
+
 ## TODO
 - [ ] Cut and drill carbon fiber tubes
+- [ ] Finish Drone Summary
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Assemble Drones
-- [x] Find Thrust and Voltages required given current motors (Completed Oct.18th)
-- [x] Decide on Power Supply (Completed Oct.18th)
-- [x] Determine right electronic speed controller (ESC) to buy (Completed Oct.18th)
-- [x] Print Arms (Completed Oct.18th)
-- [x] Calculate Approximate Weight of each Drone (Completed Oct.17th)
+- [x] Draw Circuits (Completed Oct. 19th)
+- [x] Explain details of motors, thrust, etc. (Completed Oct. 19th)
+- [x] Update Printing Logs (Completed Oct. 18th)
+- [x] Find Thrust and Voltages required given current motors (Completed Oct. 18th)
+- [x] Decide on Power Supply (Completed Oct. 18th)
+- [x] Determine right electronic speed controller (ESC) to buy (Completed Oct. 18th)
+- [x] Print Arms (Completed Oct. 18th)
+- [x] Calculate Approximate Weight of each Drone (Completed Oct. 17th)
 - [x] Print Carbon Fiber Jigs (Completed Oct.17th)
 - [x] Decide on 3D construction methodology (Completed Oct. 16th)
 - [x] Print Bumpers (Completed Oct. 16th)
@@ -77,6 +104,9 @@ Print all parts with 25% infill
 - [x] 1x Pi Camera at 5MP
 
 ## 3D Printing Log
+![Oct. 18th Update 1](Logs/Oct18.jpg?raw=true "Oct. 18th")
+Finished printing remaining pieces! Some issues cleaning support material off inner clamps but was sanded out. Carbon Fiber tube was cut with drill jig successfully!
+
 ![Oct. 16th Update 1](Logs/Oct16_1.jpg?raw=true "Oct. 16th")
 Printed Bumper_v2.stl and side.stl successfully! Lower_plate_V2 printed with wrong orientation and extra support material. Requeued.
 
@@ -88,10 +118,10 @@ Motors, Propellers, Carbon Fiber Tubes, Dampener Balls, and Camera arrived!
 
 ## Resources
 https://www.unmannedtechshop.co.uk/tattu-1550mah-14-8v-45c-4s1p-lipo-battery-pack/
-> Battery
+> Battery Information
 
 https://hobbyking.com/en_us/favourite-little-bee-20a-2-4s-esc-no-bec.html
-> ESCs
+> ESC Information
 
 https://hobbyking.com/en_us/hobby-king-quadcopter-power-distribution-board-lite.html
 > Power Distribution Board

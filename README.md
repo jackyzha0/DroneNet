@@ -115,9 +115,14 @@ Drill 3mm and 4mm holes into the tubes through the jigs
 TBD
 
 ## 3D Printing Log
-![Oct. 19th Update 1](Logs/Oct19.jpg?raw=true "Oct. 19th")
-___Oct. 19th Update 1___
+![Oct. 19th Update 2](Logs/Oct19_2.jpg?raw=true "Oct. 19th")
+___Oct. 19th Update 2___
 Began construction of actual drone! Still waiting for new motors to begin arm assembly but main frame is done!
+
+![Oct. 19th Update 1](Logs/Oct19_1_1.jpg?raw=true "Oct. 19th")
+![Oct. 19th Update 1](Logs/Oct19_1_2.jpg?raw=true "Oct. 19th")
+___Oct. 19th Update 2___
+PXFMini and power module arrived! I also went out and got various screws, nuts, and washers for the assembly.
 
 ![Oct. 18th Update 1](Logs/Oct18.jpg?raw=true "Oct. 18th")
 ___Oct. 18th Update 1___

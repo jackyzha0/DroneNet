@@ -5,59 +5,6 @@
 ## Summary
 Using neural networks controlled drone swarms for optimized 3D reconstruction
 
-## Drone
-Using the 3D printed Firefly drone (http://firefly1504.com)
-### Mainframe
-Files located in ```Firefly Drone Parts\MainFrame```
-Print Bumper_v2_f.stl and 2x side.stld with 50% infill
-Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl with 25% infill
-### Arms
-Files located in ```Firefly Drone Parts\Arms```
-Print 4x all parts with 25% infill
-### Cutting Jigs
-Files located in ```Firefly Drone Parts\Drill Jig```
-Print all parts with 25% infill
-
-## Price and Weight Data
-| Qty | Item | Total Weight (g) | Price |
-|-----|------|------------------|-------|
-| 1x | 3D Printed Frame | 50.00g | N/A |
-| 1x | LiPo Battery | 165.00g | $19.10 |
-| 4x | Electronic Speed Controller | 28.00g | $50.68 |
-| 1x | Power Distribution Board | 19.30g | $4.13 |
-| 4x | 100mm Carbon Fiber Tubes | 45.20g | $7.99 |
-| 1x | PXFmini Power Module | 50.00g | $44.94 |
-| 1x | PXFmini | 15.00g | $103.36 |
-| 4x | Motors | 120.00g | $39.96 |
-| 4x | Propellers | 21.2g | $8.76 |
-| 1x | Pi Zero | 9.00g | $5.00 |
-| 1x | Pi Camera | 18.14g | $14.99 |
-| N/A | Misc. Wires | 20.0g | N/A |
-| Totals | N/A | 560.84g | $298.91 |
-
-## Drone Stats
-Battery: 1300mAh at 45C. Max recommended current draw = Capacity (Ah) * C Rating = 1.3*45 = 58.5A
-Thrust Required: Because the drone is not intended for racing, a thrust to weight ratio of 4:1 works well. A total thrust of 2.2433kg is required, meaning 560g of thrust per motor.
-Current: Looking at the thrust table below, we can see that 13A @ 16.8V on a RS2205-2300KV with GF5045BN Propellers nets us almost exactly 560g of thrust. Multiplying the current for each motor, we end up with a maximum total current of 52A, well below the 58.5 theoretical maximum of the LiPo battery used.
-
-## Thrust Table for RS2205-2300KV @ 16.8V with GF5045BN
-| Current (A) | Thrust (g) | Efficiency (g/W) | Speed (RPM) |
-|-------------|------------|------------------|-------------|
-| 1 | 76 | 4.75 | 7220 |
-| 3 | 183 | 3.81 | 10790 |
-| 5 | 282 | 3.54 | 13030 |
-| 7 | 352 | 3.10 | 14720 |
-| 9 | 426 | 2.93 | 16180 |
-| 11 | 497 | 2.82 | 17150 |
-| 13 | 560 | 2.69 | 18460 |
-| 15 | 628 | 2.62 | 19270 |
-| ... | ... | ... | ... |
-| 27 | 997 | 2.28 | 23920 |
-| 30 | 1024 | 2.14 | 24560 |
-
-![Rough Diagram of circuit](Logs/fig1.jpg?raw=true "Circuit Diagram ")
-Rough Diagram of circuit.
-
 ## TODO
 - [ ] Cut and drill carbon fiber tubes
 - [ ] Finish Drone Summary
@@ -84,6 +31,46 @@ Rough Diagram of circuit.
 - [x] Create initial variables for drones (Completed Sept. 26)
 - [x] Create drone class (Completed Sept. 26)
 
+## Price and Weight Data
+| Qty | Item | Total Weight (g) | Price |
+|-----|------|------------------|-------|
+| 1x | 3D Printed Frame | 50.00g | N/A |
+| 1x | LiPo Battery | 165.00g | $19.10 |
+| 4x | Electronic Speed Controller | 28.00g | $50.68 |
+| 1x | Power Distribution Board | 19.30g | $4.13 |
+| 4x | 100mm Carbon Fiber Tubes | 45.20g | $7.99 |
+| 1x | PXFmini Power Module | 50.00g | $44.94 |
+| 1x | PXFmini | 15.00g | $103.36 |
+| 4x | Motors | 120.00g | $39.96 |
+| 4x | Propellers | 21.2g | $8.76 |
+| 1x | Pi Zero | 9.00g | $5.00 |
+| 1x | Pi Camera | 18.14g | $14.99 |
+| N/A | Misc. Wires | 20.0g | N/A |
+| Totals | N/A | 560.84g | $298.91 |
+
+## Drone Stats
+Battery: 1300mAh at 45C. Max recommended current draw = Capacity (Ah) * C Rating = 1.3*45 = 58.5A<br/>
+Thrust Required: Because the drone is not intended for racing, a thrust to weight ratio of 4:1 works well. A total thrust of 2.2433kg is required, meaning 560g of thrust per motor.<br/>
+Current: Looking at the thrust table below, we can see that 13A @ 16.8V on a RS2205-2300KV with GF5045BN Propellers nets us almost exactly 560g of thrust. Multiplying the current for each motor, we end up with a maximum total current of 52A, well below the 58.5 theoretical maximum of the LiPo battery used.<br/>
+
+## Thrust Table for RS2205-2300KV @ 16.8V with GF5045BN
+| Current (A) | Thrust (g) | Efficiency (g/W) | Speed (RPM) |
+|-------------|------------|------------------|-------------|
+| 1 | 76 | 4.75 | 7220 |
+| 3 | 183 | 3.81 | 10790 |
+| 5 | 282 | 3.54 | 13030 |
+| 7 | 352 | 3.10 | 14720 |
+| 9 | 426 | 2.93 | 16180 |
+| 11 | 497 | 2.82 | 17150 |
+| 13 | 560 | 2.69 | 18460 |
+| 15 | 628 | 2.62 | 19270 |
+| ... | ... | ... | ... |
+| 27 | 997 | 2.28 | 23920 |
+| 30 | 1024 | 2.14 | 24560 |
+
+![Rough Diagram of circuit](Logs/fig1.jpg?raw=true "Circuit Diagram ")
+Rough Diagram of circuit.
+
 ## Materials
 - [ ] 4x M3 Washers
 - [ ] 32x M2x10mm*
@@ -102,6 +89,19 @@ Rough Diagram of circuit.
 - [x] 4x GEMFAN 5045 GRP 3-BLADE Propellers
 - [x] 4x 100mm Carbon Fiber Tube w/ Diameter of 12mm
 - [x] 1x Pi Camera at 5MP
+
+## Drone Assembly
+Using the 3D printed Firefly drone (http://firefly1504.com)
+### Mainframe
+Files located in ```Firefly Drone Parts\MainFrame```
+Print Bumper_v2_f.stl and 2x side.stld with 50% infill
+Print Lower_plate_V2.stl, Top_plate_front_3mm.stl, and Top_plate_rear_3mm.stl with 25% infill
+### Arms
+Files located in ```Firefly Drone Parts\Arms```
+Print 8x cliplock and rest of parts with 25% infill
+### Cutting Jigs
+Files located in ```Firefly Drone Parts\Drill Jig```
+Print all parts with 25% infill
 
 ## 3D Printing Log
 ![Oct. 18th Update 1](Logs/Oct18.jpg?raw=true "Oct. 18th")

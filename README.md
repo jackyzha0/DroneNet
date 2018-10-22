@@ -5,7 +5,6 @@
 Using neural networks controlled drone swarms for optimized 3D reconstruction
 
 ## TODO
-- [ ] Cut and drill carbon fiber tubes
 - [ ] Assemble Drones
 - [ ] Add Camera class and integrate into Drone class
 - [ ] Add directionality to Drone class
@@ -15,6 +14,7 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Construct Model
 - [ ] Drone Test Flight
+- [x] Cut and drill carbon fiber tubes (Completed Oct. 19th)
 - [x] Finish Drone Summary (Completed Oct. 19th)
 - [x] Draw Circuits (Completed Oct. 19th)
 - [x] Explain details of motors, thrust, etc. (Completed Oct. 19th)
@@ -78,14 +78,14 @@ __Flight Time:__ We can find the current for which all motors provide enough thr
 Rough Diagram of circuit.
 
 ## Materials
-- [ ] 4x M3 Washers
-- [ ] 32x M2x10mm*
-- [ ] 8x M3x10mm
-- [ ] 8x M3x6mm
-- [ ] 12x M3x8mm
 - [ ] 4x M3 Locknuts*
 - [ ] 2x M3x22mm spacers*
 - [ ] 4x M3x32mm*
+- [x] 4x M3 Washers
+- [x] 32x M2x10mm*
+- [x] 8x M3x10mm
+- [x] 8x M3x6mm
+- [x] 12x M3x8mm
 - [x] 1x Power Distribution Board - HOBBY KING LITE
 - [x] 4x ESC - Favourite Little Bee 20A 2-4S
 - [x] 1x Erle Robotics PXFmini

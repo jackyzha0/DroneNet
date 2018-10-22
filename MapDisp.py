@@ -31,8 +31,10 @@ def initDrone(n):
     return dr
 
 def replot(d_arr):
+    count = 0
+    done = []
     for d in d_arr:
-        for d1 in d_arr:
+        for d1 in d_arr[1:]:
             locarr = d.getDistDet(d1)
             r = locarr[0]
             phi = locarr[1]
@@ -41,10 +43,14 @@ def replot(d_arr):
                 x = r*np.sin(theta)*np.cos(phi)
                 y = r*np.sin(theta)*np.sin(phi)
                 z = r*np.cos(theta)
-                if usePolar:
-                    ax.plot([d.g_x,d.g_x+x],[d.g_y,d.g_y+y],[d.g_z,d.g_z+z], color="b", alpha=0.2)
-                else:
-                    ax.plot([d.g_x,d1.g_x],[d.g_y,d1.g_y],[d.g_z,d1.g_z], color="b", alpha=0.2)
+                if r not in done:
+                    count = count + 1
+                    if usePolar:
+                        ax.plot([d.g_x,d.g_x+x],[d.g_y,d.g_y+y],[d.g_z,d.g_z+z], color="b", alpha=0.2)
+                    else:
+                        ax.plot([d.g_x,d1.g_x],[d.g_y,d1.g_y],[d.g_z,d1.g_z], color="b", alpha=0.2)
+                    done.append(r)
+    return count
 
 def update(d_arr):
     X = []
@@ -64,7 +70,8 @@ plt.show(block=False)
 while True:
     ax.cla()
     X,Y,Z = update(d_arr)
-    replot(d_arr)
+    num = replot(d_arr)
+    print("# Mesh Nodes: " + str(num))
     ax.scatter3D(X,Y,Z,s=10,c="r")
     plt.pause(0.05)
 plt.show()

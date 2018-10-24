@@ -21,7 +21,6 @@ class drone():
         self.yv = y_vel
         self.zv = z_vel
         self.dataArr = np.zeros((n-1,3))
-        self.rot = rot
         self.c = camera(self.id, rot)
         drone.totaldrones = n
 
@@ -77,7 +76,7 @@ class drone():
         self.r_y = self.r_y + self.yv
         self.r_z = self.r_z + self.zv
         abs = False
-        dvx, dvy, dvz = 0,0,0
+        dvx, dvy, dvz = 0, 0, 0
         if not np.abs(self.gi_x + self.r_x) < 1:
             abs = True
             dvx = 0
@@ -86,7 +85,7 @@ class drone():
             abs = True
             dvy = 0
 
-        if not self.gi_z + self.r_z < 1 and not self.gi_z + self.r_z > 0:
+        if not self.gi_z + self.r_z < 1 or not self.gi_z + self.r_z > 0:
             abs = True
             dvz = 0
         self.updateVels(dvx, dvy, dvz, abs)
@@ -94,4 +93,4 @@ class drone():
 class camera(drone):
     def __init__(self, id, rot):
         self.id = id
-        print(rot)
+        self.rot = rot

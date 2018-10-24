@@ -35,8 +35,8 @@ def replot(d_arr):
     done = []
     for d in d_arr:
         x, y, z = d.getPos()[:3]
-        u = np.sin(d.rot)
-        v = np.cos(d.rot)
+        u = np.sin(d.c.rot)
+        v = np.cos(d.c.rot)
         ax.quiver(x, y, z, u, v, 0, length=0.05, normalize=True)
         for d1 in d_arr[1:]:
             locarr = d.getDistDet(d1)
@@ -73,6 +73,12 @@ plt.show(block = False)
 
 while True:
     ax.cla()
+    ax.set_navigate(False)
+    ax.autoscale(False)
+    ax.set_xbound(-1, 1)
+    ax.set_ybound(-1, 1)
+    ax.set_zbound(0, 1)
+
     X, Y, Z = update(drone.d_arr)
     num = replot(drone.d_arr)
     print("# Mesh Nodes: " + str(num))

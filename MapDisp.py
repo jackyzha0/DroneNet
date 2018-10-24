@@ -1,7 +1,6 @@
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
-from itertools import product, combinations
 from drone import *
 import time
 
@@ -27,13 +26,18 @@ def initDrone(n):
         d_y = (xy_range * np.random.random() - (xy_range / 2))
         d_z = (xy_range * np.random.random())
         x_vel,y_vel,z_vel = vel_range * np.random.random((3,)) - (vel_range / 2)
-        dr.append(drone(d_x, d_y, d_z, x_vel, y_vel, z_vel, n))
+        rot = 2 * np.pi * np.random.random()
+        dr.append(drone(d_x, d_y, d_z, x_vel, y_vel, z_vel, rot, n))
     return dr
 
 def replot(d_arr):
     count = 0
     done = []
     for d in d_arr:
+        x, y, z = d.getPos()[:3]
+        u = np.sin(d.rot)
+        v = np.cos(d.rot)
+        ax.quiver(x, y, z, u, v, 0, length=0.05, normalize=True)
         for d1 in d_arr[1:]:
             locarr = d.getDistDet(d1)
             r = locarr[0]

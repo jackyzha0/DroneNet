@@ -6,15 +6,15 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction
 
 ## TODO
 - [ ] Assemble Drones
-- [ ] Add Camera class and integrate into Drone class
-- [ ] Add directionality to Drone class
 - [ ] Build and compile APM for PXFMini and Pi0
-- [x] Evaluate plausibility of homogenous coordinate system (Completed Oct. 22)
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Construct Model
 - [ ] Drone Test Flight
+- [x] Add Camera class and integrate into Drone class (Completed Oct. 23)
+- [x] Add directionality to Drone class (Completed Oct. 23)
+- [x] Evaluate plausibility of homogenous coordinate system (Completed Oct. 22)
 - [x] Cut and drill carbon fiber tubes (Completed Oct. 19th)
 - [x] Finish Drone Summary (Completed Oct. 19th)
 - [x] Draw Circuits (Completed Oct. 19th)

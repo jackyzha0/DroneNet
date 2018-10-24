@@ -1,5 +1,4 @@
 import numpy as np
-from camera import *
 
 class drone():
 
@@ -11,7 +10,7 @@ class drone():
     next_id = 0
     totaldrones = 0
 
-    def __init__(self, x, y, z, x_vel, y_vel, z_vel, n):
+    def __init__(self, x, y, z, x_vel, y_vel, z_vel, rot, n):
         self.id = drone.next_id
         drone.next_id += 1
         self.gi_x, self.gi_y, self.gi_z = x, y, z
@@ -22,7 +21,8 @@ class drone():
         self.yv = y_vel
         self.zv = z_vel
         self.dataArr = np.zeros((n-1,3))
-        self.c = camera(self.id)
+        self.rot = rot
+        self.c = camera(self.id, rot)
         drone.totaldrones = n
 
     def populateDataArr(self, simulation = True):
@@ -92,5 +92,6 @@ class drone():
         self.updateVels(dvx, dvy, dvz, abs)
 
 class camera(drone):
-    def __init__(self, id):
+    def __init__(self, id, rot):
         self.id = id
+        print(rot)

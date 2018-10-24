@@ -26,8 +26,8 @@ def initDrone(n):
         d_x = (xy_range * np.random.random() - (xy_range / 2))
         d_y = (xy_range * np.random.random() - (xy_range / 2))
         d_z = (xy_range * np.random.random())
-        x_vel,y_vel,z_vel = vel_range*np.random.random((3,)) - (vel_range / 2)
-        dr.append(drone(d_x, d_y, d_z, x_vel,y_vel,z_vel))
+        x_vel,y_vel,z_vel = vel_range * np.random.random((3,)) - (vel_range / 2)
+        dr.append(drone(d_x, d_y, d_z, x_vel, y_vel, z_vel, n))
     return dr
 
 def replot(d_arr):
@@ -62,15 +62,15 @@ def update(d_arr):
         Z.append(pos[2])
     return X, Y, Z
 
-d_arr = initDrone(20)
+drone.d_arr = initDrone(20)
+
 
 plt.show(block = False)
 
 while True:
     ax.cla()
-    X, Y, Z = update(d_arr)
-    num = replot(d_arr)
+    X, Y, Z = update(drone.d_arr)
+    num = replot(drone.d_arr)
     print("# Mesh Nodes: " + str(num))
     ax.scatter3D(X, Y, Z, s = 10, c = "r")
     plt.pause(0.05)
-plt.show()

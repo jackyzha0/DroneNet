@@ -3,13 +3,15 @@ from camera import *
 
 class drone():
 
+    d_arr = []
+
     #Drone Params
     max_comm_dist = 0.5
 
     next_id = 0
+    totaldrones = 0
 
-
-    def __init__(self, x, y, z, x_vel, y_vel, z_vel):
+    def __init__(self, x, y, z, x_vel, y_vel, z_vel, n):
         self.id = drone.next_id
         drone.next_id += 1
         self.gi_x, self.gi_y, self.gi_z = x, y, z
@@ -19,7 +21,28 @@ class drone():
         self.xv = x_vel
         self.yv = y_vel
         self.zv = z_vel
+        self.dataArr = np.zeros((n-1,3))
         self.c = camera(self.id)
+        drone.totaldrones = n
+
+    def populateDataArr(self, simulation = True):
+        dataArr = []
+        if simulation:
+            for i in range(drone.totaldrones):
+                if not i == self.id:
+                    td = drone.d_arr[i]
+                    dist_arr = self.getDistDet(td)
+                    if dist_arr[0] <= drone.max_comm_dist:
+                        dataArr.append(dist_arr)
+                        #print(dist_arr)
+                    else:
+                        splice = dist_arr[1:]
+                        d = (1e99,splice[0],splice[1])
+                        dataArr.append(d)
+            return dataArr
+        else:
+            #Handle with real world sensor data etc.
+            return 0
 
     def getPos(self):
         return self.gi_x + self.r_x, self.gi_y + self.r_y, self.gi_z + self.r_z , self.xv, self.yv, self.zv
@@ -49,6 +72,7 @@ class drone():
             self.zv = self.zv + dvz
 
     def update(self):
+        self.dataArr = self.populateDataArr()
         self.r_x = self.r_x + self.xv
         self.r_y = self.r_y + self.yv
         self.r_z = self.r_z + self.zv

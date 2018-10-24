@@ -54,6 +54,10 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction
 | N/A | Misc. Wires | 20.0g | N/A |
 | Totals | N/A | 560.84g | $298.91 |
 
+## Erle Robotics PXFMini SSH
+Connect to WiFi network "erle-robotics-frambuesa"
+ssh erle@10.0.0.1
+
 ## Drone Stats
 __Battery:__ 1300mAh at 45C. Max recommended current draw = Capacity (Ah) * C Rating = 1.3*45 = ___58.5A___<br/>
 __Thrust Required:__ Because the drone is not intended for racing, a thrust to weight ratio of ___4:1___ works well. A total thrust of ___2.2433kg___ is required, meaning ___560g___ of thrust per motor.<br/>

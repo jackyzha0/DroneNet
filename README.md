@@ -8,7 +8,8 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction
 - [ ] Assemble Drones
 - [ ] Add Camera class and integrate into Drone class
 - [ ] Add directionality to Drone class
-- [ ] Evaluate plausibility of homogenous coordinate system
+- [ ] Build and compile APM for PXFMini and Pi0
+- [x] Evaluate plausibility of homogenous coordinate system (Completed Oct. 22)
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Cost function for measuring accuracy of 3D reconstruction
@@ -141,26 +142,11 @@ ___Oct. 16th Update 1___
 Printed Bumper_v2.stl and side.stl successfully! Lower_plate_V2 printed with wrong orientation and extra support material. Requeued.
 
 ## Resources
-https://www.unmannedtechshop.co.uk/tattu-1550mah-14-8v-45c-4s1p-lipo-battery-pack/
-> Battery Information
+http://docs.erlerobotics.com/brains/pxfmini/software/apm
+> Ardupilot (APM)
 
-https://hobbyking.com/en_us/favourite-little-bee-20a-2-4s-esc-no-bec.html
-> ESC Information
-
-https://hobbyking.com/en_us/hobby-king-quadcopter-power-distribution-board-lite.html
-> Power Distribution Board
-
-https://emax-usa.com/emax-rs2205-racespec-motor-cooling-series.html
-> Motor
-
-https://www.banggood.com/4PCS-Bullnose-5045-2-Blade-Propellers-2CW2CCW-For-250-280-310-Frame-Kits-p-985839.html?ID=224&cur_warehouse=CN
-> Propeller
-
-https://www.dronetrest.com/t/what-to-consider-when-buying-a-esc-for-your-multirotor/1305
-> Determining Correct ESC
-
-https://www.dronetrest.com/t/how-to-choose-the-right-motor-for-your-multicopter-drone/568
-> Motor Information
+http://ksimek.github.io/2013/08/13/intrinsic/
+> Explanation of camera matrices
 
 https://homes.cs.washington.edu/~seitz/papers/cvpr97.pdf
 > Paper detailing a proposal for coloured scene reconstruction by calibrated voxel colouring
@@ -185,3 +171,24 @@ https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/
 
 https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
 > Camera Calibration and 3D Reconstruction
+
+https://www.unmannedtechshop.co.uk/tattu-1550mah-14-8v-45c-4s1p-lipo-battery-pack/
+> Battery Information
+
+https://hobbyking.com/en_us/favourite-little-bee-20a-2-4s-esc-no-bec.html
+> ESC Information
+
+https://hobbyking.com/en_us/hobby-king-quadcopter-power-distribution-board-lite.html
+> Power Distribution Board
+
+https://emax-usa.com/emax-rs2205-racespec-motor-cooling-series.html
+> Motor
+
+https://www.banggood.com/4PCS-Bullnose-5045-2-Blade-Propellers-2CW2CCW-For-250-280-310-Frame-Kits-p-985839.html?ID=224&cur_warehouse=CN
+> Propeller
+
+https://www.dronetrest.com/t/what-to-consider-when-buying-a-esc-for-your-multirotor/1305
+> Determining Correct ESC
+
+https://www.dronetrest.com/t/how-to-choose-the-right-motor-for-your-multicopter-drone/568
+> Motor Information

@@ -6,7 +6,6 @@ from drone import *
 import time
 
 # PARAMS
-usePolar = True
 xy_range = 1.0
 vel_range = 0.025
 
@@ -22,12 +21,13 @@ z_min = 0
 z_max = 10
 
 def initDrone(n):
-    dr = []
+    dr, d_x, d_y, d_z = [], [], [], []
     for i in range(n):
-        x,y = xy_range*np.random.random((2,))-(xy_range/2)
-        z = xy_range*np.random.random()
-        x_vel,y_vel,z_vel = vel_range*np.random.random((3,))-(vel_range/2)
-        dr.append(drone(x,y,z,x_vel,y_vel,z_vel))
+        d_x = (xy_range * np.random.random() - (xy_range / 2))
+        d_y = (xy_range * np.random.random() - (xy_range / 2))
+        d_z = (xy_range * np.random.random())
+        x_vel,y_vel,z_vel = vel_range*np.random.random((3,)) - (vel_range / 2)
+        dr.append(drone(d_x, d_y, d_z, x_vel,y_vel,z_vel))
     return dr
 
 def replot(d_arr):
@@ -45,10 +45,8 @@ def replot(d_arr):
                 z = r*np.cos(theta)
                 if r not in done:
                     count = count + 1
-                    if usePolar:
-                        ax.plot([d.g_x,d.g_x+x],[d.g_y,d.g_y+y],[d.g_z,d.g_z+z], color="b", alpha=0.2)
-                    else:
-                        ax.plot([d.g_x,d1.g_x],[d.g_y,d1.g_y],[d.g_z,d1.g_z], color="b", alpha=0.2)
+                    dx,dy,dz = d.getPos()[:3]
+                    ax.plot([dx, dx + x],[dy, dy + y],[dz, dz + z], color = "b", alpha = 0.2)
                     done.append(r)
     return count
 
@@ -58,20 +56,21 @@ def update(d_arr):
     Z = []
     for d in d_arr:
         d.update()
-        X.append(d.g_x)
-        Y.append(d.g_y)
-        Z.append(d.g_z)
-    return X,Y,Z
+        pos = d.getPos()
+        X.append(pos[0])
+        Y.append(pos[1])
+        Z.append(pos[2])
+    return X, Y, Z
 
 d_arr = initDrone(20)
 
-plt.show(block=False)
+plt.show(block = False)
 
 while True:
     ax.cla()
-    X,Y,Z = update(d_arr)
+    X, Y, Z = update(d_arr)
     num = replot(d_arr)
     print("# Mesh Nodes: " + str(num))
-    ax.scatter3D(X,Y,Z,s=10,c="r")
+    ax.scatter3D(X, Y, Z, s = 10, c = "r")
     plt.pause(0.05)
 plt.show()

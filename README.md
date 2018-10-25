@@ -5,8 +5,9 @@
 Using neural networks controlled drone swarms for optimized 3D reconstruction
 
 ## TODO
-- [ ] Assemble Drones
 - [ ] Build and compile APM for PXFMini and Pi0
+- [ ] Recut and redrill carbon fiber tubes
+- [ ] Reorder 2 propellers and LiPo charger
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Cost function for measuring accuracy of 3D reconstruction
@@ -101,7 +102,7 @@ Rough Diagram of circuit.
 - [x] 4x 100mm Carbon Fiber Tube w/ Diameter of 12mm
 - [x] 1x Pi Camera at 5MP
 
-## Drone Assembly
+## Drone Parts
 Using the 3D printed Firefly drone (http://firefly1504.com)
 ### Mainframe
 Files located in ```Firefly Drone Parts\MainFrame```
@@ -116,10 +117,23 @@ Print all parts with 25% infill
 ### Preparing Arms
 Using the jigs, cut 500mm tube into 4x 100mm tubes
 Drill 3mm and 4mm holes into the tubes through the jigs
-### Assembly
-TBD
 
-## 3D Printing Log
+## Assembly Log
+![Oct. 23rd Update 3](Logs/Oct23_5.jpg?raw=true "Oct. 23rd")
+![Oct. 23rd Update 3](Logs/Oct23_6.jpg?raw=true "Oct. 23rd")
+___Oct. 23rd Update 3___
+Progress update!
+
+![Oct. 23rd Update 2](Logs/Oct23_2.jpg?raw=true "Oct. 23rd")
+![Oct. 23rd Update 2](Logs/Oct23_3.jpg?raw=true "Oct. 23rd")
+![Oct. 23rd Update 2](Logs/Oct23_4.jpg?raw=true "Oct. 23rd")
+___Oct. 23rd Update 2___
+Attaching motors to arms with the motor mounts with 2x M3 x 10mm and 4x M2 x 8mm
+
+![Oct. 23rd Update 1](Logs/Oct23_1.jpg?raw=true "Oct. 23rd")
+___Oct. 23rd Update 1___
+New parts arrived! Need to reorder propellers (2 are clockwise orientation) and a LiPo battery charger.
+
 ![Oct. 19th Update 2](Logs/Oct19_2.jpg?raw=true "Oct. 19th")
 ___Oct. 19th Update 2___
 Began construction of actual drone! Still waiting for new motors to begin arm assembly but main frame is done!

@@ -94,3 +94,4 @@ class camera(drone):
     def __init__(self, id, rot):
         self.id = id
         self.rot = rot
+        #self.k = 

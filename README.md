@@ -119,19 +119,19 @@ Using the jigs, cut 500mm tube into 4x 100mm tubes
 Drill 3mm and 4mm holes into the tubes through the jigs
 
 ## Assembly Log
-![Oct. 23rd Update 3](Logs/Oct23_5.jpg?raw=true "Oct. 23rd")
-![Oct. 23rd Update 3](Logs/Oct23_6.jpg?raw=true "Oct. 23rd")
-___Oct. 23rd Update 3___
+![Oct. 24th Update 3](Logs/Oct24_5.jpg?raw=true "Oct. 24th")
+![Oct. 24th Update 3](Logs/Oct24_6.jpg?raw=true "Oct. 24th")
+___Oct. 24th Update 3___
 Progress update!
 
-![Oct. 23rd Update 2](Logs/Oct23_2.jpg?raw=true "Oct. 23rd")
-![Oct. 23rd Update 2](Logs/Oct23_3.jpg?raw=true "Oct. 23rd")
-![Oct. 23rd Update 2](Logs/Oct23_4.jpg?raw=true "Oct. 23rd")
-___Oct. 23rd Update 2___
+![Oct. 24th Update 2](Logs/Oct24_2.jpg?raw=true "Oct. 24th")
+![Oct. 24th Update 2](Logs/Oct24_3.jpg?raw=true "Oct. 24th")
+![Oct. 24th Update 2](Logs/Oct24_4.jpg?raw=true "Oct. 24th")
+___Oct. 24th Update 2___
 Attaching motors to arms with the motor mounts with 2x M3 x 10mm and 4x M2 x 8mm
 
-![Oct. 23rd Update 1](Logs/Oct23_1.jpg?raw=true "Oct. 23rd")
-___Oct. 23rd Update 1___
+![Oct. 24th Update 1](Logs/Oct24_1.jpg?raw=true "Oct. 24th")
+___Oct. 24th Update 1___
 New parts arrived! Need to reorder propellers (2 are clockwise orientation) and a LiPo battery charger.
 
 ![Oct. 19th Update 2](Logs/Oct19_2.jpg?raw=true "Oct. 19th")

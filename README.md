@@ -2,7 +2,7 @@
 ### Jacky Zhao - Science Fair Project 2018-19
 
 ## Summary
-Using neural networks controlled drone swarms for optimized 3D reconstruction
+Using neural networks controlled drone swarms for optimized 3D reconstruction.
 
 ## TODO
 - [ ] Design camera mount
@@ -126,6 +126,10 @@ Using the jigs, cut 500mm tube into 4x 100mm tubes
 Drill 3mm and 4mm holes into the tubes through the jigs
 
 ## Assembly Log
+![Oct. 29th Update 1](Logs/Oct29.jpg?raw=true "Oct. 29th")
+___Oct. 29th Update 1___
+Mounted battery, Pi0, PXFMini, and Pi Camera.
+
 ![Oct. 24th Update 3](Logs/Oct24_5.jpg?raw=true "Oct. 24th")
 ![Oct. 24th Update 3](Logs/Oct24_6.jpg?raw=true "Oct. 24th")
 ___Oct. 24th Update 3___

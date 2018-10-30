@@ -94,4 +94,13 @@ class camera(drone):
     def __init__(self, id, rot):
         self.id = id
         self.rot = rot
-        #self.k = 
+        self.k = np.array([ 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0 ])
+
+    def photo():
+        # Take photo and return as array
+        return 0
+
+    def calibrate():
+        #return new k matrix from calibration photos with checkerboard

@@ -1,4 +1,6 @@
 import numpy as np
+from time import sleep
+from picamera import PiCamera
 
 class drone():
 
@@ -33,7 +35,6 @@ class drone():
                     dist_arr = self.getDistDet(td)
                     if dist_arr[0] <= drone.max_comm_dist:
                         dataArr.append(dist_arr)
-                        #print(dist_arr)
                     else:
                         splice = dist_arr[1:]
                         d = (1e99,splice[0],splice[1])
@@ -94,13 +95,24 @@ class camera(drone):
     def __init__(self, id, rot):
         self.id = id
         self.rot = rot
+        self.physCamera = PiCamera(resolution=(1280, 720), framerate=30)
+        self.physCamera.camera.iso = 100
         self.k = np.array([ 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0 ])
-
-    def photo():
+        sleep(2)
+        self.physCamera.camera.shutter_speed = self.physCamera.camera.exposure_speed
+        self.physCamera.camera.exposure_mode = 'off'
+        g = self.physCamera.camera.awb_gains
+        self.physCamera.camera.awb_mode = 'off'
+        self.physCamera.camera.awb_gains = g
+        p = self.photo()
+    def photo(self):
+        _f = open('ret.jpg', 'wb')
+        self.physCamera.camera.capture(_f)
         # Take photo and return as array
-        return 0
+        return _f
 
     def calibrate():
+        return 0
         #return new k matrix from calibration photos with checkerboard

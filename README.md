@@ -7,7 +7,6 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction.
 ## TODO
 - [ ] Install new propellers
 - [ ] Fix up arm wiring
-- [ ] Implement photo functionality into camera class
 - [ ] Write function to calibrate camera intrinsic matrix
 - [ ] Get location from PXFMini
 - [ ] Build and compile APM for PXFMini and Pi0
@@ -16,13 +15,14 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction.
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Construct Model
 - [ ] Drone Test Flight
+- [x] Implement photo functionality into camera class (Completed Oct. 31th)
 - [x] Design camera mount (Completed Oct. 29th)
 - [x] Design power distributor board model (Completed Oct. 30th)
 - [x] Recut and redrill carbon fiber tubes (Completed Oct. 26th)
 - [x] Reorder 2 propellers and LiPo charger (Completed Oct. 27th)
-- [x] Add Camera class and integrate into Drone class (Completed Oct. 23)
-- [x] Add directionality to Drone class (Completed Oct. 23)
-- [x] Evaluate plausibility of homogenous coordinate system (Completed Oct. 22)
+- [x] Add Camera class and integrate into Drone class (Completed Oct. 23th)
+- [x] Add directionality to Drone class (Completed Oct. 23th)
+- [x] Evaluate plausibility of homogenous coordinate system (Completed Oct. 22th)
 - [x] Cut and drill carbon fiber tubes (Completed Oct. 19th)
 - [x] Finish Drone Summary (Completed Oct. 19th)
 - [x] Draw Circuits (Completed Oct. 19th)

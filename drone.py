@@ -4,6 +4,7 @@ from picamera import PiCamera
 from picamera.array import PiRGBArray
 import glob
 import cv2 as cv
+from calibrate import calibrate
 
 class drone():
 
@@ -100,15 +101,16 @@ class camera(drone):
         self.rot = rot
         self.physCamera = PiCamera(resolution=(1280, 720), framerate=30)
         self.physCamera.camera.iso = 100
-        self.k = np.array([ 0.0, 0.0, 0.0,
-                            0.0, 0.0, 0.0,
-                            0.0, 0.0, 0.0 ])
         sleep(0.1)
         self.physCamera.camera.shutter_speed = self.physCamera.camera.exposure_speed
         self.physCamera.camera.exposure_mode = 'off'
         g = self.physCamera.camera.awb_gains
         self.physCamera.camera.awb_mode = 'off'
         self.physCamera.camera.awb_gains = g
+
+        self.k = np.array([ 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0 ])
         p = self.photo()
     def photo(self):
         rawCapture = PiRGBArray(self.physCamera)
@@ -116,3 +118,7 @@ class camera(drone):
         img = rawCapture.array
         # Take photo and return as array
         return _f
+
+    def cal_k():
+        #get img_ar
+        self.k = calibrate(img_arr)

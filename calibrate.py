@@ -54,8 +54,24 @@ def calibrate(imgarr, pattern_size = (9,6), draw = False):
     out = ret, intrinsic, distortion, rvecs, tvecs
     return out
 
+def undistort(imgarr, instrinsic, distortion):
+    for name in imgarr:
+        img = cv.imread(name)
+        h, w = img.shape[:2]
+        newcameraintrinsic, roi = cv.getOptimalNewCameraMatrix(instrinsic, distortion, (w, h), 1, (w, h))
+
+        # undistort
+        dst = cv.undistort(img, instrinsic, distortion, None, newcameraintrinsic)
+
+        # crop the image
+        x, y, w, h = roi
+        dst = dst[y:y + h, x:x + w]
+        cv.imshow('calibresult.png', dst)
+        cv.waitKey(200)
+
 if __name__ == "__main__":
 
     images = glob.glob("calPiCamera/*.jpg")
     ret, intrinsic, distortion, rvecs, tvecs = calibrate(images, draw = True)
     print(intrinsic)
+    undistort(images, intrinsic, distortion)

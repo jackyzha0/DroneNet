@@ -1,6 +1,9 @@
 import numpy as np
 from time import sleep
 from picamera import PiCamera
+from picamera.array import PiRGBArray
+import glob
+import cv2 as cv
 
 class drone():
 
@@ -100,7 +103,7 @@ class camera(drone):
         self.k = np.array([ 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0 ])
-        sleep(2)
+        sleep(0.1)
         self.physCamera.camera.shutter_speed = self.physCamera.camera.exposure_speed
         self.physCamera.camera.exposure_mode = 'off'
         g = self.physCamera.camera.awb_gains
@@ -108,11 +111,8 @@ class camera(drone):
         self.physCamera.camera.awb_gains = g
         p = self.photo()
     def photo(self):
-        _f = open('ret.jpg', 'wb')
-        self.physCamera.camera.capture(_f)
+        rawCapture = PiRGBArray(self.physCamera)
+        self.physCamera.camera.capture(rawCapture,format="bgr")
+        img = rawCapture.array
         # Take photo and return as array
         return _f
-
-    def calibrate():
-        return 0
-        #return new k matrix from calibration photos with checkerboard

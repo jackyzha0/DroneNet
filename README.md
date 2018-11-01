@@ -5,16 +5,19 @@
 Using neural networks controlled drone swarms for optimized 3D reconstruction.
 
 ## TODO
-- [ ] Install new propellers
-- [ ] Fix up arm wiring
-- [ ] Write function to calibrate camera intrinsic matrix
-- [ ] Get location from PXFMini
+- [ ] Solder motors to ESCs
+- [ ] Screw in new camera and PDB mount
+- [ ] Calibrate PiCamera
 - [ ] Build and compile APM for PXFMini and Pi0
+- [ ] Get location from PXFMini
+- [ ] Draw on MapDisp
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
+- [ ] Create training scenario
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Construct Model
-- [ ] Drone Test Flight
+- [x] Install new propellers (Completed Oct. 31st)
+- [x] Write function to calibrate camera intrinsic matrix (Completed Oct. 31st)
 - [x] Implement photo functionality into camera class (Completed Oct. 31th)
 - [x] Design camera mount (Completed Oct. 29th)
 - [x] Design power distributor board model (Completed Oct. 30th)

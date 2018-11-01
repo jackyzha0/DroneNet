@@ -2,19 +2,19 @@ import glob
 import numpy as np
 import cv2 as cv
 
-def calibrate(imgarr, pattern_size = (9,6), draw = False):
+def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
     """
     Input
         imgarr: array with relative paths to images with checkerboard
         pattern_size: Amount of columns and rows for point detection
-        draw: Draw images with grid pattern on screen
+        drawTime: Amount of time to display images on screen in ms. If drawTime = 0, don't draw
 
     Output
-        ret:
         intrinsic: intrinsic array, shape (3x3)
         distortion: distortion coefficients (5x1)
-        rvecs:
-        tvecs:
+            [k1 k2 p1 p2 k3]
+        rvecs: rotation vectors estimated for each input image
+        tvecs: translation vectors estimated for each input image
 
     """
     objpoints = []
@@ -43,18 +43,18 @@ def calibrate(imgarr, pattern_size = (9,6), draw = False):
             imgpoints.append(corners2)
 
             img = cv.drawChessboardCorners(img, (pattern_size[0], pattern_size[1]), corners2,ret)
-            if draw:
+            if drawTime > 0:
                 cv.imshow('img',img)
-                cv.waitKey(50)
+                cv.waitKey(drawTime)
 
-    if draw:
+    if drawTime > 0:
         cv.destroyAllWindows()
 
-    ret, intrinsic, distortion, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, grayscale.shape[::-1],None,None)
-    out = ret, intrinsic, distortion, rvecs, tvecs
+    _, intrinsic, distortion, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, grayscale.shape[::-1],None,None)
+    out = intrinsic, distortion, rvecs, tvecs
     return out
 
-def undistort(imgarr, instrinsic, distortion):
+def undistort(imgarr, instrinsic, distortion, drawTime = 0):
     for name in imgarr:
         img = cv.imread(name)
         h, w = img.shape[:2]
@@ -66,12 +66,15 @@ def undistort(imgarr, instrinsic, distortion):
         # crop the image
         x, y, w, h = roi
         dst = dst[y:y + h, x:x + w]
-        cv.imshow('calibresult.png', dst)
-        cv.waitKey(200)
+        if drawTime > 0:
+            cv.imshow('calibresult.png', dst)
+            cv.waitKey(drawTime)
+
+    if drawTime > 0:
+        cv.destroyAllWindows()
 
 if __name__ == "__main__":
 
     images = glob.glob("calPiCamera/*.jpg")
-    ret, intrinsic, distortion, rvecs, tvecs = calibrate(images, draw = True)
-    print(intrinsic)
-    undistort(images, intrinsic, distortion)
+    intrinsic, distortion, _, _ = calibrate(images, drawTime = 50)
+    undistort(images, intrinsic, distortion, drawTime = 50)

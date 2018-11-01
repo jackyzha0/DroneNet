@@ -121,4 +121,5 @@ class camera(drone):
 
     def cal_k():
         #get img_ar
-        self.k = calibrate(img_arr)
+
+        self.k = calibrate(img_arr)[0]

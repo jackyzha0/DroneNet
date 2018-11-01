@@ -15,6 +15,7 @@ def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
             [k1 k2 p1 p2 k3]
         rvecs: rotation vectors estimated for each input image
         tvecs: translation vectors estimated for each input image
+        error: gives mean reprojection error across all input images
 
     """
     objpoints = []
@@ -51,7 +52,15 @@ def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
         cv.destroyAllWindows()
 
     _, intrinsic, distortion, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, grayscale.shape[::-1],None,None)
-    out = intrinsic, distortion, rvecs, tvecs
+
+    error = 0
+    for ind in range(len(objpoints)):
+        imgpoints2, _ = cv.projectPoints(objpoints[ind], rvecs[ind], tvecs[ind], intrinsic, distortion)
+        err = cv.norm(imgpoints[ind],imgpoints2, cv.NORM_L2)/len(imgpoints2)
+        error += err
+
+        out = intrinsic, distortion, rvecs, tvecs, error/len(objpoints)
+
     return out
 
 def undistort(imgarr, instrinsic, distortion, drawTime = 0):
@@ -76,5 +85,6 @@ def undistort(imgarr, instrinsic, distortion, drawTime = 0):
 if __name__ == "__main__":
 
     images = glob.glob("calPiCamera/*.jpg")
-    intrinsic, distortion, _, _ = calibrate(images, drawTime = 50)
+    intrinsic, distortion, _, _, err = calibrate(images, drawTime = 50)
+    print(err)
     undistort(images, intrinsic, distortion, drawTime = 50)

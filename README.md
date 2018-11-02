@@ -5,8 +5,6 @@
 Using neural networks controlled drone swarms for optimized 3D reconstruction.
 
 ## TODO
-- [ ] Solder motors to ESCs
-- [ ] Screw in new camera and PDB mount
 - [ ] Calibrate PiCamera
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
@@ -16,6 +14,8 @@ Using neural networks controlled drone swarms for optimized 3D reconstruction.
 - [ ] Create training scenario
 - [ ] Cost function for measuring accuracy of 3D reconstruction
 - [ ] Construct Model
+- [x] Solder motors to ESCs (Completed Nov. 1st)
+- [x] Screw in new camera and PDB mount  (Completed Nov. 1st)
 - [x] Install new propellers (Completed Oct. 31st)
 - [x] Write function to calibrate camera intrinsic matrix (Completed Oct. 31st)
 - [x] Implement photo functionality into camera class (Completed Oct. 31th)
@@ -94,6 +94,7 @@ __Flight Time:__ We can find the current for which all motors provide enough thr
 Rough Diagram of circuit.
 
 ## Materials
+- [x] 4x 3pin motor to ESC female to female connector
 - [x] 4x M3 Locknuts
 - [x] 2x M3x22mm spacers
 - [x] 4x M3x32mm
@@ -113,7 +114,7 @@ Rough Diagram of circuit.
 - [x] 1x Pi Camera at 5MP
 
 ## Drone Parts
-Using the 3D printed Firefly drone (http://firefly1504.com)
+Using a modified version of the 3D printed Firefly drone (http://firefly1504.com)
 ### Mainframe
 Files located in ```Firefly Drone Parts\MainFrame```
 Print Bumper_v2_f.stl and 2x side.stld with 50% infill
@@ -129,6 +130,14 @@ Using the jigs, cut 500mm tube into 4x 100mm tubes
 Drill 3mm and 4mm holes into the tubes through the jigs
 
 ## Assembly Log
+![Nov. 1st Update 2](Logs/Nov1_2.jpg?raw=true "Nov. 1st")
+___Nov. 1st Update 2___
+Progress Update!
+
+![Nov. 1st Update 1](Logs/Nov1_1.jpg?raw=true "Nov. 1st")
+___Nov. 1st Update 1___
+Soldered misconnection between PXFMini and Pi0 and wires between motors and ESCs
+
 ![Oct. 29th Update 1](Logs/Oct29.jpg?raw=true "Oct. 29th")
 ___Oct. 29th Update 1___
 Mounted battery, Pi0, PXFMini, and Pi Camera.

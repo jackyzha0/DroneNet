@@ -4,6 +4,9 @@
 ## Summary
 Using neural networks controlled drone swarms for optimized 3D reconstruction.
 
+## Steps
+
+
 ## TODO
 - [ ] Calibrate PiCamera
 - [ ] Build and compile APM for PXFMini and Pi0

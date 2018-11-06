@@ -2,12 +2,71 @@
 ### Jacky Zhao - Science Fair Project 2018-19
 
 ## Summary
-Using neural networks controlled drone swarms for optimized 3D reconstruction.
+Decentralized drone swarm communication for search and rescue missions
 
-## Steps
+Problems with current methods:
+Heavily reliant on global communication methods such as GPS and central communication unit
 
+## Implementation
+1. Hardware
+  - Positioning
+    - PXFmini
+      - 3D Gyroscope
+      - Barometer
+      - 3D Compass
+  - Flying
+    - Power
+      - LiPoly 1300mAh 4C
+    - Thrust
+      - 5045GF with RS2205 Motor
+    - Drone Frame
+      - 3D Printed
+  - Communications
+    - Low Power Bluetooth
+      - nRF52832
+2. Software
+  - Decentralized Autopilot with reinforcement learning
+    - input array: [n, r, phi, theta] where n is number of total drones, r is distance away in pixels, phi is azimuth angle, and theta is elevation angle.
+    - r is assumed to be infinity when out of range
+    - Cover area in smallest time possible while maintaining communication distance
+    - Cost function should be affected by total flight time and integral of the distance between drones
+    - Long-Short-Term-Memory Cell Network with outputs as velocity deltas (shape [dx, dy, dz])
+  - Visualization
+    - Python script to visualize position and direction of drones in drone swarm
+    - Training environment for autopilot
+    - Drone physics
+      - Acceleration
+      - Gravity
+      - Bounding boxes and collisions
+      - Air Resistance
+  - Object Detection
+    - CNN with input size [n, n]
+      - Conv Feature Map [n, n]
+      - Pooling Layer [n/2, n/2]
+      - Conv Feature Map [n/2, n/2]
+      - Pooling Layer [n/4, n/4]
+      - Conv Feature Map [n/4, n/4]
+      - Pooling Layer [n/10, n/10]
+      - Fully Connected Layer
+      - Fully Connected Layer
+      - Softmax Layer
+      - Classification
+  - Hardware interfacing
+
+## Temporary Notes Section
+Free GPIO pins:
+RPI_GPIO5
+RPI_GPIO6
+RPI_GPIO12
+RPI_GPIO13
+RPI_GPIO16
+RPI_GPIO20
+RPI_GPIO21
+RPI_GPIO22
+RPI_GPIO26
 
 ## TODO
+- [ ] Look into SparkFun nRF52832 Breakout
 - [ ] Calibrate PiCamera
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
@@ -186,6 +245,7 @@ ___Oct. 16th Update 1___
 Printed Bumper_v2.stl and side.stl successfully! Lower_plate_V2 printed with wrong orientation and extra support material. Requeued.
 
 ## Resources
+
 http://docs.erlerobotics.com/brains/pxfmini/software/apm
 > Ardupilot (APM)
 

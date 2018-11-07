@@ -51,6 +51,8 @@ Heavily reliant on global communication methods such as GPS and central communic
       - Fully Connected Layer
       - Softmax Layer
       - Classification
+    - Dataset
+      - Kitware - VIRAT Dataset
   - Hardware interfacing
 
 ## Temporary Notes Section

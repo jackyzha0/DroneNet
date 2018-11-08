@@ -3,6 +3,7 @@ Python script for parsing the VIRAT Dataset
 '''
 import cv2 as cv
 import os
+from event import event
 
 def getFrame(dir, fnum):
     '''
@@ -25,10 +26,21 @@ def getFrame(dir, fnum):
     else:
         raise Exception("File doesn't exist!")
 
-def dispImage(image, drawTime = 5000, getBoundingBox = False):
-    cv.imshow("frame.jpg", image)
+def dispImage(image, boundingBoxes = None, drawTime = 1000):
+    im = image
+    if boundingBoxes is not None:
+        for box in boundingBoxes:
+            bound = box.getBasicBox()
+            cv.rectangle(im, (bound[0][0], bound[0][1]), (bound[1][0], bound[1][1]), (255, 0, 0), 3)
+    cv.imshow("frame.jpg", im)
     cv.waitKey(drawTime)
+
+def getRawAnnotations(dir):
+    f = open(dir)
+    print(f.read(0))
 
 dir = "data\\videos\\VIRAT_S_050203_09_001960_002083.mp4"
 fnum = 3459
-dispImage(getFrame(dir,fnum))
+b = []
+b.append(event(0, 5000, 3000, 200, 200, 200, 200, 1))
+dispImage(getFrame(dir,fnum), boundingBoxes = b, drawTime=10000)

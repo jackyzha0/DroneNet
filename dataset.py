@@ -57,9 +57,10 @@ def getEvents(dir):
         events.append(event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
     return events
 
-name = "VIRAT_S_050203_09_001960_002083"
-dir = "data\\videos\\" + name + ".mp4"
-t_dir = "data\\annotations\\" + name + ".viratdata.objects.txt"
-ev = getEvents(t_dir)
-for i in range(30*10):
-    dispImage(getFrame(dir,i*10), i*10, boundingBoxes = ev, drawTime=1, debug = True)
+if __name__ == "__main__":
+    name = "VIRAT_S_050203_09_001960_002083"
+    dir = "data/videos/" + name + ".mp4"
+    t_dir = "data/annotations/" + name + ".viratdata.objects.txt"
+    ev = getEvents(t_dir)
+    for i in range(30*10):
+        dispImage(getFrame(dir,i*10), i*10, boundingBoxes = ev, drawTime=1, debug = True)

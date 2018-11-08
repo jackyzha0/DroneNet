@@ -26,21 +26,40 @@ def getFrame(dir, fnum):
     else:
         raise Exception("File doesn't exist!")
 
-def dispImage(image, boundingBoxes = None, drawTime = 1000):
+def dispImage(image, fnum, boundingBoxes = None, drawTime = 1000, debug = False):
     im = image
+    if debug:
+        font = cv.FONT_HERSHEY_SIMPLEX
+        cv.putText(im, "Frame: " + str(fnum), (0,50), font, 1, (255,255,255),2,cv.LINE_AA)
+
     if boundingBoxes is not None:
         for box in boundingBoxes:
-            bound = box.getBasicBox()
-            cv.rectangle(im, (bound[0][0], bound[0][1]), (bound[1][0], bound[1][1]), (255, 0, 0), 3)
+            if checkValidBound(fnum, box):
+                bound = box.getBasicBox()
+                #print(bound, (255, 0, 0), 3)
+                cv.rectangle(im, (bound[0][0], bound[0][1]), (bound[1][0], bound[1][1]), (255, 0, 0), 3)
+
     cv.imshow("frame.jpg", im)
     cv.waitKey(drawTime)
 
-def getRawAnnotations(dir):
-    f = open(dir)
-    print(f.read(0))
+def checkValidBound(fnum, event):
+    if int(fnum) == int(event.nf) and int(event.type) != 0:
+        return True
+    else:
+        return False
 
-dir = "data\\videos\\VIRAT_S_050203_09_001960_002083.mp4"
-fnum = 3459
-b = []
-b.append(event(0, 5000, 3000, 200, 200, 200, 200, 1))
-dispImage(getFrame(dir,fnum), boundingBoxes = b, drawTime=10000)
+def getEvents(dir):
+    f = open(dir, "r")
+    lines = f.readlines()
+    events = []
+    for ind in lines:
+        raw = ind.split(" ")
+        events.append(event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
+    return events
+
+name = "VIRAT_S_050203_09_001960_002083"
+dir = "data\\videos\\" + name + ".mp4"
+t_dir = "data\\annotations\\" + name + ".viratdata.objects.txt"
+ev = getEvents(t_dir)
+for i in range(30*10):
+    dispImage(getFrame(dir,i*10), i*10, boundingBoxes = ev, drawTime=1, debug = True)

@@ -10,8 +10,8 @@ class event():
         self.type = type
 
     def getBasicBox(self):
-        top_left_x = self.x
-        top_left_y = self.y
-        bottom_right_x = self.x + self.w
-        bottom_right_y = self.y + self.h
-        return [[top_left_x, top_left_y], [bottom_right_x, bottom_right_y]]
+        top_left_x = int(self.x)
+        top_left_y = int(self.y)
+        bottom_right_x = int(self.x) + int(self.w)
+        bottom_right_y = int(self.y) + int(self.h)
+        return ((top_left_x, top_left_y), (bottom_right_x, bottom_right_y))

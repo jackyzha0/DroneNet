@@ -112,6 +112,35 @@ RPI_GPIO26
 - [x] Create initial variables for drones (Completed Sept. 26)
 - [x] Create drone class (Completed Sept. 26)
 
+## Data formatting of the VIRAT Dataset
+### Videos
+__1920x1080 video__ <br/>
+VIRAT_S_XXYYZZ__KK_SSSSSS_TTTTTT.mp4 <br/>
+VIRAT_S | Prefix <br/>
+XX | Collection Group ID <br/>
+YY | Scene ID <br/>
+ZZ | Sequence ID <br/>
+KK | Segment ID (within sequence) <br/>
+SSSSSS | Start time in seconds in %06d format <br/>
+TTTTTT | End time in seconds in %06 format <br/>
+### Annotations
+All annotations are white-space delimited <br/>
+__Object Annotations__ <br/>
+VIDNAME.viratdata.objects.txt <br/>
+8 Columns of separated data
+Bold means the data will be used
+1. ID - Unique ID, may not be consecutive
+2. dur - amount of frames the object appears for
+3. nf - start frame (begin at zero with 30 per second)
+4. x - X coordinate of top left corner of bounding box
+5. y - Y coordinate of top left corner of bounding box
+6. w - Width of bounding box
+7. h - Height of bounding box
+8. type - Unknown: 0, Person: 1, Car: 2, Other Vehicle: 3, Other Object: 4, Bike: 5
+
+__Event Annotations__ <br/>
+We aren't interested in event annotation at this moment so this will be ignored for now
+
 ## Price and Weight Data
 | Qty | Item | Total Weight (g) | Price |
 |-----|------|------------------|-------|

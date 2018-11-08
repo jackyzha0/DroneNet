@@ -3,7 +3,7 @@ import numpy as np
 import cv2 as cv
 
 def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
-    """
+    '''
     Input
         imgarr: array with relative paths to images with checkerboard
         pattern_size: Amount of columns and rows for point detection
@@ -17,7 +17,7 @@ def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
         tvecs: translation vectors estimated for each input image
         error: gives mean reprojection error across all input images
 
-    """
+    '''
     objpoints = []
     imgpoints = []
 

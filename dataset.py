@@ -62,5 +62,11 @@ if __name__ == "__main__":
     dir = "data/videos/" + name + ".mp4"
     t_dir = "data/annotations/" + name + ".viratdata.objects.txt"
     ev = getEvents(t_dir)
-    for i in range(30*10):
-        dispImage(getFrame(dir,i*10), i*10, boundingBoxes = ev, drawTime=1, debug = True)
+    fr = getFrame(dir,2300)
+    dispImage(fr, 2300, boundingBoxes = ev, drawTime=1000, debug = True)
+    bw = cv.cvtColor(fr, cv.COLOR_BGR2GRAY)
+    dispImage(bw, 2300, boundingBoxes = ev, drawTime=1000, debug = True)
+    print(fr.shape)
+    print(bw.shape)
+    # for i in range(30*10):
+    #     dispImage(getFrame(dir,i*10), i*10, boundingBoxes = ev, drawTime=1, debug = True)

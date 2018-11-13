@@ -35,9 +35,9 @@ def replot(d_arr):
     done = []
     for d in d_arr:
         x, y, z = d.getPos()[:3]
-        u = np.sin(d.c.rot)
-        v = np.cos(d.c.rot)
-        ax.quiver(x, y, z, u, v, 0, length=0.05, normalize=True)
+        # u = np.sin(d.c.rot)
+        # v = np.cos(d.c.rot)
+        # ax.quiver(x, y, z, u, v, 0, length=0.05, normalize=True)
         for d1 in d_arr[1:]:
             locarr = d.getDistDet(d1)
             r = locarr[0]

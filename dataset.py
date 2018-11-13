@@ -5,6 +5,11 @@ import cv2 as cv
 import os
 from event import event
 
+def getRange(dir):
+    vid = cv.VideoCapture(dir)
+    range = vid.get(cv.CAP_PROP_FRAME_COUNT)
+    return range
+
 def getFrame(dir, fnum):
     '''
     Input:
@@ -15,7 +20,7 @@ def getFrame(dir, fnum):
     '''
     if os.path.isfile(dir):
         vid = cv.VideoCapture(dir)
-        range = vid.get(cv.CAP_PROP_FRAME_COUNT)
+        range = getRange(dir)
         if fnum > 0 and fnum < range:
             vid.set(cv.CAP_PROP_POS_FRAMES, fnum)
         success, image = vid.read()

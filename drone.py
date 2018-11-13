@@ -1,7 +1,7 @@
 import numpy as np
 from time import sleep
-from picamera import PiCamera
-from picamera.array import PiRGBArray
+#from picamera import PiCamera
+#from picamera.array import PiRGBArray
 import glob
 import cv2 as cv
 from calibrate import calibrate
@@ -27,7 +27,7 @@ class drone():
         self.yv = y_vel
         self.zv = z_vel
         self.dataArr = np.zeros((n-1,3))
-        self.c = camera(self.id, rot)
+        #self.c = camera(self.id, rot)
         drone.totaldrones = n
 
     def populateDataArr(self, simulation = True):

@@ -1,22 +1,24 @@
 '''
 Tensorflow Neural Network for human detection in aerial images
 '''
-import tensorflow as tf
+import cv2 as cv
+import sugartensor as tf
+import dataset
+import random
+import numpy as np
 
 ### PARAMETERS ###
 batchsize = 128
 epochs = 1200
-learning_rate = 0.005
+learning_rate = 5e-4
 width = 1080
 height = 1920
 depth = 3
-nLabel = 5
+nLabel = 5 #Number of classes
 
-sess = tf.InteractiveSession()
-
-# Placeholders (MNIST image:28x28pixels=784, label=10)
-x = tf.placeholder(tf.float32, shape=[None, width * height * depth]) # [None, 28*28]
-y_ = tf.placeholder(tf.float32, shape=[None, nLabel])
+with tf.name_scope('input'):
+    x = tf.placeholder(tf.float32, shape=[None, width, height, depth], name = "x_inp") # [None, 28*28]
+    y_ = tf.placeholder(tf.float32, shape=[None, nLabel], name = "y_inp")
 
 ## Weight Initialization
 # Create lots of weights and biases & Initialize with a small positive number as we will use ReLU
@@ -93,4 +95,29 @@ train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)  # 1e-4
 correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-sess.run(tf.global_variables_initializer())
+init = tf.global_variables_initializer()
+
+
+def miniBatch(dir, ind_arr, size = 128):
+    fr_arr = []
+    for i in range(size):
+        fr_arr.append()
+
+name = "VIRAT_S_050203_09_001960_002083"
+dir = "data/videos/" + name + ".mp4"
+t_dir = "data/annotations/" + name + ".viratdata.objects.txt"
+ev = np.array([dataset.getEvents(t_dir)])
+rnd = random.randint(0,dataset.getRange(dir))
+fr = np.array([dataset.getFrame(dir, rnd)])
+bw = cv.cvtColor(cv.cvtColor(fr, cv.COLOR_BGR2GRAY), cv.COLOR_GRAY2RGB)
+dataset.dispImage(bw, rnd, boundingBoxes = ev, drawTime=5000, debug = True)
+
+feed = ev,rnd
+
+print(feed[0].shape)
+print(feed[1].shape)
+
+with tf.Session() as session:
+    session.run(init)
+    _, cost, acc, pred = session.run([train_step, cross_entropy, accuracy, y_conv],feed_dict={x: feed[0], y_: feed[1]})
+    print(cost, acc, pred)

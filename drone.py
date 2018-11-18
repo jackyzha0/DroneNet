@@ -100,13 +100,13 @@ class camera(drone):
         self.id = id
         self.rot = rot
         self.physCamera = PiCamera(resolution=(1280, 720), framerate=30)
-        self.physCamera.camera.iso = 100
+        self.physCamera.iso = 100
         sleep(0.1)
-        self.physCamera.camera.shutter_speed = self.physCamera.camera.exposure_speed
-        self.physCamera.camera.exposure_mode = 'off'
-        g = self.physCamera.camera.awb_gains
-        self.physCamera.camera.awb_mode = 'off'
-        self.physCamera.camera.awb_gains = g
+        self.physCamera.shutter_speed = self.physCamera.exposure_speed
+        self.physCamera.exposure_mode = 'off'
+        g = self.physCamera.awb_gains
+        self.physCamera.awb_mode = 'off'
+        self.physCamera.awb_gains = g
 
         self.k = np.array([ 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0,
@@ -114,10 +114,10 @@ class camera(drone):
         p = self.photo()
     def photo(self):
         rawCapture = PiRGBArray(self.physCamera)
-        self.physCamera.camera.capture(rawCapture,format="bgr")
+        self.physCamera.capture(rawCapture,format="bgr")
         img = rawCapture.array
         # Take photo and return as array
-        return _f
+        return img
 
     def cal_k():
         #get img_ar

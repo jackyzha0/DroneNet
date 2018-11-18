@@ -83,7 +83,6 @@ def undistort(imgarr, instrinsic, distortion, drawTime = 0):
         cv.destroyAllWindows()
 
 if __name__ == "__main__":
-
     images = glob.glob("calPiCamera/*.jpg")
     intrinsic, distortion, _, _, err = calibrate(images, drawTime = 50)
     print(err)

@@ -85,18 +85,3 @@ def undistort(imgarr, instrinsic, distortion, drawTime = 0):
 
     if drawTime > 0:
         cv.destroyAllWindows()
-
-if __name__ == "__main__":
-    images = glob.glob("*.jpg")
-    print(images)
-    intrinsic, distortion, _, _, err = calibrate(images, drawTime = 0)
-    print(intrinsic, err)
-    f = open('intrinsic.dat', 'w')
-    f.close()
-    
-    with open('intrinsic.dat', 'w') as f:
-        for i in intrinsic:
-            for j in i:
-                 print(j)
-                 f.write("%s|" % j)
-#undistort(images, intrinsic, distortion, drawTime = 50)

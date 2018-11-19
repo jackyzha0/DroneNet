@@ -5,6 +5,7 @@ from picamera.array import PiRGBArray
 import glob
 import cv2 as cv
 from calibrate import calibrate
+import os.path
 
 class drone():
 
@@ -108,9 +109,17 @@ class camera(drone):
         self.physCamera.awb_mode = 'auto'
         #self.physCamera.awb_gains = g
 
-        self.k = np.array([ 0.0, 0.0, 0.0,
-                            0.0, 0.0, 0.0,
-                            0.0, 0.0, 0.0 ])
+        if os.path.exists("intrinsic/intrinsic_%s.dat" % self.id):
+            with open("intrinsic/intrinsic_%s.dat" % id, 'r') as f:
+                contents = (f.read().split('|')[:9])
+                arr = [[],[],[]]
+                for i in range(3):
+                    for j in range(3):
+                        arr[i].append(float(contents[i+j]))
+        else:
+            self.k = np.array([[0.0, 0.0, 0.0],
+                               [0.0, 0.0, 0.0],
+                               [0.0, 0.0, 0.0]])
     def photo(self):
         rawCapture = PiRGBArray(self.physCamera)
         self.physCamera.capture(rawCapture, format="bgr")
@@ -122,4 +131,3 @@ class camera(drone):
         #get img_ar
 
         self.k = calibrate(img_arr)[0]
-

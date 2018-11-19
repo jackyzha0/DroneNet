@@ -3,6 +3,7 @@ from time import sleep
 import drone
 import cv2 as cv
 import glob
+import calibrate
 
 x, y, z, x_vel, y_vel, z_vel, rot, n = 0, 0, 0, 0, 0, 0, 0, 1
 dr = drone.drone(x, y, z, x_vel, y_vel, z_vel, rot, n)
@@ -16,17 +17,20 @@ print("Camera Intrinsic Array: " + str(dr.c.k))
 
 sleep(2)
 
-for i in range(10):
-    _f = dr.c.photo()
-    print(_f)
-    print(_f.shape)
-    strformat = "%d.jpg" % i
-    cv.imwrite(strformat, _f)
-    print("Image %d successfully written"  % i+1)
-    sleep(2)
+retake = True
 
+if retake:
+    for i in range(12):
+        _f = dr.c.photo()
+        print(_f)
+        print(_f.shape)
+        strformat = "%d.jpg"  % i
+        cv.imwrite(strformat, _f)
+        print("Successfully saved image %d" % i)
+        sleep(3)
 images = glob.glob("*.jpg")
-intrinsic, distortion, _, _, err = calibrate(images, drawTime = 50)
+print("Images globbed")
+intrinsic, distortion, _, _, err = calibrate.calibrate(images)
 print(err)
 print(intrinsic)
-undistort(images, intrinsic, distortion, drawTime = 50)
+

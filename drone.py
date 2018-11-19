@@ -1,7 +1,7 @@
 import numpy as np
 from time import sleep
-#from picamera import PiCamera
-#from picamera.array import PiRGBArray
+from picamera import PiCamera
+from picamera.array import PiRGBArray
 import glob
 import cv2 as cv
 from calibrate import calibrate
@@ -27,7 +27,7 @@ class drone():
         self.yv = y_vel
         self.zv = z_vel
         self.dataArr = np.zeros((n-1,3))
-        #self.c = camera(self.id, rot)
+        self.c = camera(self.id, rot)
         drone.totaldrones = n
 
     def populateDataArr(self, simulation = True):
@@ -99,27 +99,27 @@ class camera(drone):
     def __init__(self, id, rot):
         self.id = id
         self.rot = rot
-        self.physCamera = PiCamera(resolution=(1280, 720), framerate=30)
-        self.physCamera.iso = 100
+        self.physCamera = PiCamera(resolution=(1920, 1080))
+        #self.physCamera.iso = 400
         sleep(0.1)
-        self.physCamera.shutter_speed = self.physCamera.exposure_speed
-        self.physCamera.exposure_mode = 'off'
-        g = self.physCamera.awb_gains
-        self.physCamera.awb_mode = 'off'
-        self.physCamera.awb_gains = g
+        #self.physCamera.shutter_speed = 5556 #1/180
+        self.physCamera.exposure_mode = 'auto'
+        #g = self.physCamera.awb_gains
+        self.physCamera.awb_mode = 'auto'
+        #self.physCamera.awb_gains = g
 
         self.k = np.array([ 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0 ])
-        p = self.photo()
     def photo(self):
         rawCapture = PiRGBArray(self.physCamera)
-        self.physCamera.capture(rawCapture,format="bgr")
+        self.physCamera.capture(rawCapture, format="bgr")
         img = rawCapture.array
         # Take photo and return as array
-        return img
+        return img[:,:,::-1]
 
     def cal_k():
         #get img_ar
 
         self.k = calibrate(img_arr)[0]
+

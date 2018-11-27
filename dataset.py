@@ -53,25 +53,41 @@ def checkValidBound(fnum, event):
     else:
         return False
 
-def getEvents(dir):
+def getEvents(dir,scale=None):
     f = open(dir, "r")
     lines = f.readlines()
     events = []
-    for ind in lines:
-        raw = ind.split(" ")
-        events.append(event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
+    if scale:
+        fx = 1080/scale[0]
+        fy = 1920/scale[0]
+        for ind in lines:
+            raw = ind.split(" ")
+            events.append(event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
+    else:
+        for ind in lines:
+            raw = ind.split(" ")
+            events.append(event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
     return events
 
+def crop(fr,dims):
+    diff = fr.shape[1] - fr.shape[0]
+    print(diff/2, (fr.shape[1]) - (diff / 2))
+    crop = fr[:,(diff / 2):fr.shape[1] - (diff / 2)]
+    resize = cv.resize(crop,dims)
+    return resize
+
 if __name__ == "__main__":
+    dims = (448,448)
     name = "VIRAT_S_050203_09_001960_002083"
     dir = "data/videos/" + name + ".mp4"
     t_dir = "data/annotations/" + name + ".viratdata.objects.txt"
-    ev = getEvents(t_dir)
+    ev = getEvents(t_dir,scale = dims)
     fr = getFrame(dir,2300)
-    dispImage(fr, 2300, boundingBoxes = ev, drawTime=1000, debug = True)
-    bw = cv.cvtColor(fr, cv.COLOR_BGR2GRAY)
-    dispImage(bw, 2300, boundingBoxes = ev, drawTime=1000, debug = True)
+    crop = crop(fr,dims)
+    dispImage(crop, 2300, boundingBoxes = ev, drawTime=10000, debug = True)
+    #dispImage(fr, 2300, boundingBoxes = ev, drawTime=1000, debug = True)
+    #dispImage(resize, 2300, boundingBoxes = ev, drawTime=10000, debug = True)
     print(fr.shape)
-    print(bw.shape)
+
     # for i in range(30*10):
     #     dispImage(getFrame(dir,i*10), i*10, boundingBoxes = ev, drawTime=1, debug = True)

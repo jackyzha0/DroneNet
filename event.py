@@ -15,3 +15,6 @@ class event():
         bottom_right_x = int(self.x) + int(self.w)
         bottom_right_y = int(self.y) + int(self.h)
         return ((top_left_x, top_left_y), (bottom_right_x, bottom_right_y))
+
+    def __float__(self):
+        return 0.0

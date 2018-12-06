@@ -41,7 +41,7 @@ def dispImage(image, fnum, boundingBoxes = None, drawTime = 1000, debug = False)
         for box in boundingBoxes:
             if checkValidBound(fnum, box):
                 bound = box.getBasicBox()
-                #print(bound, (255, 0, 0), 3)
+                print(bound)
                 cv.rectangle(im, (bound[0][0], bound[0][1]), (bound[1][0], bound[1][1]), (255, 0, 0), 3)
 
     cv.imshow("frame.jpg", im)
@@ -58,11 +58,17 @@ def getEvents(dir,scale=None):
     lines = f.readlines()
     events = []
     if scale:
-        fx = 1080/scale[0]
-        fy = 1920/scale[0]
+        print(scale)
+        cropx = 1920-1080
+        fx = scale[0]/1080.
+        fy = scale[0]/1080.
+        # print('fx, fy, cropx: ',fx,fy,cropx)
         for ind in lines:
             raw = ind.split(" ")
-            events.append(event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
+            #print('x '+raw[3],'y '+raw[4],'w '+raw[5],'h '+raw[6])
+            #print(int(raw[3])-cropx,fy*int(raw[4]),fx*int(raw[5]),fy*int(raw[6]))
+            #(id, dur, nf, x, y, w, h, type)
+            events.append(event(raw[0], raw[1], raw[2], fx * (int(raw[3])-(cropx/2)), fy * int(raw[4]), fx * int(raw[5]), fy * int(raw[6]), raw[7][0]))
     else:
         for ind in lines:
             raw = ind.split(" ")
@@ -71,7 +77,6 @@ def getEvents(dir,scale=None):
 
 def crop(fr,dims):
     diff = fr.shape[1] - fr.shape[0]
-    print(diff/2, (fr.shape[1]) - (diff / 2))
     crop = fr[:,(diff / 2):fr.shape[1] - (diff / 2)]
     resize = cv.resize(crop,dims)
     return resize
@@ -85,6 +90,7 @@ if __name__ == "__main__":
     fr = getFrame(dir,2300)
     crop = crop(fr,dims)
     dispImage(crop, 2300, boundingBoxes = ev, drawTime=10000, debug = True)
+    #dispImage(fr, 2300, boundingBoxes = getEvents(t_dir), drawTime=10000, debug = True)
     #dispImage(fr, 2300, boundingBoxes = ev, drawTime=1000, debug = True)
     #dispImage(resize, 2300, boundingBoxes = ev, drawTime=10000, debug = True)
     print(fr.shape)

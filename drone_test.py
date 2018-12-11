@@ -36,7 +36,7 @@ if test:
 images = glob.glob("calPiCamera/*.jpg")
 print("Images globbed")
 print(images)
-intrinsic, distortion, _, _, err = calibrate.calibrate(images, drawTime = 0)
+intrinsic, distortion, _, _, err = calibrate.calibrate(images, drawTime = 1000)
 print(intrinsic, err)
 
 #Clear up dat file

@@ -11,8 +11,6 @@ import numpy as np
 batchsize = 128
 epochs = 1200
 learning_rate = 5e-4
-width = 1080
-height = 1920
 #sx_dims = 120x120
 sx = 16 #1920/120
 sy = 9 #1080/120
@@ -22,63 +20,79 @@ outdims = (sx, sy, (B * 5 + C)) #S x S x (B*5 + C)
 #Mult by 5 for output shape
 # x, y, w, h, confidence
 
-def fire_module(inputs,
-                squeeze_depth,
-                expand_depth,
-                reuse=None,
-                scope=None):
-    with tf.variable_scope(scope, 'fire', [inputs], reuse=reuse):
-        with arg_scope([conv2d, max_pool2d]):
-            net = _squeeze(inputs, squeeze_depth)
-            net = _expand(net, expand_depth)
+def conv2d(inputs, filters, kernel_size, strides=(1, 1),
+           kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
+           bias_initializer=tf.zeros_initializer(),
+           kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0002),
+           name=None):
+    return tf.layers.conv2d(inputs, filters, kernel_size, strides,
+      kernel_initializer=kernel_initializer,
+      bias_initializer=bias_initializer,
+      kernel_regularizer=kernel_regularizer,
+      activation=tf.nn.relu,
+      name=name,
+      padding="same")
+
+def fire_module(inputs, squeeze_depth, expand_depth, name):
+    with tf.variable_scope(name, 'fire', [inputs]):
+        squeezed = _squeeze(inputs, squeeze_depth)
+        net = _expand(squeezed, expand_depth)
         return net
 
-
 def _squeeze(inputs, num_outputs):
-    return conv2d(inputs, num_outputs, [1, 1], stride=1, scope='squeeze')
+    return conv2d(inputs, num_outputs, [1, 1], name='squeeze')
 
 
 def _expand(inputs, num_outputs):
-    with tf.variable_scope('expand'):
-        e1x1 = conv2d(inputs, num_outputs, [1, 1], stride=1, scope='1x1')
-        e3x3 = conv2d(inputs, num_outputs, [3, 3], scope='3x3')
-    return tf.concat([e1x1, e3x3], 1)
+    e1x1 = conv2d(inputs, num_outputs, [1, 1], name='e1x1')
+    e3x3 = conv2d(inputs, num_outputs, [3, 3], name='e3x3')
+    return tf.concat([e1x1, e3x3], axis=3)
 
-net = conv2d(images, 96, [7, 7], stride=2, scope='conv1')
-net = max_pool2d(net, [3, 3], stride=2, scope='maxpool1')
-net = fire_module(net, 16, 64, scope='fire2')
-net = fire_module(net, 16, 64, scope='fire3')
-net = fire_module(net, 32, 128, scope='fire4')
-net = max_pool2d(net, [3, 3], stride=2, scope='maxpool4')
-net = fire_module(net, 32, 128, scope='fire5')
-net = fire_module(net, 48, 192, scope='fire6')
-net = fire_module(net, 48, 192, scope='fire7')
-net = fire_module(net, 64, 256, scope='fire8')
-net = max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
-net = fire_module(net, 64, 256, scope='fire9')
-net = conv2d(net, outdims, [1, 1], stride=1, scope='conv10')
-net = avg_pool2d(net, [13, 13], stride=1, scope='avgpool10')
-logits = tf.squeeze(net, [2], name='logits')
+def yolosqueezenet(images, is_training=True):
+    net = tf.contrib.layers.conv2d(images, 96, [7, 7], strides=(2, 2), scope='conv1')
+    net = tf.contrib.layers.max_pool2d(net, [3, 3], strides=(2, 2), scope='maxpool1')
+    net = fire_module(net, 16, 64, scope='fire1')
+    net = fire_module(net, 16, 64, scope='fire2')
+    net = fire_module(net, 32, 128, scope='fire3')
+    net = tf.contrib.layers.max_pool2d(net, [3, 3], strides=(2, 2), scope='maxpool2')
+    net = fire_module(net, 32, 128, scope='fire4')
+    net = fire_module(net, 48, 192, scope='fire5')
+    net = fire_module(net, 48, 192, scope='fire6')
+    net = fire_module(net, 64, 256, scope='fire7')
+    net = tf.contrib.layers.max_pool2d(net, [3, 3], strides=(2, 2), scope='maxpool8')
+    net = fire_module(net, 64, 256, scope='fire8')
+    if is_training:
+        net = tf.layers.dropout(net, rate=0.5, name='drop1')
+    else:
+        net = tf.layers.dropout(net, rate=0.0, name='drop1')
+    net = tf.contrib.layers.conv2d(net, 15, [9, 9], strides=(3, 3), scope='conv2')
+    return net
 
 def miniBatch(dir, ind_arr, size = 128):
-  fr_arr = []
-  for i in range(size):
-    fr_arr.append()
+    fr_arr = []
+    for i in range(size):
+        fr_arr.append()
 
+def loss():
+    #TODO
+    return 0
+
+framenum = np.random.randint(0,2400)
+
+dims = (448,448)
 name = "VIRAT_S_050203_09_001960_002083"
 dir = "data/videos/" + name + ".mp4"
 t_dir = "data/annotations/" + name + ".viratdata.objects.txt"
-ev = np.array([dataset.getEvents(t_dir)])
-rnd = random.randint(0,dataset.getRange(dir))
-fr = np.array([dataset.getFrame(dir, rnd)])
-bw = cv.cvtColor(cv.cvtColor(fr[0], cv.COLOR_BGR2GRAY), cv.COLOR_GRAY2RGB)
-dataset.dispImage(bw, rnd, boundingBoxes = ev[0], drawTime=5000, debug = True)
+ev = dataset.getEvents(t_dir,scale = dims)
+_ev = np.array(dataset.getEventFrame(framenum, ev))
+fr = dataset.getFrame(dir,framenum)
+crop = dataset.crop(fr,dims)
+dataset.dispImage(crop, framenum, boundingBoxes = _ev, drawTime=10000, debug = True)
 
-feed = fr,ev[:][:5]
-print(ev[:][:5].shape)
-print(feed[1][0][:5].shape)
+print('X shape:',crop.shape)
+print('Y shape:',_ev.shape)
 
-with tf.Session() as session:
-  session.run(init)
-  _, cost, acc, pred = session.run([train_step, cross_entropy, accuracy, y_conv],feed_dict={x: feed[0], y_: [feed[1][0][:5]], keep_prob: 1.0})
-  print(cost, acc, pred)
+# with tf.Session() as session:
+#   session.run(init)
+#   _, cost, acc, pred = session.run([train_step, cross_entropy, accuracy, y_conv],feed_dict={images: feed[0], y_: [feed[1][0][:5]], keep_prob: 1.0})
+#   print(cost, acc, pred)

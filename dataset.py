@@ -39,10 +39,9 @@ def dispImage(image, fnum, boundingBoxes = None, drawTime = 1000, debug = False)
 
     if boundingBoxes is not None:
         for box in boundingBoxes:
-            if checkValidBound(fnum, box):
-                bound = box.getBasicBox()
-                print(bound)
-                cv.rectangle(im, (bound[0][0], bound[0][1]), (bound[1][0], bound[1][1]), (255, 0, 0), 3)
+            bound = box.getBasicBox()
+            print(bound)
+            cv.rectangle(im, (bound[0][0], bound[0][1]), (bound[1][0], bound[1][1]), (255, 0, 0), 3)
 
     cv.imshow("frame.jpg", im)
     cv.waitKey(drawTime)
@@ -52,6 +51,13 @@ def checkValidBound(fnum, event):
         return True
     else:
         return False
+
+def getEventFrame(framenum, ev):
+    evlist = []
+    for event in ev:
+        if checkValidBound(framenum, event):
+            evlist.append(event)
+    return evlist
 
 def getEvents(dir,scale=None):
     f = open(dir, "r")

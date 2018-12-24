@@ -51,7 +51,7 @@ def _expand(inputs, num_outputs):
     return tf.concat([e1x1, e3x3], axis=3)
 
 images = tf.placeholder(tf.float32, [None, 448, 448, 3], name="x_inp")
-#boxes = tf.placeholder()
+boxes = tf.placeholder(tf.float32, [None, None, (5 + C)], name="y_inp")
 
 net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
 net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool1')
@@ -65,15 +65,15 @@ net = fire_module(net, 48, 192, scope='fire6')
 net = fire_module(net, 64, 256, scope='fire7')
 net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
 net = fire_module(net, 64, 256, scope='fire8')
-net = tf.contrib.layers.conv2d(net, 20, [1, 1], stride=1, scope='conv2')
-pred = tf.contrib.layers.flatten(net)
+net = tf.contrib.layers.max_pool2d(net, [9, 9], stride=3, scope='maxpool9')
+pred = tf.contrib.layers.conv2d(net, 20, [1, 1], stride=1, scope='conv2')
 
 def miniBatch(dir, ind_arr, size = 128):
     fr_arr = []
     for i in range(size):
         fr_arr.append()
 
-def model_loss(logits, ):
+def model_loss(logits, labels):
     #TODO
     return 0.15
 
@@ -98,17 +98,13 @@ dataset.dispImage(crop, framenum, boundingBoxes = _ev, drawTime=1000, debug = Tr
 print('X shape:', crop.shape)
 print('Y shape:', _ev.shape)
 
-for x in _ev:
-    print(x)
-
 dbform = event.toFeedFormat(_ev)
 print('Y_feed shape:', np.array(dbform).shape)
 
+feed = [[crop],[dbform]]
+
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    #out = sess.run()
+    out = sess.run([pred], feed_dict={images: feed[0], boxes: feed[1]})
+    print(np.array(out[0]).shape)
         #_, cost, acc = sess.run([train_op, model_func, acc])
-# with tf.Session() as session:
-#   session.run(init)
-#   _, cost, acc, pred = session.run([train_step, cross_entropy, accuracy, y_conv],feed_dict={images: feed[0], y_: [feed[1][0][:5]], keep_prob: 1.0})
-#   print(cost, acc, pred)

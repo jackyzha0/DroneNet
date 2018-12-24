@@ -14,8 +14,8 @@ epochs = 1200
 learning_rate = 5e-4
 momentum = 0.9
 #sx_dims = 120x120
-sx = 16 #1920/120
-sy = 9 #1080/120
+sx = 7 #448
+sy = 7 #448
 B = 2 #num bounding boxes per anchor box
 C = 5 #class probabilities, size num_classes
 outdims = (sx, sy, (B * 5 + C)) #S x S x (B*5 + C)
@@ -67,21 +67,18 @@ net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
 net = fire_module(net, 64, 256, scope='fire8')
 net = tf.contrib.layers.max_pool2d(net, [9, 9], stride=3, scope='maxpool9')
 pred = tf.contrib.layers.conv2d(net, 20, [1, 1], stride=1, scope='conv2')
+variables_names = [v.name for v in tf.trainable_variables()]
+init = tf.global_variables_initializer()
+
+#YOLO loss
+# loss = tf.constant(1.23)
+# optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
+# train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
 
 def miniBatch(dir, ind_arr, size = 128):
     fr_arr = []
     for i in range(size):
         fr_arr.append()
-
-def model_loss(logits, labels):
-    #TODO
-    return 0.15
-
-def model_optimize(loss,rate):
-    varlist = tf.trainable_variables()
-    optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0, var_list=varlist)
-    train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
-    return train_op
 
 framenum = np.random.randint(0,2400)
 
@@ -103,8 +100,17 @@ print('Y_feed shape:', np.array(dbform).shape)
 
 feed = [[crop],[dbform]]
 
+
+
 with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
+    sess.run(init)
+
+    values = sess.run(variables_names)
+    for k, v in zip(variables_names, values):
+        print "Variable: ", k
+        #print "Shape: ", v.shape
+    print(len(values))
+
     out = sess.run([pred], feed_dict={images: feed[0], boxes: feed[1]})
     print(np.array(out[0]).shape)
         #_, cost, acc = sess.run([train_op, model_func, acc])

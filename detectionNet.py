@@ -68,13 +68,6 @@ net = fire_module(net, 64, 256, scope='fire8')
 net = tf.contrib.layers.conv2d(net, 20, [1, 1], stride=1, scope='conv2')
 pred = tf.contrib.layers.flatten(net)
 
-def center_to_coords(centers):
-    '''
-    Converts [batchsize, x, y, (cx, cy, w, h, class)] to form p1x, p1y, p2x, p2y
-    '''
-    centers = tf.reshape(-1, tf.math.pow(tf.shape(centers)[1], 2), tf.shape(centers)[3])
-    center_x, center_y, width, height, attrs = tf.split(centers, [1, 1, 1, 1, -1], axis=-1)
-
 def miniBatch(dir, ind_arr, size = 128):
     fr_arr = []
     for i in range(size):

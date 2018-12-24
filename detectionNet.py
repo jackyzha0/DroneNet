@@ -11,6 +11,7 @@ import numpy as np
 batchsize = 128
 epochs = 1200
 learning_rate = 5e-4
+momentum = 0.9
 #sx_dims = 120x120
 sx = 16 #1920/120
 sy = 9 #1080/120
@@ -20,12 +21,12 @@ outdims = (sx, sy, (B * 5 + C)) #S x S x (B*5 + C)
 #Mult by 5 for output shape
 # x, y, w, h, confidence
 
-def conv2d(inputs, filters, kernel_size, strides=(1, 1),
+def conv2d(inputs, filters, kernel_size, stride=1,
            kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
            bias_initializer=tf.zeros_initializer(),
            kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0002),
            name=None):
-    return tf.layers.conv2d(inputs, filters, kernel_size, strides,
+    return tf.layers.conv2d(inputs, filters, kernel_size, stride,
       kernel_initializer=kernel_initializer,
       bias_initializer=bias_initializer,
       kernel_regularizer=kernel_regularizer,
@@ -33,8 +34,8 @@ def conv2d(inputs, filters, kernel_size, strides=(1, 1),
       name=name,
       padding="same")
 
-def fire_module(inputs, squeeze_depth, expand_depth, name):
-    with tf.variable_scope(name, 'fire', [inputs]):
+def fire_module(inputs, squeeze_depth, expand_depth, scope):
+    with tf.variable_scope(scope, 'fire', [inputs]):
         squeezed = _squeeze(inputs, squeeze_depth)
         net = _expand(squeezed, expand_depth)
         return net
@@ -48,34 +49,45 @@ def _expand(inputs, num_outputs):
     e3x3 = conv2d(inputs, num_outputs, [3, 3], name='e3x3')
     return tf.concat([e1x1, e3x3], axis=3)
 
-def yolosqueezenet(images, is_training=True):
-    net = tf.contrib.layers.conv2d(images, 96, [7, 7], strides=(2, 2), scope='conv1')
-    net = tf.contrib.layers.max_pool2d(net, [3, 3], strides=(2, 2), scope='maxpool1')
-    net = fire_module(net, 16, 64, scope='fire1')
-    net = fire_module(net, 16, 64, scope='fire2')
-    net = fire_module(net, 32, 128, scope='fire3')
-    net = tf.contrib.layers.max_pool2d(net, [3, 3], strides=(2, 2), scope='maxpool2')
-    net = fire_module(net, 32, 128, scope='fire4')
-    net = fire_module(net, 48, 192, scope='fire5')
-    net = fire_module(net, 48, 192, scope='fire6')
-    net = fire_module(net, 64, 256, scope='fire7')
-    net = tf.contrib.layers.max_pool2d(net, [3, 3], strides=(2, 2), scope='maxpool8')
-    net = fire_module(net, 64, 256, scope='fire8')
-    if is_training:
-        net = tf.layers.dropout(net, rate=0.5, name='drop1')
-    else:
-        net = tf.layers.dropout(net, rate=0.0, name='drop1')
-    net = tf.contrib.layers.conv2d(net, 15, [9, 9], strides=(3, 3), scope='conv2')
-    return net
+images = tf.placeholder(tf.float32, [None, 448, 448, 3], name="x_inp")
+#boxes = tf.placeholder()
+
+net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
+net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool1')
+net = fire_module(net, 16, 64, scope='fire1')
+net = fire_module(net, 16, 64, scope='fire2')
+net = fire_module(net, 32, 128, scope='fire3')
+net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool2')
+net = fire_module(net, 32, 128, scope='fire4')
+net = fire_module(net, 48, 192, scope='fire5')
+net = fire_module(net, 48, 192, scope='fire6')
+net = fire_module(net, 64, 256, scope='fire7')
+net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
+net = fire_module(net, 64, 256, scope='fire8')
+net = tf.contrib.layers.conv2d(net, 15, [9, 9], stride=3, scope='conv2')
+pred = tf.contrib.layers.flatten(net)
+
+def center_to_coords(centers):
+    '''
+    Converts [batchsize, x, y, (cx, cy, w, h, class)] to form p1x, p1y, p2x, p2y
+    '''
+    centers = tf.reshape(-1, tf.math.pow(tf.shape(centers)[1], 2), tf.shape(centers)[3])
+    center_x, center_y, width, height, attrs = tf.split(centers, [1, 1, 1, 1, -1], axis=-1)
 
 def miniBatch(dir, ind_arr, size = 128):
     fr_arr = []
     for i in range(size):
         fr_arr.append()
 
-def loss():
+def model_loss(logits, ):
     #TODO
-    return 0
+    return 0.15
+
+def model_optimize(loss,rate):
+    varlist = tf.trainable_variables()
+    optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0, var_list=varlist)
+    train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
+    return train_op
 
 framenum = np.random.randint(0,2400)
 
@@ -92,6 +104,13 @@ dataset.dispImage(crop, framenum, boundingBoxes = _ev, drawTime=10000, debug = T
 print('X shape:',crop.shape)
 print('Y shape:',_ev.shape)
 
+for x in _ev:
+    print(x)
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    #out = sess.run()
+        #_, cost, acc = sess.run([train_op, model_func, acc])
 # with tf.Session() as session:
 #   session.run(init)
 #   _, cost, acc, pred = session.run([train_step, cross_entropy, accuracy, y_conv],feed_dict={images: feed[0], y_: [feed[1][0][:5]], keep_prob: 1.0})

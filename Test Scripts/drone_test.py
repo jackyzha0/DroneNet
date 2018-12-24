@@ -33,7 +33,7 @@ if test:
             print("Successfully saved image %d" % i)
             sleep(3)
 
-images = glob.glob("calPiCamera/*.jpg")
+images = glob.glob("../calPiCamera/*.jpg")
 print("Images globbed")
 print(images)
 intrinsic, distortion, _, _, err = calibrate.calibrate(images, drawTime = 1000)
@@ -44,10 +44,10 @@ if test:
     id = str(dr.c.id)
 else:
     id = 0
-f = open("intrinsic/intrinsic_%s.dat" % id, 'w')
+f = open("../intrinsic/intrinsic_%s.dat" % id, 'w')
 f.close()
 
-with open("intrinsic/intrinsic_%s.dat" % id, 'w') as f:
+with open("../intrinsic/intrinsic_%s.dat" % id, 'w') as f:
     for i in intrinsic:
         for j in i:
              print(j)

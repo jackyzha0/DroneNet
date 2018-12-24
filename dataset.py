@@ -3,7 +3,7 @@ Python script for parsing the VIRAT Dataset
 '''
 import cv2 as cv
 import os
-from event import event
+import event
 
 def getRange(dir):
     vid = cv.VideoCapture(dir)
@@ -74,11 +74,11 @@ def getEvents(dir,scale=None):
             #print('x '+raw[3],'y '+raw[4],'w '+raw[5],'h '+raw[6])
             #print(int(raw[3])-cropx,fy*int(raw[4]),fx*int(raw[5]),fy*int(raw[6]))
             #(id, dur, nf, x, y, w, h, type)
-            events.append(event(raw[0], raw[1], raw[2], fx * (int(raw[3])-(cropx/2)), fy * int(raw[4]), fx * int(raw[5]), fy * int(raw[6]), raw[7][0]))
+            events.append(event.event(raw[0], raw[1], raw[2], fx * (int(raw[3])-(cropx/2)), fy * int(raw[4]), fx * int(raw[5]), fy * int(raw[6]), raw[7][0]))
     else:
         for ind in lines:
             raw = ind.split(" ")
-            events.append(event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
+            events.append(event.event(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7][0]))
     return events
 
 def crop(fr,dims):

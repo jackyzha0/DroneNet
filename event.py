@@ -19,3 +19,8 @@ class event():
     def __str__(self):
         st = "ID: " + str(self.id) + " x: " + str(self.x) + " y: " + str(self.y) + " w: " + str(self.w) + " h: " + str(self.h)
         return st
+
+def toFeedFormat(arr):
+    for ev in arr:
+        print(ev.x)
+    return []

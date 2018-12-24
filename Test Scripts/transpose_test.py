@@ -1,4 +1,4 @@
-import sugartensor as tf
+import tensorflow as tf
 
 pred_1 = tf.constant(['1b1x', '1b1y', '1b1w', '1b1h', '1b1conf',
                        '1class1bool', '1class2bool', '1class3bool', '1class4bool', '1class5bool'])
@@ -18,12 +18,12 @@ fincat = tf.stack([cat1,cat2])
 fincat = tf.stack([fincat])
 
 trans2 = tf.reshape(fincat, [-1, tf.pow(tf.shape(fincat)[1],2), tf.shape(fincat)[3]])
-center_x, center_y, width, height, attrs = tf.split(trans2, [1, 1, 1, 1, -1])
+x = tf.split(trans2, [1, 1, 1, 1, -1], 1)
 
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 print(sess.run(trans2))
 print(sess.run(tf.shape(trans2)))
-
-print(sess.run([center_x, center_y, width, height, attrs]))
+print(sess.run(x))
+print(sess.run(tf.shape(x)))

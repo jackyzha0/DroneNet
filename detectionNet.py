@@ -6,6 +6,7 @@ import sugartensor as tf
 import dataset
 import random
 import numpy as np
+import event
 
 ### PARAMETERS ###
 batchsize = 128
@@ -64,7 +65,7 @@ net = fire_module(net, 48, 192, scope='fire6')
 net = fire_module(net, 64, 256, scope='fire7')
 net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
 net = fire_module(net, 64, 256, scope='fire8')
-net = tf.contrib.layers.conv2d(net, 15, [9, 9], stride=3, scope='conv2')
+net = tf.contrib.layers.conv2d(net, 20, [1, 1], stride=1, scope='conv2')
 pred = tf.contrib.layers.flatten(net)
 
 def center_to_coords(centers):
@@ -99,13 +100,16 @@ ev = dataset.getEvents(t_dir,scale = dims)
 _ev = np.array(dataset.getEventFrame(framenum, ev))
 fr = dataset.getFrame(dir,framenum)
 crop = dataset.crop(fr,dims)
-dataset.dispImage(crop, framenum, boundingBoxes = _ev, drawTime=10000, debug = True)
+dataset.dispImage(crop, framenum, boundingBoxes = _ev, drawTime=1000, debug = True)
 
-print('X shape:',crop.shape)
-print('Y shape:',_ev.shape)
+print('X shape:', crop.shape)
+print('Y shape:', _ev.shape)
 
 for x in _ev:
     print(x)
+
+dbform = event.toFeedFormat(_ev)
+print('Y_feed shape:', np.array(dbform).shape)
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())

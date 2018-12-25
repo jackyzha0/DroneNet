@@ -85,7 +85,8 @@ class dataHandler():
                     p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
                     xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y)
                     print(refdims[indice])
-                    if True:
+                    print(xywh[0]-xywh[3], xywh[0]+xywh[3])
+                    if xywh[0] > refdims[indice][0] and xywh[0] < refdims[indice][1]:
                         C = [0.] * self.NUM_CLASSES
 
                         if box_det[0] == "Car":

@@ -35,12 +35,21 @@ class dataHandler():
     batches_elapsed = 0
 
     NUM_CLASSES = 4
+    IMGDIMS = (1242, 375)
 
     def get_img(self, num_arr):
+        refdims = {}
+        imgs = []
         for indice in num_arr:
             imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
-            #dispImage(cv.imread(imgdir), drawTime = 1)
-            print(imgdir)
+            im = cv.imread(imgdir)
+            refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
+            crop = im[:, refx:refx+self.IMGDIMS[1]]
+            dispImage(crop, drawTime = 3000)
+
+            imgs.append(crop)
+            refdims[indice]= [refx, refx+self.IMGDIMS[1]]
+        return imgs, refdims
 
     def get_indices(self, batchsize, training = True):
         finarr = []
@@ -66,34 +75,35 @@ class dataHandler():
         arr = [x, y, w, h]
         return [round(x,2) for x in arr]
 
-    def get_label(self, num_arr):
+    def get_label(self, num_arr, refdims):
         labels = []
         for indice in num_arr:
             with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
                 boxes = []
                 for line in f:
-                    C = [0.] * self.NUM_CLASSES
                     box_det = line.split(" ")
-
-                    if box_det[0] == "Car":
-                        C[3] = 1.
-                    elif box_det[0] == "Pedestrian":
-                        C[1] = 1.
-                    elif box_det[0] == "Cyclist":
-                        C[2] = 1.
-                    else:
-                        C[0] = 1.
-
                     p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
                     xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y)
-                    boxes.append(xywh + C)
+                    print(refdims[indice])
+                    if True:
+                        C = [0.] * self.NUM_CLASSES
+
+                        if box_det[0] == "Car":
+                            C[3] = 1.
+                        elif box_det[0] == "Pedestrian":
+                            C[1] = 1.
+                        elif box_det[0] == "Cyclist":
+                            C[2] = 1.
+                        else:
+                            C[0] = 1.
+                        boxes.append(xywh + C)
             labels.append(boxes)
         return labels
 
     def minibatch(self, batchsize, training = True):
         indices = self.get_indices(batchsize, training = training)
-        labels = self.get_label(indices)
-        imgs = self.get_img(indices)
+        imgs, refdims = self.get_img(indices)
+        labels = self.get_label(indices, refdims)
         return labels
 
 

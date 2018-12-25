@@ -85,7 +85,6 @@ def miniBatch(dir, ind_arr, size = 128):
 
 framenum = np.random.randint(0,2400)
 
-dims = (448,448)
 name = "VIRAT_S_050203_09_001960_002083"
 dir = "data/videos/" + name + ".mp4"
 t_dir = "data/annotations/" + name + ".viratdata.objects.txt"
@@ -102,8 +101,6 @@ dbform = event.toFeedFormat(_ev)
 print('Y_feed shape:', np.array(dbform).shape)
 
 feed = [[crop],[dbform]]
-
-
 
 with tf.Session() as sess:
     sess.run(init)

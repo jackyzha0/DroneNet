@@ -34,6 +34,8 @@ class dataHandler():
     epochs_elapsed = 0
     batches_elapsed = 0
 
+    NUM_CLASSES = 4
+
     def undistort(img, calib):
         #TODO
         pass
@@ -45,7 +47,6 @@ class dataHandler():
         finarr = []
         if training:
             if len(self.train_unused) < batchsize:
-                print('pass 1')
                 finarr = self.train_unused
                 self.train_unused = np.arange(len(self.train_arr))
                 np.random.shuffle(self.train_unused)
@@ -58,17 +59,53 @@ class dataHandler():
             pass
         return finarr
 
+    def p1p2_to_xywh(self, p1x, p1y, p2x, p2y):
+        w = (p2x - p1x)
+        h = (p2y - p1y)
+        x = p1x + (w / 2)
+        y = p1y + (h / 2)
+        arr = [x, y, w, h]
+        return [round(x,2) for x in arr] 
+
+    def get_label(self, num_arr):
+        labels = []
+        for indice in num_arr:
+            with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
+                boxes = []
+                for line in f:
+                    C = [0.] * self.NUM_CLASSES
+                    box_det = line.split(" ")
+
+                    if box_det[0] == "Car":
+                        C[3] = 1.
+                    elif box_det[0] == "Pedestrian":
+                        C[1] = 1.
+                    elif box_det[0] == "Cyclist":
+                        C[2] = 1.
+                    else:
+                        C[0] = 1.
+
+                    p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
+                    xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y)
+                    boxes.append(xywh + C)
+            labels.append(boxes)
+        return labels
+
     def minibatch(self, batchsize, training = True):
-        pass
+        indices = self.get_indices(batchsize, training = training)
+        labels = self.get_label(indices)
+        return labels
 
 
-    def __init__(self, train, test):
+    def __init__(self, train, test, NUM_CLASSES = 4):
         if os.path.exists(train) and os.path.exists(test):
             self.train_img_dir = train + "/image"
             self.train_label_dir = train + "/label"
             self.train_calib_dir = train + "/calib"
             self.test_img_dir = test + "/image"
             self.test_calib_dir = test + "/calib"
+
+            self.NUM_CLASSES = NUM_CLASSES
 
             self.train_arr = [x[:-4] for x in os.listdir(self.train_img_dir)]
             self.test_arr = [x[:-4] for x in os.listdir(self.test_img_dir)]

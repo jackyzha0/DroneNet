@@ -6,6 +6,7 @@ import os
 import event
 import sys
 import glob
+import numpy as np
 
 def dispImage(image, boundingBoxes = None, drawTime = 1000):
     im = image
@@ -40,18 +41,26 @@ class dataHandler():
     def img_to_arr(dir_of_img):
         pass
 
-    def minibatch(self, batchsize, training = True):
+    def get_indices(self, batchsize, training = True):
         finarr = []
         if training:
-            for i in range(batchsize):
-                if len(self.train_unused) < batchsize:
-                    self.train_unused = np.random.shuffle(np.arange(len(self.train_arr)))
-                    self.epochs_elapsed += 1
-                else:
+            if len(self.train_unused) < batchsize:
+                print('pass 1')
+                finarr = self.train_unused
+                self.train_unused = np.arange(len(self.train_arr))
+                np.random.shuffle(self.train_unused)
+                self.epochs_elapsed += 1
+            else:
+                finarr = self.train_unused[:batchsize]
+                self.train_unused = self.train_unused[batchsize:]
             self.batches_elapsed += 1
         else:
             pass
-        return
+        return finarr
+
+    def minibatch(self, batchsize, training = True):
+        pass
+
 
     def __init__(self, train, test):
         if os.path.exists(train) and os.path.exists(test):
@@ -64,8 +73,10 @@ class dataHandler():
             self.train_arr = [x[:-4] for x in os.listdir(self.train_img_dir)]
             self.test_arr = [x[:-4] for x in os.listdir(self.test_img_dir)]
 
-            self.train_unused = np.random.shuffle(np.arange(len(self.train_arr)))
-            self.test_unused = np.random.shuffle(np.arange(len(self.test_arr)))
+            self.train_unused = np.arange(len(self.train_arr))
+            np.random.shuffle(self.train_unused)
+            self.test_unused = np.arange(len(self.test_arr))
+            np.random.shuffle(self.test_unused)
         else:
             print("Invalid directory! Check path.")
 

@@ -14,11 +14,12 @@ epochs = 1200
 learning_rate = 5e-4
 momentum = 0.9
 #sx_dims = 120x120
-sx = 7 #448
-sy = 7 #448
-B = 2 #num bounding boxes per anchor box
-C = 5 #class probabilities, size num_classes
+sx = 5 #448
+sy = 5 #448
+B = 3 #num bounding boxes per anchor box
+C = 4 #class probabilities, size num_classes
 outdims = (sx, sy, (B * 5 + C)) #S x S x (B*5 + C)
+anchors = []
 #Mult by 5 for output shape
 # x, y, w, h, confidence
 
@@ -65,13 +66,15 @@ net = fire_module(net, 48, 192, scope='fire6')
 net = fire_module(net, 64, 256, scope='fire7')
 net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
 net = fire_module(net, 64, 256, scope='fire8')
-net = tf.contrib.layers.max_pool2d(net, [9, 9], stride=3, scope='maxpool9')
-pred = tf.contrib.layers.conv2d(net, 20, [1, 1], stride=1, scope='conv2')
+net = tf.contrib.layers.max_pool2d(net, [7, 7], stride=4, scope='maxpool9')
+pred = tf.contrib.layers.conv2d(net, 27, [1, 1], stride=1, scope='conv2')
 variables_names = [v.name for v in tf.trainable_variables()]
+
+cost = tf.add_([])
+
 init = tf.global_variables_initializer()
 
 #YOLO loss
-# loss = tf.constant(1.23)
 # optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
 # train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
 

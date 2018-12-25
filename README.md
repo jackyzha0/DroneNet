@@ -40,7 +40,7 @@ Heavily reliant on global communication methods such as GPS and central communic
       - Bounding boxes and collisions
       - Air Resistance
   - Object Detection
-    - CNN with input size [n, n]
+    - CNN with input size [448, 448]
       - Conv Feature Map [n, n]
       - Pooling Layer [n/2, n/2]
       - Conv Feature Map [n/2, n/2]
@@ -52,7 +52,8 @@ Heavily reliant on global communication methods such as GPS and central communic
       - Softmax Layer
       - Classification
     - Dataset
-      - Kitware - VIRAT Dataset
+      - [Deprecated] Kitware - VIRAT Dataset
+      - KITTI Vision Benchmark - Bird's Eye View
   - Hardware interfacing
 
 ## Temporary Notes Section
@@ -112,7 +113,7 @@ RPI_GPIO26
 - [x] Create initial variables for drones (Completed Sept. 26)
 - [x] Create drone class (Completed Sept. 26)
 
-## Data formatting of the VIRAT Dataset
+## Data formatting of the KITTI Vision Dataset
 ### Videos
 __1920x1080 video__ <br/>
 VIRAT_S_XXYYZZ__KK_SSSSSS_TTTTTT.mp4 <br/>
@@ -137,9 +138,6 @@ Bold means the data will be used
 6. w - Width of bounding box
 7. h - Height of bounding box
 8. type - Unknown: 0, Person: 1, Car: 2, Other Vehicle: 3, Other Object: 4, Bike: 5
-
-__Event Annotations__ <br/>
-We aren't interested in event annotation at this moment so this will be ignored for now
 
 ## Price and Weight Data
 | Qty | Item | Total Weight (g) | Price |

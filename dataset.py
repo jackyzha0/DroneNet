@@ -1,5 +1,5 @@
 '''
-Python script for parsing the VIRAT Dataset
+Python script for parsing the KITTI Dataset
 '''
 import cv2 as cv
 import os

@@ -45,8 +45,6 @@ class dataHandler():
             im = cv.imread(imgdir)
             refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             crop = im[:, refx:refx+self.IMGDIMS[1]]
-            dispImage(crop, drawTime = 3000)
-
             imgs.append(crop)
             refdims[indice]= [refx, refx+self.IMGDIMS[1]]
         return imgs, refdims
@@ -106,7 +104,6 @@ class dataHandler():
         imgs, refdims = self.get_img(indices)
         labels = self.get_label(indices, refdims)
         return labels
-
 
     def __init__(self, train, test, NUM_CLASSES = 4):
         if os.path.exists(train) and os.path.exists(test):

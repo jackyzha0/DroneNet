@@ -36,12 +36,11 @@ class dataHandler():
 
     NUM_CLASSES = 4
 
-    def undistort(img, calib):
-        #TODO
-        pass
-
-    def img_to_arr(dir_of_img):
-        pass
+    def get_img(self, num_arr):
+        for indice in num_arr:
+            imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
+            #dispImage(cv.imread(imgdir), drawTime = 1)
+            print(imgdir)
 
     def get_indices(self, batchsize, training = True):
         finarr = []
@@ -65,7 +64,7 @@ class dataHandler():
         x = p1x + (w / 2)
         y = p1y + (h / 2)
         arr = [x, y, w, h]
-        return [round(x,2) for x in arr] 
+        return [round(x,2) for x in arr]
 
     def get_label(self, num_arr):
         labels = []
@@ -94,6 +93,7 @@ class dataHandler():
     def minibatch(self, batchsize, training = True):
         indices = self.get_indices(batchsize, training = training)
         labels = self.get_label(indices)
+        imgs = self.get_img(indices)
         return labels
 
 
@@ -120,4 +120,7 @@ class dataHandler():
     def __str__(self):
         traindatalen = "Number of training examples: " + str(len(self.train_arr)) + "\n"
         testdatalen = "Number of testing examples: " + str(len(self.test_arr)) + "\n"
-        return "[OK] Loading \n" + traindatalen + testdatalen
+        unusedlentraining = "Number of training examples remaining: " + str(len(self.train_unused)) + "\n"
+        currbatches = "Number of batches elapsed: " + str(self.batches_elapsed) + "\n"
+        currepochs = "Number of epochs elapsed: " + str(self.epochs_elapsed) + "\n"
+        return "[OK] Loading \n" + traindatalen + testdatalen + unusedlentraining + currbatches + currepochs

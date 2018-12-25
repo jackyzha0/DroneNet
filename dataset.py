@@ -11,13 +11,21 @@ import numpy as np
 def dispImage(image, boundingBoxes = None, drawTime = 1000):
     im = image
     if boundingBoxes is not None:
-        for box in boundingBoxes:
-            bound = box.getBasicBox()
-            print(bound)
-            cv.rectangle(im, (bound[0][0], bound[0][1]), (bound[1][0], bound[1][1]), (255, 0, 0), 3)
+        for i in range(len(boundingBoxes)):
+            bounds = xywh_to_p1p2(boundingBoxes[i][:4])
+            cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 3)
 
     cv.imshow("frame.jpg", im)
     cv.waitKey(drawTime)
+
+def xywh_to_p1p2(inp):
+    x, y, w, h = inp
+    p1x = x - (w / 2)
+    p1y = y - (h / 2)
+    p2x = x + (w / 2)
+    p2y = y + (h / 2)
+    arr = [p1x, p1y, p2x, p2y]
+    return [int(x) for x in arr]
 
 class dataHandler():
 
@@ -65,12 +73,13 @@ class dataHandler():
             pass
         return finarr
 
-    def p1p2_to_xywh(self, p1x, p1y, p2x, p2y):
+    def p1p2_to_xywh(self, p1x, p1y, p2x, p2y, xref):
         w = (p2x - p1x)
         h = (p2y - p1y)
-        x = p1x + (w / 2)
+        x = p1x + (w / 2) - xref
         y = p1y + (h / 2)
         arr = [x, y, w, h]
+        print(x,y,w,h)
         return [round(x,2) for x in arr]
 
     def get_label(self, num_arr, refdims):
@@ -81,10 +90,8 @@ class dataHandler():
                 for line in f:
                     box_det = line.split(" ")
                     p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
-                    xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y)
-                    print(refdims[indice])
-                    print(xywh[0]-xywh[3], xywh[0]+xywh[3])
-                    if xywh[0] > refdims[indice][0] and xywh[0] < refdims[indice][1]:
+                    xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
+                    if xywh[2] > 0 and xywh[2] < self.IMGDIMS[1]:
                         C = [0.] * self.NUM_CLASSES
 
                         if box_det[0] == "Car":
@@ -103,7 +110,7 @@ class dataHandler():
         indices = self.get_indices(batchsize, training = training)
         imgs, refdims = self.get_img(indices)
         labels = self.get_label(indices, refdims)
-        return labels
+        return imgs, labels
 
     def __init__(self, train, test, NUM_CLASSES = 4):
         if os.path.exists(train) and os.path.exists(test):

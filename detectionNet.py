@@ -49,8 +49,14 @@ def _expand(inputs, num_outputs):
     e3x3 = conv2d(inputs, num_outputs, [3, 3], name='e3x3')
     return tf.concat([e1x1, e3x3], axis=3)
 
-images = tf.placeholder(tf.float32, [None, 375, 375, 3], name="x_inp")
-labels = tf.placeholder(tf.float32, [None, sx, sy, B * (5 + C)], name="y_inp")
+images = tf.placeholder(tf.float32, [None, 375, 375, 3], name="im_inp")
+#labels = tf.placeholder(tf.float32, [None, sx, sy, B * (5 + C)], name="y_inp")
+x = tf.placeholder(tf.float32, [None, sx, sy, B], name="x_inp")
+y = tf.placeholder(tf.float32, [None, sx, sy, B], name="y_inp")
+w = tf.placeholder(tf.float32, [None, sx, sy, B], name="w_inp")
+h = tf.placeholder(tf.float32, [None, sx, sy, B], name="h_inp")
+conf = tf.placeholder(tf.float32, [None, sx, sy, C], name="conf_inp")
+probs = tf.placeholder(tf.float32, [None, sx, sy, B*C], name="conf_inp")
 
 net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
 net = tf.contrib.layers.max_pool2d(net, [4, 4], stride=2, scope='maxpool1')
@@ -73,7 +79,7 @@ net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
 tfB = tf.constant([B])
 size = labels.get_shape()[3]
 #print(size)
-x, y, w, h, prob = tf.split(labels, [1, 1, 1, 1, C], axis=3)
+#x, y, w, h, prob = tf.split(labels, [1, 1, 1, 1, C], axis=3)
 # print(x.get_shape())
 # print(y.get_shape())
 # print(w.get_shape())
@@ -115,8 +121,6 @@ init = tf.global_variables_initializer()
 
 # optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
 # train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
-
-framenum = np.random.randint(0,2400)
 
 db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 img, label = db.minibatch(batchsize)

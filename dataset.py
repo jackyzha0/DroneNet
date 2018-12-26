@@ -9,38 +9,6 @@ import glob
 import numpy as np
 import math
 
-def dispImage(image, boundingBoxes = None, drawTime = 1000):
-    im = image
-    if boundingBoxes is not None:
-        for i in range(len(boundingBoxes)):
-            bounds = xywh_to_p1p2(boundingBoxes[i][:4])
-            cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 3)
-            classtype = onehot_to_text(boundingBoxes[i][-4:])
-            cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
-    cv.imshow("frame.jpg", im)
-    cv.waitKey(drawTime)
-
-def onehot_to_text(arr):
-    if arr[0] == 1:
-        return "Misc. Vehicle"
-    if arr[1] == 1:
-        return "Pedestrian"
-    if arr[2] == 1:
-        return "Cyclist"
-    if arr[3] == 1:
-        return "Car"
-    else:
-        return "unknwn"
-
-def xywh_to_p1p2(inp):
-    x, y, w, h = inp
-    p1x = x - (w / 2)
-    p1y = y - (h / 2)
-    p2x = x + (w / 2)
-    p2y = y + (h / 2)
-    arr = [p1x, p1y, p2x, p2y]
-    return [int(x) for x in arr]
-
 class dataHandler():
 
     train_img_dir = ""
@@ -61,6 +29,55 @@ class dataHandler():
 
     NUM_CLASSES = 4
     IMGDIMS = (1242, 375)
+
+    def seperate_labels(self, arr):
+        arr = np.array(arr)
+        B = self.B
+        C = self.NUM_CLASSES
+        x = arr[:,:,:B]
+        y = arr[:,:,B:2*B]
+        w = arr[:,:,2*B:3*B]
+        h = arr[:,:,3*B:4*B]
+        conf = arr[:,:,4*B:5*B]
+        classes = arr[:,:,5*B:(5+C)*B]
+        return x,y,w,h,conf,classes
+
+    def dispImage(self, image, boundingBoxes = None, drawTime = 1000):
+        im = image
+        B = self.B
+        if boundingBoxes is not None:
+            x_,y_,w_,h_,_,classes_ = self.seperate_labels(boundingBoxes)
+            for x in range(0,x_.shape[0]):
+                for y in range(0,x_.shape[1]):
+                    for i in range(B):
+                        if x_[x][y][i] is not None:
+                            bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
+                            classtype = self.onehot_to_text(classes_[x][y][i:i+4])
+                            cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 3)
+                            cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
+        cv.imshow("frame.jpg", im)
+        cv.waitKey(drawTime)
+
+    def onehot_to_text(self, arr):
+        if arr[0] == 1:
+            return "Misc. Vehicle"
+        if arr[1] == 1:
+            return "Pedestrian"
+        if arr[2] == 1:
+            return "Cyclist"
+        if arr[3] == 1:
+            return "Car"
+        else:
+            return "unknwn"
+
+    def xywh_to_p1p2(self, inp, x_, y_):
+        x, y, w, h = inp
+        p1x = x - (w / 2) + x_ * (self.IMGDIMS[1] / self.sx)
+        p1y = y - (h / 2) + y_ * (self.IMGDIMS[1] / self.sx)
+        p2x = x + (w / 2) + x_ * (self.IMGDIMS[1] / self.sx)
+        p2y = y + (h / 2) + y_ * (self.IMGDIMS[1] / self.sx)
+        arr = [p1x, p1y, p2x, p2y]
+        return [int(x) for x in arr]
 
     def get_img(self, num_arr):
         refdims = {}
@@ -128,12 +145,19 @@ class dataHandler():
                     xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
                     if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
                         cellx, celly = self.getBox(xywh[0], xywh[1])
+
+                        xywh[0] = xywh[0] - cellx * (self.IMGDIMS[1] / self.sx)
+                        xywh[1] = xywh[1] - celly * (self.IMGDIMS[1] / self.sy)
+
                         argcheck = 0
                         for i in range(0, self.B):
                             if argcheck == 0 and grid[cellx][celly][i*(self.NUM_CLASSES + 5)] == None:
-                                grid[cellx][celly][i*(self.NUM_CLASSES + 5):i*(self.NUM_CLASSES + 5) + 4] = xywh
-                                grid[cellx][celly][i*(self.NUM_CLASSES + 5) + 4] = 1. #Confidence
-                                grid[cellx][celly][i*(self.NUM_CLASSES + 5) + 5: i*(self.NUM_CLASSES + 5) + 9] = C
+                                grid[cellx][celly][i] = xywh[0]
+                                grid[cellx][celly][self.B + i] = xywh[1]
+                                grid[cellx][celly][2*self.B + i] = xywh[2]
+                                grid[cellx][celly][3*self.B + i] = xywh[3]
+                                grid[cellx][celly][4*self.B + i] = 1.
+                                grid[cellx][celly][5*self.B + i: 5*self.B + i + 4] = C
                                 argcheck = 1
                         #boxes.append(xywh + C)
             labels.append(grid)

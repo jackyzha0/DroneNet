@@ -6,4 +6,4 @@ print(len(db.train_unused))
 img, label = db.minibatch(64)
 
 for a,b in zip(img, label):
-    dataset.dispImage(a, boundingBoxes = b, drawTime = 10)
+    db.dispImage(a, boundingBoxes = b, drawTime = 500)

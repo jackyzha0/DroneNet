@@ -14,9 +14,22 @@ def dispImage(image, boundingBoxes = None, drawTime = 1000):
         for i in range(len(boundingBoxes)):
             bounds = xywh_to_p1p2(boundingBoxes[i][:4])
             cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 3)
-
+            classtype = onehot_to_text(boundingBoxes[i][-4:])
+            cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
     cv.imshow("frame.jpg", im)
     cv.waitKey(drawTime)
+
+def onehot_to_text(arr):
+    if arr[0] == 1:
+        return "Misc. Vehicle"
+    if arr[1] == 1:
+        return "Pedestrian"
+    if arr[2] == 1:
+        return "Cyclist"
+    if arr[3] == 1:
+        return "Car"
+    else:
+        return "unknwn"
 
 def xywh_to_p1p2(inp):
     x, y, w, h = inp
@@ -79,7 +92,6 @@ class dataHandler():
         x = p1x + (w / 2) - xref
         y = p1y + (h / 2)
         arr = [x, y, w, h]
-        print(x,y,w,h)
         return [round(x,2) for x in arr]
 
     def get_label(self, num_arr, refdims):
@@ -89,19 +101,23 @@ class dataHandler():
                 boxes = []
                 for line in f:
                     box_det = line.split(" ")
+                    C = [0.] * self.NUM_CLASSES
+                    keep = True
+
+                    if box_det[0] == "Car":
+                        C[3] = 1.
+                    elif box_det[0] == "Pedestrian":
+                        C[1] = 1.
+                    elif box_det[0] == "Cyclist":
+                        C[2] = 1.
+                    elif box_det[0] == "Truck" or box_det[0] == "Van":
+                        C[0] = 1.
+                    else:
+                        keep = False
+
                     p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
                     xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
-                    if xywh[2] > 0 and xywh[2] < self.IMGDIMS[1]:
-                        C = [0.] * self.NUM_CLASSES
-
-                        if box_det[0] == "Car":
-                            C[3] = 1.
-                        elif box_det[0] == "Pedestrian":
-                            C[1] = 1.
-                        elif box_det[0] == "Cyclist":
-                            C[2] = 1.
-                        else:
-                            C[0] = 1.
+                    if (p2x - refdims[indice][0] > 0 or p1x - refdims[indice][0] < 375) and keep:
                         boxes.append(xywh + C)
             labels.append(boxes)
         return labels

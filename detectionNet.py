@@ -50,7 +50,7 @@ def _expand(inputs, num_outputs):
     return tf.concat([e1x1, e3x3], axis=3)
 
 images = tf.placeholder(tf.float32, [None, 375, 375, 3], name="x_inp")
-labels = tf.placeholder(tf.float32, [None, sx, sy, (5 + C)], name="y_inp")
+labels = tf.placeholder(tf.float32, [None, sx, sy, B * (4 + C)], name="y_inp")
 
 net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
 net = tf.contrib.layers.max_pool2d(net, [4, 4], stride=2, scope='maxpool1')
@@ -69,28 +69,47 @@ net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
 
 ### Definining Cost
 # Label Extraction
-nboxes = tf.tile(boxes, B)
-x = nboxes[:, :, :, :, 0]
-y = nboxes[:, :, :, :, 1]
-w = nboxes[:, :, :, :, 2]
-h = nboxes[:, :, :, :, 3]
-conf
-prob
-obj
-objI
-no_obj
+print(labels.get_shape())
+tfB = tf.constant([B])
+size = labels.get_shape()[3]
+print(size)
+x, y, w, h, prob = tf.split(labels, [1, 1, 1, 1, C], axis=3)
+print(x.get_shape())
+print(y.get_shape())
+print(w.get_shape())
+print(h.get_shape())
+print(prob.get_shape())
+# conf
+# obj
+# objI
+# no_obj
 
 # Output Extraction
-x_
-y_
-w_
-h_
-conf_
-prob_
-obj_
-objI_
-no_obj_
+# x_
+# y_
+# w_
+# h_
+# conf_
+# prob_
+# obj_
+# objI_
+# no_obj_
 
+subX = tf.subtract(x, x_)
+subY = tf.subtract(boxes1, y_)
+subW = tf.subtract(tf.sqrt(tf.abs(boxes2)), tf.sqrt(w_))
+subH = tf.subtract(tf.sqrt(tf.abs(boxes3)), tf.sqrt(h_))
+subC = tf.subtract(scales, C_)
+subP = tf.subtract(class_probs, p_)
+lossX=tf.multiply(lambdacoord,tf.reduce_sum(tf.multiply(obj,tf.multiply(subX, subX)),axis=[1,2,3]))
+lossY=tf.multiply(lambdacoord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subY, subY)),axis=[1,2,3]))
+lossW=tf.multiply(lambdacoord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subW, subW)),axis=[1,2,3]))
+lossH=tf.multiply(lambdacoord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subH, subH)),axis=[1,2,3]))
+lossCObj=tf.reduce_sum(tf.multiply(obj, tf.multiply(subC, subC)),axis=[1,2,3])
+lossCNobj=tf.multiply(lambdanoobj, tf.reduce_sum(tf.multiply(noobj, tf.multiply(subC, subC)),axis=[1,2,3]))
+lossP=tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis=3)) ,axis=[1,2])
+loss = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
+loss = tf.reduce_mean(loss)
 
 init = tf.global_variables_initializer()
 
@@ -99,7 +118,7 @@ init = tf.global_variables_initializer()
 
 framenum = np.random.randint(0,2400)
 
-db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4)
+db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 img, label = db.minibatch(batchsize)
 
 feed = [img,label]

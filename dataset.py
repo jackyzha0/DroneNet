@@ -52,6 +52,9 @@ class dataHandler():
     train_unused = []
     test_unused = []
 
+    sx = -1
+    sy = -1
+
     epochs_elapsed = 0
     batches_elapsed = 0
 
@@ -94,11 +97,16 @@ class dataHandler():
         arr = [x, y, w, h]
         return [round(x,2) for x in arr]
 
+    def getBox(x,y):
+        col = int(math.floor(x / self.IMGDIMS[1] * (self.sx-1)))
+        row = int(math.floor(y / self.IMGDIMS[1] * (self.sy-1)))
+        return [row,col]
+
     def get_label(self, num_arr, refdims):
         labels = []
         for indice in num_arr:
             with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
-                boxes = []
+                grid = [[None for x in range(self.sx)] for x in range(self.sy)]
                 for line in f:
                     box_det = line.split(" ")
                     C = [0.] * self.NUM_CLASSES
@@ -118,8 +126,13 @@ class dataHandler():
                     p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
                     xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
                     if (p2x - refdims[indice][0] > 0 or p1x - refdims[indice][0] < 375) and keep:
-                        boxes.append(xywh + C)
-            labels.append(boxes)
+                        cellx, celly = getBox(xywh[0], xywh[1])
+                        if grid[cellx][celly] is None:
+                            grid[cellx][celly] = [xywh + C]
+                        else:
+                            grid[cellx][celly] = [grid[cellx][celly][0], xywh + C]
+                        #boxes.append(xywh + C)
+            labels.append(grid)
         return labels
 
     def minibatch(self, batchsize, training = True):
@@ -128,13 +141,17 @@ class dataHandler():
         labels = self.get_label(indices, refdims)
         return imgs, labels
 
-    def __init__(self, train, test, NUM_CLASSES = 4):
+    def __init__(self, train, test, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5):
         if os.path.exists(train) and os.path.exists(test):
             self.train_img_dir = train + "/image"
             self.train_label_dir = train + "/label"
             self.test_img_dir = test + "/image"
 
             self.NUM_CLASSES = NUM_CLASSES
+            self.B = B
+
+            self.sx = sx
+            self.sy = sy
 
             self.train_arr = [x[:-4] for x in os.listdir(self.train_img_dir)]
             self.test_arr = [x[:-4] for x in os.listdir(self.test_img_dir)]

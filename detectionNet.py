@@ -77,7 +77,7 @@ net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
 # Label Extraction
 #print(labels.get_shape())
 tfB = tf.constant([B])
-size = labels.get_shape()[3]
+#size = labels.get_shape()[3]
 #print(size)
 #x, y, w, h, prob = tf.split(labels, [1, 1, 1, 1, C], axis=3)
 # print(x.get_shape())
@@ -125,12 +125,18 @@ init = tf.global_variables_initializer()
 db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 img, label = db.minibatch(batchsize)
 
-print(np.array(label).shape)
+label = np.array(label)
+x_in = label[:,:,:,:B]
+y_in = label[:,:,:,B:2*B]
+w_in = label[:,:,:,2*B:3*B]
+h_in = label[:,:,:,3*B:4*B]
+conf_in = label[:,:,:,4*B:5*B]
+classes_in = label[:,:,:,5*B:(5+C)*B]
 
 with tf.Session() as sess:
     sess.run(init)
-    #print(net.get_shape())
+    print(net.get_shape())
 
-    out = sess.run([net], feed_dict={images: img, labels: label})
+    out = sess.run([net], feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
     #print(np.array(out[0]).shape)
         #_, cost, acc = sess.run([train_op, model_func, acc])

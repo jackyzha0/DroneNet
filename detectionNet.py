@@ -55,7 +55,7 @@ x = tf.placeholder(tf.float32, [None, sx, sy, B], name="x_inp")
 y = tf.placeholder(tf.float32, [None, sx, sy, B], name="y_inp")
 w = tf.placeholder(tf.float32, [None, sx, sy, B], name="w_inp")
 h = tf.placeholder(tf.float32, [None, sx, sy, B], name="h_inp")
-conf = tf.placeholder(tf.float32, [None, sx, sy, C], name="conf_inp")
+conf = tf.placeholder(tf.float32, [None, sx, sy, B], name="conf_inp")
 probs = tf.placeholder(tf.float32, [None, sx, sy, B*C], name="conf_inp")
 
 net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')

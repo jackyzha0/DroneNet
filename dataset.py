@@ -81,13 +81,19 @@ class dataHandler():
 
     def get_img(self, num_arr):
         refdims = {}
-        imgs = []
+        imgs = None
         for indice in num_arr:
             imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
             im = cv.imread(imgdir)
+            if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
+                im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
             refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             crop = im[:, refx:refx+self.IMGDIMS[1]]
-            imgs.append(crop)
+            if imgs is not None:
+                #print(imgs.shape, crop[np.newaxis, :].shape)
+                imgs = np.vstack((imgs, crop[np.newaxis, :]))
+            else:
+                imgs = crop[np.newaxis, :]
             refdims[indice]= [refx, refx+self.IMGDIMS[1]]
         return imgs, refdims
 

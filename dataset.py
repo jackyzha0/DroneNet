@@ -7,6 +7,7 @@ import event
 import sys
 import glob
 import numpy as np
+import math
 
 def dispImage(image, boundingBoxes = None, drawTime = 1000):
     im = image
@@ -97,7 +98,7 @@ class dataHandler():
         arr = [x, y, w, h]
         return [round(x,2) for x in arr]
 
-    def getBox(x,y):
+    def getBox(self, x, y):
         col = int(math.floor(x / self.IMGDIMS[1] * (self.sx-1)))
         row = int(math.floor(y / self.IMGDIMS[1] * (self.sy-1)))
         return [row,col]
@@ -106,7 +107,7 @@ class dataHandler():
         labels = []
         for indice in num_arr:
             with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
-                grid = [[None for x in range(self.sx)] for x in range(self.sy)]
+                grid = [[[None for x in range(self.B*(self.NUM_CLASSES + 5))] for x in range(self.sx)] for x in range(self.sy)]
                 for line in f:
                     box_det = line.split(" ")
                     C = [0.] * self.NUM_CLASSES
@@ -125,12 +126,15 @@ class dataHandler():
 
                     p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
                     xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
-                    if (p2x - refdims[indice][0] > 0 or p1x - refdims[indice][0] < 375) and keep:
-                        cellx, celly = getBox(xywh[0], xywh[1])
-                        if grid[cellx][celly] is None:
-                            grid[cellx][celly] = [xywh + C]
-                        else:
-                            grid[cellx][celly] = [grid[cellx][celly][0], xywh + C]
+                    if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
+                        cellx, celly = self.getBox(xywh[0], xywh[1])
+                        argcheck = 0
+                        for i in range(0, self.B):
+                            if argcheck == 0 and grid[cellx][celly][i*(self.NUM_CLASSES + 5)] == None:
+                                grid[cellx][celly][i*(self.NUM_CLASSES + 5):i*(self.NUM_CLASSES + 5) + 4] = xywh
+                                grid[cellx][celly][i*(self.NUM_CLASSES + 5) + 4] = 1. #Confidence
+                                grid[cellx][celly][i*(self.NUM_CLASSES + 5) + 5: i*(self.NUM_CLASSES + 5) + 9] = C
+                                argcheck = 1
                         #boxes.append(xywh + C)
             labels.append(grid)
         return labels

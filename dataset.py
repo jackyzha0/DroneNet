@@ -132,9 +132,7 @@ class dataHandler():
         if os.path.exists(train) and os.path.exists(test):
             self.train_img_dir = train + "/image"
             self.train_label_dir = train + "/label"
-            self.train_calib_dir = train + "/calib"
             self.test_img_dir = test + "/image"
-            self.test_calib_dir = test + "/calib"
 
             self.NUM_CLASSES = NUM_CLASSES
 

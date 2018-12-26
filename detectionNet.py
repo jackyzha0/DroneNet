@@ -64,7 +64,7 @@ def slice_tensor(x, start, end=None):
 def yolo_loss(pred, label, lambda_coord, lambda_no_obj):
     #Function written by WojciechMormul
 	mask = slice_tensor(label, 5)
-	label = slice_tensor(label, sy, sx, 4)
+	label = slice_tensor(label, sx, sy, 4)
 
 	mask = tf.cast(tf.reshape(mask, shape=(-1, GRID_H, GRID_W, N_ANCHORS)),tf.bool)
 
@@ -103,7 +103,7 @@ def yolo_loss(pred, label, lambda_coord, lambda_no_obj):
 	return loss
 
 images = tf.placeholder(tf.float32, [None, 375, 375, 3], name="x_inp")
-boxes = tf.placeholder(tf.float32, [None, sy, sx, (4 + C)], name="y_inp")
+boxes = tf.placeholder(tf.float32, [None, sx, sy, (4 + C)], name="y_inp")
 
 net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
 net = tf.contrib.layers.max_pool2d(net, [4, 4], stride=2, scope='maxpool1')
@@ -119,7 +119,7 @@ net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
 net = fire_module(net, 64, 256, scope='fire8')
 net = tf.contrib.layers.max_pool2d(net, [6, 6], stride=4, scope='maxpool9')
 net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
-y = tf.reshape(net, shape=(-1, sy, sx, B, C + 5), name='y')
+y = tf.reshape(net, shape=(-1, sx, sy, B, C + 5), name='y')
 
 #cost = tf.add([])
 

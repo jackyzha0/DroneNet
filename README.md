@@ -40,7 +40,7 @@ Heavily reliant on global communication methods such as GPS and central communic
       - Bounding boxes and collisions
       - Air Resistance
   - Object Detection
-    - CNN with input size [448, 448]
+    - CNN with input size [375, 375]
       - Conv Feature Map [n, n]
       - Pooling Layer [n/2, n/2]
       - Conv Feature Map [n/2, n/2]

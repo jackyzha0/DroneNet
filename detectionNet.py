@@ -6,7 +6,6 @@ import sugartensor as tf
 import dataset
 import random
 import numpy as np
-import event
 
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
@@ -90,8 +89,12 @@ x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
 
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
-subW = tf.subtract(w_, w)
-subH = tf.subtract(h_, h)
+# subW = tf.subtract(w_, w)
+# subH = tf.subtract(h_, h)
+
+subW = tf.subtract(tf.sqrt(tf.abs(w_)), tf.sqrt(tf.abs(w)))
+subH = tf.subtract(tf.sqrt(tf.abs(h_)), tf.sqrt(tf.abs(h)))
+
 subC = tf.subtract(conf_, conf)
 subP = tf.subtract(prob_, probs)
 lossX=tf.multiply(lambda_coord,tf.reduce_sum(tf.multiply(obj,tf.multiply(subX, subX)),axis=[1,2,3]))
@@ -104,7 +107,7 @@ lossP=tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis
 lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
 loss = tf.reduce_mean(lossT)
 
-optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
+optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
 grads = optimizer.compute_gradients(loss)
 clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
 train_op = optimizer.apply_gradients(clipped_grads)
@@ -120,10 +123,10 @@ init_l = tf.local_variables_initializer()
 db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
-    lossString = "Loss: %s |" % loss
-    batches_elapsed =
-    epochs_elapsed =
-    epoch_progress =
+    lossString = "Loss: %s | " % loss
+    batches_elapsed = "Batches elapsed: %d | " % db.batches_elapsed
+    epochs_elapsed = "Epochs elapsed: %d | " % db.epochs_elapsed
+    epoch_progress = "Epoch Progress: %.2f%% " % (100. * (len(db.train_arr)-len(db.train_unused))/len(db.train_arr))
     return lossString + batches_elapsed + epochs_elapsed + epoch_progress
 
 with tf.Session() as sess:

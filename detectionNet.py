@@ -75,52 +75,34 @@ net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
 
 ### Definining Cost
 # Label Extraction
-#print(labels.get_shape())
-tfB = tf.constant([B])
-#size = labels.get_shape()[3]
-#print(size)
-#x, y, w, h, prob = tf.split(labels, [1, 1, 1, 1, C], axis=3)
-# print(x.get_shape())
-# print(y.get_shape())
-# print(w.get_shape())
-# print(h.get_shape())
-# print(prob.get_shape())
-# conf
-# obj
-# objI
-# no_obj
+obj = tf.constant(1., shape=[batchsize, sx, sy, B])
+objI = tf.constant(1., shape=[batchsize, sx, sy])
+no_obj = tf.constant(0., shape=[batchsize, sx, sy, B])
 
 # Output Extraction
-# x_
-# y_
-# w_
-# h_
-# conf_
-# prob_
-# obj_
-# objI_
-# no_obj_
+tfBatch = tf.shape(x)[0]
+x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
 
-# subX = tf.subtract(x, x_)
-# subY = tf.subtract(boxes1, y_)
-# subW = tf.subtract(tf.sqrt(tf.abs(boxes2)), tf.sqrt(w_))
-# subH = tf.subtract(tf.sqrt(tf.abs(boxes3)), tf.sqrt(h_))
-# subC = tf.subtract(scales, C_)
-# subP = tf.subtract(class_probs, p_)
-# lossX=tf.multiply(lambdacoord,tf.reduce_sum(tf.multiply(obj,tf.multiply(subX, subX)),axis=[1,2,3]))
-# lossY=tf.multiply(lambdacoord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subY, subY)),axis=[1,2,3]))
-# lossW=tf.multiply(lambdacoord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subW, subW)),axis=[1,2,3]))
-# lossH=tf.multiply(lambdacoord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subH, subH)),axis=[1,2,3]))
-# lossCObj=tf.reduce_sum(tf.multiply(obj, tf.multiply(subC, subC)),axis=[1,2,3])
-# lossCNobj=tf.multiply(lambdanoobj, tf.reduce_sum(tf.multiply(noobj, tf.multiply(subC, subC)),axis=[1,2,3]))
-# lossP=tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis=3)) ,axis=[1,2])
-# loss = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
-# loss = tf.reduce_mean(loss)
+subX = tf.subtract(x_, x)
+subY = tf.subtract(y_, y)
+subW = tf.subtract(tf.sqrt(tf.abs(w_)), tf.sqrt(w))
+subH = tf.subtract(tf.sqrt(tf.abs(h_)), tf.sqrt(h))
+subC = tf.subtract(conf_, conf)
+subP = tf.subtract(prob_, probs)
+lossX=tf.multiply(lambda_coord,tf.reduce_sum(tf.multiply(obj,tf.multiply(subX, subX)),axis=[1,2,3]))
+lossY=tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subY, subY)),axis=[1,2,3]))
+lossW=tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subW, subW)),axis=[1,2,3]))
+lossH=tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subH, subH)),axis=[1,2,3]))
+lossCObj=tf.reduce_sum(tf.multiply(obj, tf.multiply(subC, subC)),axis=[1,2,3])
+lossCNobj=tf.multiply(lambda_no_obj, tf.reduce_sum(tf.multiply(no_obj, tf.multiply(subC, subC)),axis=[1,2,3]))
+lossP=tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis=3)) ,axis=[1,2])
+loss = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
+loss = tf.reduce_mean(loss)
 
 init = tf.global_variables_initializer()
 
-# optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
-# train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
+optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
+train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
 
 db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 img, label = db.minibatch(batchsize)

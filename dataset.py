@@ -89,6 +89,7 @@ class dataHandler():
                 im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
             refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             crop = im[:, refx:refx+self.IMGDIMS[1]]
+            crop = (crop / 255.) * 2. - 1.
             if imgs is not None:
                 #print(imgs.shape, crop[np.newaxis, :].shape)
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))
@@ -130,7 +131,8 @@ class dataHandler():
         labels = []
         for indice in num_arr:
             with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
-                grid = [[[None for x in range(self.B*(self.NUM_CLASSES + 5))] for x in range(self.sx)] for x in range(self.sy)]
+                #grid = [[[None for x in range(self.B*(self.NUM_CLASSES + 5))] for x in range(self.sx)] for x in range(self.sy)]
+                grid = np.zeros([self.sx, self.sy, self.B*(self.NUM_CLASSES + 5)])
                 for line in f:
                     box_det = line.split(" ")
                     C = [0.] * self.NUM_CLASSES

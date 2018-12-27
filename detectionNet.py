@@ -15,7 +15,7 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 ### PARAMETERS ###
 batchsize = 32
 epochs = 100
-learning_rate = 1e-3
+learning_rate = 1e-5
 momentum = 0.9
 #sx_dims = 120x120
 sx = 5 #448
@@ -56,7 +56,6 @@ def _expand(inputs, num_outputs):
     return tf.concat([e1x1, e3x3], 3)
 
 images = tf.placeholder(tf.float32, [None, 375, 375, 3], name="im_inp")
-#labels = tf.placeholder(tf.float32, [None, sx, sy, B * (5 + C)], name="y_inp")
 x = tf.placeholder(tf.float32, [None, sx, sy, B], name="x_inp")
 y = tf.placeholder(tf.float32, [None, sx, sy, B], name="y_inp")
 w = tf.placeholder(tf.float32, [None, sx, sy, B], name="w_inp")
@@ -78,7 +77,6 @@ net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
 net = fire_module(net, 64, 256, scope='fire8')
 net = tf.contrib.layers.max_pool2d(net, [6, 6], stride=4, scope='maxpool9')
 net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
-variables_names = [v.name for v in tf.trainable_variables()]
 
 ### Definining Cost
 # Label Extraction
@@ -92,8 +90,8 @@ x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
 
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
-subW = tf.subtract(tf.sqrt(tf.abs(w_)), tf.sqrt(w))
-subH = tf.subtract(tf.sqrt(tf.abs(h_)), tf.sqrt(h))
+subW = tf.subtract(w_, w)
+subH = tf.subtract(h_, h)
 subC = tf.subtract(conf_, conf)
 subP = tf.subtract(prob_, probs)
 lossX=tf.multiply(lambda_coord,tf.reduce_sum(tf.multiply(obj,tf.multiply(subX, subX)),axis=[1,2,3]))
@@ -103,16 +101,30 @@ lossH=tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subH,
 lossCObj=tf.reduce_sum(tf.multiply(obj, tf.multiply(subC, subC)),axis=[1,2,3])
 lossCNobj=tf.multiply(lambda_no_obj, tf.reduce_sum(tf.multiply(no_obj, tf.multiply(subC, subC)),axis=[1,2,3]))
 lossP=tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis=3)) ,axis=[1,2])
-loss = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
-loss = tf.reduce_mean(loss)
+lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
+loss = tf.reduce_mean(lossT)
 
-optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
-train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
+optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
+grads = optimizer.compute_gradients(loss)
+clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
+train_op = optimizer.apply_gradients(clipped_grads)
 
+#train_op = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).minimize(loss)
+#optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
+#train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
+
+variables_names = [v.name for v in tf.trainable_variables()]
 init_g = tf.global_variables_initializer()
 init_l = tf.local_variables_initializer()
 
 db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+
+def prettyPrint(loss, db):
+    lossString = "Loss: %s |" % loss
+    batches_elapsed =
+    epochs_elapsed =
+    epoch_progress =
+    return lossString + batches_elapsed + epochs_elapsed + epoch_progress
 
 with tf.Session() as sess:
     sess.run(init_g)
@@ -129,5 +141,9 @@ with tf.Session() as sess:
         conf_in = label[:,:,:,4*B:5*B]
         classes_in = label[:,:,:,5*B:(5+C)*B]
 
-        out = sess.run([train_op, lossX, lossY, lossW, lossH, lossCObj, lossCNobj, lossP], feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
-        print(out[1:])
+        # logits = sess.run([net],
+        #                   feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
+        # print(logits)
+        out = sess.run([train_op, loss],
+                       feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
+        print(prettyPrint(out[1], db))

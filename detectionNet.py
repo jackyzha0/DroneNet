@@ -8,10 +8,14 @@ import random
 import numpy as np
 import event
 
+from tensorflow.contrib.framework import add_arg_scope
+from tensorflow.contrib.framework import arg_scope
+from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
+
 ### PARAMETERS ###
 batchsize = 32
 epochs = 100
-learning_rate = 1e-4
+learning_rate = 1e-3
 momentum = 0.9
 #sx_dims = 120x120
 sx = 5 #448
@@ -21,6 +25,7 @@ C = 4 #class probabilities, size num_classes
 lambda_coord = 5.0
 lambda_no_obj = 0.5
 
+@add_arg_scope
 def conv2d(inputs, filters, kernel_size, stride=1,
            kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
            bias_initializer=tf.zeros_initializer(),
@@ -34,11 +39,12 @@ def conv2d(inputs, filters, kernel_size, stride=1,
       name=name,
       padding="same")
 
-def fire_module(inputs, squeeze_depth, expand_depth, scope):
-    with tf.variable_scope(scope, 'fire', [inputs]):
-        squeezed = _squeeze(inputs, squeeze_depth)
-        net = _expand(squeezed, expand_depth)
-        return net
+def fire_module(inputs, squeeze_depth, expand_depth, scope=None, reuse=None):
+    with tf.variable_scope(scope, 'fire', [inputs], reuse=reuse):
+        with arg_scope([conv2d, max_pool2d]):
+            net = _squeeze(inputs, squeeze_depth)
+            net = _expand(net, expand_depth)
+            return net
 
 def _squeeze(inputs, num_outputs):
     return conv2d(inputs, num_outputs, [1, 1], name='squeeze')
@@ -47,7 +53,7 @@ def _squeeze(inputs, num_outputs):
 def _expand(inputs, num_outputs):
     e1x1 = conv2d(inputs, num_outputs, [1, 1], name='e1x1')
     e3x3 = conv2d(inputs, num_outputs, [3, 3], name='e3x3')
-    return tf.concat([e1x1, e3x3], axis=3)
+    return tf.concat([e1x1, e3x3], 3)
 
 images = tf.placeholder(tf.float32, [None, 375, 375, 3], name="im_inp")
 #labels = tf.placeholder(tf.float32, [None, sx, sy, B * (5 + C)], name="y_inp")
@@ -72,6 +78,7 @@ net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
 net = fire_module(net, 64, 256, scope='fire8')
 net = tf.contrib.layers.max_pool2d(net, [6, 6], stride=4, scope='maxpool9')
 net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
+variables_names = [v.name for v in tf.trainable_variables()]
 
 ### Definining Cost
 # Label Extraction
@@ -99,26 +106,28 @@ lossP=tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis
 loss = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
 loss = tf.reduce_mean(loss)
 
-init = tf.global_variables_initializer()
-
 optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
 train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
 
-db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-img, label = db.minibatch(batchsize)
+init_g = tf.global_variables_initializer()
+init_l = tf.local_variables_initializer()
 
-label = np.array(label)
-x_in = label[:,:,:,:B]
-y_in = label[:,:,:,B:2*B]
-w_in = label[:,:,:,2*B:3*B]
-h_in = label[:,:,:,3*B:4*B]
-conf_in = label[:,:,:,4*B:5*B]
-classes_in = label[:,:,:,5*B:(5+C)*B]
+db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 with tf.Session() as sess:
-    sess.run(init)
-    print(net.get_shape())
+    sess.run(init_g)
+    sess.run(init_l)
 
-    out = sess.run([net], feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
-    #print(np.array(out[0]).shape)
-        #_, cost, acc = sess.run([train_op, model_func, acc])
+    while db.batches_elapsed < 100:
+        img, label = db.minibatch(batchsize)
+
+        label = np.array(label)
+        x_in = label[:,:,:,:B]
+        y_in = label[:,:,:,B:2*B]
+        w_in = label[:,:,:,2*B:3*B]
+        h_in = label[:,:,:,3*B:4*B]
+        conf_in = label[:,:,:,4*B:5*B]
+        classes_in = label[:,:,:,5*B:(5+C)*B]
+
+        out = sess.run([train_op, lossX, lossY, lossW, lossH, lossCObj, lossCNobj, lossP], feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
+        print(out[1:])

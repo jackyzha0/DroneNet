@@ -163,7 +163,12 @@ lossProb is the sum of the squared errors in predicted class probabilities acros
 
 ![eqn3](http://mathurl.com/ybaezuc2.png)
 
+Variable Definitions:
 phi is defined as ![phidef](http://mathurl.com/yc2gtzso.png)
+
+sx, sy are defined as number of horizontal grid cells and vertical grid cells, respectively
+classes is the list of total possible classes
+B is the number of bounding boxes per grid cell
 
 ##### Fire Module
 A fire module (described in SqueezeNet) is defined as 3 1x1 conv2d layers followed by 4 1x1 conv2d layers concatenated with 4 3x3 conv2d layers

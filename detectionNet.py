@@ -12,7 +12,7 @@ from tensorflow.contrib.framework import arg_scope
 from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
 ### PARAMETERS ###
-batchsize = 1
+batchsize = 64
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -103,7 +103,7 @@ lossP = tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), ax
 lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
 loss = tf.reduce_mean(lossT)
 
-optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 grads = optimizer.compute_gradients(loss)
 clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
 train_op = optimizer.apply_gradients(clipped_grads)
@@ -128,7 +128,7 @@ with tf.Session() as sess:
     sess.run(init_g)
     sess.run(init_l)
 
-    while db.batches_elapsed < 1:
+    while db.batches_elapsed < 100:
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)
@@ -151,11 +151,11 @@ with tf.Session() as sess:
         #                   feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
         # print(logits)
 
-
-
-
-        out = sess.run([train_op, loss],
+        out = sess.run([train_op, loss, x_, y_, w_, h_, conf_, prob_],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in})
+        # print(x_in)
+        # print()
+        # print(out[2])
         print(prettyPrint(out[1], db))

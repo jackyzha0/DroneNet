@@ -162,18 +162,17 @@ class dataHandler():
 
                         argcheck = 0
                         for i in range(0, self.B):
-                            if argcheck == 0 and grid[cellx][celly][i*(self.NUM_CLASSES + 5)] == None:
+                            if argcheck == 0 and grid[cellx][celly][i] == 0.0:
                                 grid[cellx][celly][i] = xywh[0]
                                 grid[cellx][celly][self.B + i] = xywh[1]
                                 grid[cellx][celly][2*self.B + i] = xywh[2]
                                 grid[cellx][celly][3*self.B + i] = xywh[3]
                                 grid[cellx][celly][4*self.B + i] = 1. #Confidence
-                                grid[cellx][celly][5*self.B + i: 5*self.B + i*self.C] = C #Class probs
+                                grid[cellx][celly][5*self.B + i: 5*self.B + self.NUM_CLASSES + i] = C #Class probs
                                 grid[cellx][celly][9*self.B + i] = 1. #obj
                                 grid[cellx][celly][10*self.B + i] = 0. #noobj
                                 grid[cellx][celly][32] = 1. #objI
                                 argcheck = 1
-                        #boxes.append(xywh + C)
             labels.append(grid)
         return labels
 

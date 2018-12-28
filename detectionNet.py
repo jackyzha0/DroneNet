@@ -72,9 +72,9 @@ net = fire_module(net, 32, 128, scope='fire4')
 net = fire_module(net, 48, 192, scope='fire5')
 net = fire_module(net, 48, 192, scope='fire6')
 net = fire_module(net, 64, 256, scope='fire7')
-net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool8')
+net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool3')
 net = fire_module(net, 64, 256, scope='fire8')
-net = tf.contrib.layers.max_pool2d(net, [6, 6], stride=4, scope='maxpool9')
+net = tf.contrib.layers.max_pool2d(net, [6, 6], stride=4, scope='maxpool4')
 net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
 
 ### Definining Cost

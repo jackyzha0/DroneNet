@@ -41,16 +41,6 @@ Heavily reliant on global communication methods such as GPS and central communic
       - Air Resistance
   - Object Detection
     - YOLOv1 implemented with SqueezeNet, input size [375, 375]
-      - Conv Feature Map [n, n]
-      - Pooling Layer [n/2, n/2]
-      - Conv Feature Map [n/2, n/2]
-      - Pooling Layer [n/4, n/4]
-      - Conv Feature Map [n/4, n/4]
-      - Pooling Layer [n/10, n/10]
-      - Fully Connected Layer
-      - Fully Connected Layer
-      - Softmax Layer
-      - Classification
     - Dataset
       - [Deprecated] Kitware - VIRAT Dataset
       - KITTI Vision Benchmark - Bird's Eye View
@@ -69,9 +59,11 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Update descriptions about dataset
-- [ ] Update software description in README
-- [ ]
+- [ ] Check labels for accuracy
+- [ ] Interpret Output
+- [ ] imshow Output
+- [ ] Calculate IOU and mAP
+
 - [ ] Look into SparkFun nRF52832 Breakout
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
@@ -79,6 +71,8 @@ RPI_GPIO26
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Create training scenario
+- [x] Update descriptions about dataset
+- [x] Update software description in README
 - [x] Calibrate PiCamera (Completed)
 - [x] Solder motors to ESCs (Completed Nov. 1st)
 - [x] Screw in new camera and PDB mount  (Completed Nov. 1st)
@@ -114,31 +108,78 @@ RPI_GPIO26
 - [x] Create initial variables for drones (Completed Sept. 26)
 - [x] Create drone class (Completed Sept. 26)
 
+## detectionNet Explained
+A modified version of YOLOv1 with SqueezeNet is implemented
+
+Input Format:
+img - [batchsize, 375, 375, 3]
+labels -
+Note: Form [p1x, p1y, p2x, p2y] have been converted to form [x,y,w,h]
+
+Dimensionality of the next layer can be computed as follows:
+![fig. 1](http://mathurl.com/ybw6b7yt.png)
+
+| Layer | Output Dimensions | Filter Size | Stride | Depth |
+|-------|------------|-------------|--------|-------|
+| images | [375, 375, 3] | - | - | - |
+| conv1 | [188, 188, 96] | [7, 7] | [2, 2] | 96 |
+| maxpool1 | [93, 93, 96] | [3, 3] | [2, 2] | - |
+| fire1 | [93, 93, 128] | - | - | 128 |
+| fire2 | [93, 93, 128] | - | - | 128 |
+| fire3 | [93, 93, 256] | - | - | 256 |
+| maxpool2 | [46, 46, 256] | [3, 3] | [2, 2] | - |
+| fire4 | [46, 46, 256] | - | - | 256 |
+| fire5 | [46, 46, 384] | - | - | 384 |
+| fire6 | [46, 46, 384] | - | - | 384 |
+| fire7 | [46, 46, 512] | - | - | 512 |
+| maxpool3 | [23, 23, 512] | [3, 3] | [2, 2] | - |
+| fire8 | [23, 23, 512] | - | - | 512 |
+| maxpool4 | [5, 5, 512] | [7, 7] | [4, 4] | - |
+| conv2 | [5, 5, 27] | [1, 1] | [1, 1] | 27 |
+
+
+Cost Function
+
+##### Fire Module
+A fire module (described in SqueezeNet) is defined as a 1x1 conv2d layer
+
+## Network Training
+
+
 ## Data formatting of the KITTI Vision Dataset
-### Videos
-__1920x1080 video__ <br/>
-VIRAT_S_XXYYZZ__KK_SSSSSS_TTTTTT.mp4 <br/>
-VIRAT_S | Prefix <br/>
-XX | Collection Group ID <br/>
-YY | Scene ID <br/>
-ZZ | Sequence ID <br/>
-KK | Segment ID (within sequence) <br/>
-SSSSSS | Start time in seconds in %06d format <br/>
-TTTTTT | End time in seconds in %06 format <br/>
+### Images
+Of format 000000.png <br/>
+Training set size: ~7500 images
+Testing set size: ~7500 images
+Various dimensions from [1224, 370] to [1242, 375]
+##### Processing
+1. Resizing all uniform [1242, 375] with cubic interpolation
+2. Crop random to [375, 375]
+3. Normalize to range [0., 1.]
+
 ### Annotations
 All annotations are white-space delimited <br/>
 __Object Annotations__ <br/>
-VIDNAME.viratdata.objects.txt <br/>
-8 Columns of separated data
-Bold means the data will be used
-1. ID - Unique ID, may not be consecutive
-2. dur - amount of frames the object appears for
-3. nf - start frame (begin at zero with 30 per second)
-4. x - X coordinate of top left corner of bounding box
-5. y - Y coordinate of top left corner of bounding box
-6. w - Width of bounding box
-7. h - Height of bounding box
-8. type - Unknown: 0, Person: 1, Car: 2, Other Vehicle: 3, Other Object: 4, Bike: 5
+Of format 000000.txt <br/>
+15 Columns of separated data
+-1 is default value if field does not apply
+1. Class - Car, Van, Truck, Pedestrian, Person Sitting, Cyclist, Tram, Misc., Don't Care
+2. Truncated - If the bounding box is truncated (leaves the screen)
+3. Occluded - If the bounding box/class is partially obscured
+4. Observation angle - Range from -pi to pi
+5. Bounding box x_min
+6. Bounding box y_min
+7. Bounding box x_max
+8. Bounding box y_max
+9. 3D - x dimension of object
+10. 3D - y dimension of object
+11. 3D - z dimension of object
+12. x location
+13. y location
+14. z location
+15. ry rotation around y-axis
+
+For simplicity sake, only columns 1,5,6,7,8 will be used.
 
 ## Price and Weight Data
 | Qty | Item | Total Weight (g) | Price |

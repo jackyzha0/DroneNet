@@ -59,9 +59,7 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Check values of init labels
 - [ ] Interpret Output
-- [ ] Check labels for accuracy
 - [ ] imshow Output
 - [ ] Calculate IOU and mAP
 
@@ -72,6 +70,8 @@ RPI_GPIO26
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Create training scenario
+- [x] Check labels for accuracy
+- [x] Check values of init labels
 - [x] Update descriptions about dataset
 - [x] Update software description in README
 - [x] Calibrate PiCamera (Completed)

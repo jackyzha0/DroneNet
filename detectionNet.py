@@ -12,7 +12,7 @@ from tensorflow.contrib.framework import arg_scope
 from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
 ### PARAMETERS ###
-batchsize = 32
+batchsize = 1
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -84,7 +84,7 @@ net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
 
 # Output Extraction
 tfBatch = tf.shape(x)[0]
-x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
+x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
 
 delta = tf.constant(1e-8)
 subX = tf.subtract(x_, x)
@@ -128,7 +128,7 @@ with tf.Session() as sess:
     sess.run(init_g)
     sess.run(init_l)
 
-    while db.batches_elapsed < 100:
+    while db.batches_elapsed < 1:
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)
@@ -141,14 +141,20 @@ with tf.Session() as sess:
         obj_in = label[:,:,:,9*B:10*B]
         noobj_in = label[:,:,:,10*B:11*B]
         objI_in = label[:,:,:,32]
-        objI_in = np.squeeze(objI_in)
-
+        if batchsize == 1:
+            objI_in = [np.squeeze(objI_in)]
+        else:
+            objI_in = np.squeeze(objI_in)
         #print(obj_in.shape, noobj_in.shape, objI_in.shape)
 
         # logits = sess.run([net],
         #                   feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
         # print(logits)
-        out = sess.run([train_op, loss, x_, x],
+
+
+
+
+        out = sess.run([train_op, loss],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in})

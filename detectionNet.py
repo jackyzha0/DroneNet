@@ -87,7 +87,7 @@ no_obj = tf.constant(0., shape=[batchsize, sx, sy, B])
 tfBatch = tf.shape(x)[0]
 x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
 
-delta = tf.constant(1e-6)
+delta = tf.constant(1e-8)
 
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
@@ -116,7 +116,6 @@ train_op = optimizer.apply_gradients(clipped_grads)
 #optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
 #train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
 
-variables_names = [v.name for v in tf.trainable_variables()]
 init_g = tf.global_variables_initializer()
 init_l = tf.local_variables_initializer()
 
@@ -147,7 +146,7 @@ with tf.Session() as sess:
         # logits = sess.run([net],
         #                   feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
         # print(logits)
-        out = sess.run([train_op, loss, subW, subH],
+        out = sess.run([train_op, loss, x_, x],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
         print(prettyPrint(out[1], db))
         print(out[2],out[3])

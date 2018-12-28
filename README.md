@@ -59,8 +59,9 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Check labels for accuracy
+- [ ] Check values of init labels
 - [ ] Interpret Output
+- [ ] Check labels for accuracy
 - [ ] imshow Output
 - [ ] Calculate IOU and mAP
 

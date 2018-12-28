@@ -87,13 +87,13 @@ no_obj = tf.constant(0., shape=[batchsize, sx, sy, B])
 tfBatch = tf.shape(x)[0]
 x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
 
+delta = tf.constant(1e-6)
+
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
-subW = tf.subtract(w_, w)
-subH = tf.subtract(h_, h)
 
-#subW = tf.subtract(tf.sqrt(tf.abs(w_)), tf.sqrt(tf.abs(w)))
-#subH = tf.subtract(tf.sqrt(tf.abs(h_)), tf.sqrt(tf.abs(h)))
+subW = tf.subtract(tf.sqrt(tf.abs(w_ + delta)), tf.sqrt(tf.abs(w + delta)))
+subH = tf.subtract(tf.sqrt(tf.abs(h_ + delta)), tf.sqrt(tf.abs(h + delta)))
 
 subC = tf.subtract(conf_, conf)
 subP = tf.subtract(prob_, probs)
@@ -147,6 +147,7 @@ with tf.Session() as sess:
         # logits = sess.run([net],
         #                   feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
         # print(logits)
-        out = sess.run([train_op, loss],
+        out = sess.run([train_op, loss, subW, subH],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
         print(prettyPrint(out[1], db))
+        print(out[2],out[3])

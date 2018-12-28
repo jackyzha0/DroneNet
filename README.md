@@ -149,7 +149,7 @@ Where,
 
 lossXYWH is the sum of the squared errors of the x,y,w,h values of bounding boxes for all squares and bounding boxes responsible
 
-![eqn1](http://mathurl.com/y7jtqc6u.png)
+![eqn1](http://mathurl.com/yb8r7ll2.png)
 
 lossObjConf is the sum of the squared errors in predicted confidences of all bounding boxes with objects
 
@@ -172,9 +172,6 @@ B is the number of bounding boxes per grid cell
 
 ##### Fire Module
 A fire module (described in SqueezeNet) is defined as 3 1x1 conv2d layers followed by 4 1x1 conv2d layers concatenated with 4 3x3 conv2d layers
-
-## Network Training
-
 
 ## Data formatting of the KITTI Vision Dataset
 ### Images

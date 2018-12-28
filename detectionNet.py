@@ -14,7 +14,7 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 ### PARAMETERS ###
 batchsize = 32
 epochs = 100
-learning_rate = 1e-5
+learning_rate = 1e-3
 momentum = 0.9
 #sx_dims = 120x120
 sx = 5 #448
@@ -60,7 +60,10 @@ y = tf.placeholder(tf.float32, [None, sx, sy, B], name="y_inp")
 w = tf.placeholder(tf.float32, [None, sx, sy, B], name="w_inp")
 h = tf.placeholder(tf.float32, [None, sx, sy, B], name="h_inp")
 conf = tf.placeholder(tf.float32, [None, sx, sy, B], name="conf_inp")
-probs = tf.placeholder(tf.float32, [None, sx, sy, B*C], name="conf_inp")
+probs = tf.placeholder(tf.float32, [None, sx, sy, B*C], name="probs_inp")
+obj = tf.placeholder(tf.float32, shape=[batchsize, sx, sy, B], name="obj")
+objI = tf.placeholder(tf.float32, shape=[batchsize, sx, sy], name="objI")
+no_obj = tf.placeholder(tf.float32, shape=[batchsize, sx, sy, B], name="no_obj")
 
 net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
 net = tf.contrib.layers.max_pool2d(net, [4, 4], stride=2, scope='maxpool1')
@@ -78,32 +81,25 @@ net = tf.contrib.layers.max_pool2d(net, [6, 6], stride=4, scope='maxpool4')
 net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
 
 ### Definining Cost
-# Label Extraction
-obj = tf.constant(1., shape=[batchsize, sx, sy, B])
-objI = tf.constant(1., shape=[batchsize, sx, sy])
-no_obj = tf.constant(0., shape=[batchsize, sx, sy, B])
 
 # Output Extraction
 tfBatch = tf.shape(x)[0]
 x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
 
 delta = tf.constant(1e-8)
-
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
-
 subW = tf.subtract(tf.sqrt(tf.abs(w_ + delta)), tf.sqrt(tf.abs(w + delta)))
 subH = tf.subtract(tf.sqrt(tf.abs(h_ + delta)), tf.sqrt(tf.abs(h + delta)))
-
 subC = tf.subtract(conf_, conf)
 subP = tf.subtract(prob_, probs)
-lossX=tf.multiply(lambda_coord,tf.reduce_sum(tf.multiply(obj,tf.multiply(subX, subX)),axis=[1,2,3]))
-lossY=tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subY, subY)),axis=[1,2,3]))
-lossW=tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subW, subW)),axis=[1,2,3]))
-lossH=tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subH, subH)),axis=[1,2,3]))
-lossCObj=tf.reduce_sum(tf.multiply(obj, tf.multiply(subC, subC)),axis=[1,2,3])
-lossCNobj=tf.multiply(lambda_no_obj, tf.reduce_sum(tf.multiply(no_obj, tf.multiply(subC, subC)),axis=[1,2,3]))
-lossP=tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis=3)) ,axis=[1,2])
+lossX = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subX, subX)), axis=[1, 2, 3]))
+lossY = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subY, subY)), axis=[1, 2, 3]))
+lossW = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subW, subW)), axis=[1, 2, 3]))
+lossH = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subH, subH)), axis=[1, 2, 3]))
+lossCObj = tf.reduce_sum(tf.multiply(obj, tf.multiply(subC, subC)), axis=[1,2,3])
+lossCNobj = tf.multiply(lambda_no_obj, tf.reduce_sum(tf.multiply(no_obj, tf.multiply(subC, subC)),axis=[1, 2, 3]))
+lossP = tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis=3)) ,axis=[1, 2])
 lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
 loss = tf.reduce_mean(lossT)
 
@@ -142,11 +138,18 @@ with tf.Session() as sess:
         h_in = label[:,:,:,3*B:4*B]
         conf_in = label[:,:,:,4*B:5*B]
         classes_in = label[:,:,:,5*B:(5+C)*B]
+        obj_in = label[:,:,:,9*B:10*B]
+        noobj_in = label[:,:,:,10*B:11*B]
+        objI_in = label[:,:,:,32]
+        objI_in = np.squeeze(objI_in)
+
+        #print(obj_in.shape, noobj_in.shape, objI_in.shape)
 
         # logits = sess.run([net],
         #                   feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
         # print(logits)
         out = sess.run([train_op, loss, x_, x],
-                       feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
+                       feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
+                                  conf: conf_in, probs: classes_in,
+                                  obj: obj_in, no_obj: noobj_in, objI: objI_in})
         print(prettyPrint(out[1], db))
-        print(out[2],out[3])

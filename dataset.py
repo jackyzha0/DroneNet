@@ -132,7 +132,10 @@ class dataHandler():
         for indice in num_arr:
             with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
                 #grid = [[[None for x in range(self.B*(self.NUM_CLASSES + 5))] for x in range(self.sx)] for x in range(self.sy)]
-                grid = np.zeros([self.sx, self.sy, self.B*(self.NUM_CLASSES + 5)])
+                pre_grid = np.zeros([self.sx, self.sy, self.B*(self.NUM_CLASSES + 5 + 1)])
+                noobj = np.ones([self.sx, self.sy, self.B])
+                objI = np.zeros([self.sx, self.sy, 1])
+                grid = np.concatenate((pre_grid, noobj, objI), axis=2)
                 for line in f:
                     box_det = line.split(" ")
                     C = [0.] * self.NUM_CLASSES
@@ -164,8 +167,11 @@ class dataHandler():
                                 grid[cellx][celly][self.B + i] = xywh[1]
                                 grid[cellx][celly][2*self.B + i] = xywh[2]
                                 grid[cellx][celly][3*self.B + i] = xywh[3]
-                                grid[cellx][celly][4*self.B + i] = 1.
-                                grid[cellx][celly][5*self.B + i: 5*self.B + i + 4] = C
+                                grid[cellx][celly][4*self.B + i] = 1. #Confidence
+                                grid[cellx][celly][5*self.B + i: 5*self.B + i*self.C] = C #Class probs
+                                grid[cellx][celly][9*self.B + i] = 1. #obj
+                                grid[cellx][celly][10*self.B + i] = 0. #noobj
+                                grid[cellx][celly][32] = 1. #objI
                                 argcheck = 1
                         #boxes.append(xywh + C)
             labels.append(grid)

@@ -69,16 +69,17 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
+- [ ] Update descriptions about dataset
+- [ ] Update software description in README
+- [ ]
 - [ ] Look into SparkFun nRF52832 Breakout
-- [ ] Calibrate PiCamera
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
 - [ ] Draw on MapDisp
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Create training scenario
-- [ ] Cost function for measuring accuracy of 3D reconstruction
-- [ ] Construct Model
+- [x] Calibrate PiCamera (Completed)
 - [x] Solder motors to ESCs (Completed Nov. 1st)
 - [x] Screw in new camera and PDB mount  (Completed Nov. 1st)
 - [x] Install new propellers (Completed Oct. 31st)

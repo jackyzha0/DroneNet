@@ -111,11 +111,6 @@ RPI_GPIO26
 ## detectionNet Explained
 A modified version of YOLOv1 with SqueezeNet is implemented
 
-Input Format:
-img - [batchsize, 375, 375, 3]
-labels -
-Note: Form [p1x, p1y, p2x, p2y] have been converted to form [x,y,w,h]
-
 Dimensionality of the next layer can be computed as follows:
 ![fig. 1](http://mathurl.com/ybw6b7yt.png)
 
@@ -137,11 +132,27 @@ Dimensionality of the next layer can be computed as follows:
 | maxpool4 | [5, 5, 512] | [7, 7] | [4, 4] | - |
 | conv2 | [5, 5, 27] | [1, 1] | [1, 1] | 27 |
 
+Input Format:
+img - [batchsize, 375, 375, 3]
 
-Cost Function
+labels - [batchsize, sx, sy, B * (C + 4)] where B is number of bounding boxes per grid cell (3) and C is number of classes (4)
+
+Note: Form [p1x, p1y, p2x, p2y] have been converted to form [x,y,w,h]
+
+##### Cost Function
+Two constants are set to correct the unbalance between obj and no_obj boxes, ![constants](http://mathurl.com/yaafekee.png)
+
+
+YOLO works by adding the following seperate losses, ![t_loss](http://mathurl.com/yc2sghmx.png)
+
+Where,
+
+lossXY is the sum of the squared errors of the x,y values of bounding boxes for all squares and bounding boxes responsible
+
+![eqn](http://mathurl.com/y7jtqc6u.png.png)
 
 ##### Fire Module
-A fire module (described in SqueezeNet) is defined as a 1x1 conv2d layer
+A fire module (described in SqueezeNet) is defined as 3 1x1 conv2d layers followed by 4 1x1 conv2d layers concatenated with 4 3x3 conv2d layers
 
 ## Network Training
 

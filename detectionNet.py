@@ -89,11 +89,11 @@ x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], 3)
 
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
-# subW = tf.subtract(w_, w)
-# subH = tf.subtract(h_, h)
+subW = tf.subtract(w_, w)
+subH = tf.subtract(h_, h)
 
-subW = tf.subtract(tf.sqrt(tf.abs(w_)), tf.sqrt(tf.abs(w)))
-subH = tf.subtract(tf.sqrt(tf.abs(h_)), tf.sqrt(tf.abs(h)))
+#subW = tf.subtract(tf.sqrt(tf.abs(w_)), tf.sqrt(tf.abs(w)))
+#subH = tf.subtract(tf.sqrt(tf.abs(h_)), tf.sqrt(tf.abs(h)))
 
 subC = tf.subtract(conf_, conf)
 subP = tf.subtract(prob_, probs)

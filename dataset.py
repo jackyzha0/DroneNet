@@ -89,7 +89,7 @@ class dataHandler():
                 im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
             refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             crop = im[:, refx:refx+self.IMGDIMS[1]]
-            crop /= 255.
+            crop = crop / 255.
             if imgs is not None:
                 #print(imgs.shape, crop[np.newaxis, :].shape)
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))

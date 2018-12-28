@@ -147,9 +147,23 @@ YOLO works by adding the following seperate losses, ![t_loss](http://mathurl.com
 
 Where,
 
-lossXY is the sum of the squared errors of the x,y values of bounding boxes for all squares and bounding boxes responsible
+lossXYWH is the sum of the squared errors of the x,y,w,h values of bounding boxes for all squares and bounding boxes responsible
 
-![eqn](http://mathurl.com/y7jtqc6u.png.png)
+![eqn1](http://mathurl.com/y7jtqc6u.png)
+
+lossObjConf is the sum of the squared errors in predicted confidences of all bounding boxes with objects
+
+![eqn2](http://mathurl.com/y6wja6g8.png)
+
+lossNoobjConf is the sum of the squared errors in predicted confidences of all grid cells with no objects
+
+![eqn3](http://mathurl.com/ybs83qun.png)
+
+lossProb is the sum of the squared errors in predicted class probabilities across all grid cells
+
+![eqn3](http://mathurl.com/ybaezuc2.png)
+
+phi is defined as ![phidef](http://mathurl.com/yc2gtzso.png)
 
 ##### Fire Module
 A fire module (described in SqueezeNet) is defined as 3 1x1 conv2d layers followed by 4 1x1 conv2d layers concatenated with 4 3x3 conv2d layers

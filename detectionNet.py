@@ -14,7 +14,7 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 ### PARAMETERS ###
 batchsize = 64
 epochs = 100
-learning_rate = 1e-3
+learning_rate = 1e-4
 momentum = 0.9
 #sx_dims = 120x120
 sx = 5 #448
@@ -103,14 +103,10 @@ lossP = tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), ax
 lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
 loss = tf.reduce_mean(lossT)
 
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate)
 grads = optimizer.compute_gradients(loss)
 clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
 train_op = optimizer.apply_gradients(clipped_grads)
-
-#train_op = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).minimize(loss)
-#optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, momentum=momentum, epsilon=1.0)
-#train_op = optimizer.minimize(loss, tf.train.get_or_create_global_step())
 
 init_g = tf.global_variables_initializer()
 init_l = tf.local_variables_initializer()
@@ -145,17 +141,9 @@ with tf.Session() as sess:
             objI_in = [np.squeeze(objI_in)]
         else:
             objI_in = np.squeeze(objI_in)
-        #print(obj_in.shape, noobj_in.shape, objI_in.shape)
 
-        # logits = sess.run([net],
-        #                   feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in, conf: conf_in, probs: classes_in})
-        # print(logits)
-
-        out = sess.run([train_op, loss, x_, y_, w_, h_, conf_, prob_],
+        out = sess.run([train_op, loss],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in})
-        # print(x_in)
-        # print()
-        # print(out[2])
         print(prettyPrint(out[1], db))

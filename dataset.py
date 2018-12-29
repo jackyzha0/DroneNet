@@ -42,21 +42,39 @@ class dataHandler():
         classes = arr[:,:,5*B:(5+C)*B]
         return x,y,w,h,conf,classes
 
-    def dispImage(self, image, boundingBoxes = None, drawTime = 1000):
+    def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 1000):
         im = image
         B = self.B
         if boundingBoxes is not None:
-            x_,y_,w_,h_,_,classes_ = self.seperate_labels(boundingBoxes)
+            x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(boundingBoxes)
             for x in range(0,x_.shape[0]):
                 for y in range(0,x_.shape[1]):
                     for i in range(B):
                         if x_[x][y][i] is not None:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.onehot_to_text(classes_[x][y][i:i+4])
-                            cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 3)
-                            cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
+                            if not classtype == "unknwn" and conf_[x][y][i] == 1:
+                                cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
+                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+        if preds is not None:
+            x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(preds)
+            for x in range(0,x_.shape[0]):
+                for y in range(0,x_.shape[1]):
+                    for i in range(B):
+                        if x_[x][y][i] is not None:
+                            bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
+                            classtype = self.softmax(classes_[x][y][i:i+4])
+                            if not classtype == "unknwn":
+                                cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
+                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
         cv.imshow("frame.jpg", im)
         cv.waitKey(drawTime)
+
+    def softmax(self, arr):
+        maxind = np.argmax(arr)
+        out = np.zeros(self.NUM_CLASSES)
+        out[maxind] = 1.
+        return self.onehot_to_text(out)
 
     def onehot_to_text(self, arr):
         if arr[0] == 1:
@@ -89,7 +107,7 @@ class dataHandler():
                 im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
             refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             crop = im[:, refx:refx+self.IMGDIMS[1]]
-            crop = crop / 255. * 2. - 1.
+            #crop = crop / 255. * 2. - 1.
             if imgs is not None:
                 #print(imgs.shape, crop[np.newaxis, :].shape)
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))

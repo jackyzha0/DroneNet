@@ -6,6 +6,7 @@ import sugartensor as tf
 import dataset
 import random
 import numpy as np
+from decimal import Decimal
 
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
@@ -14,7 +15,7 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 ### PARAMETERS ###
 batchsize = 64
 epochs = 100
-learning_rate = 1e-4
+learning_rate = 1e-3
 momentum = 0.9
 #sx_dims = 120x120
 sx = 5 #448
@@ -61,9 +62,9 @@ w = tf.placeholder(tf.float32, [None, sx, sy, B], name="w_inp")
 h = tf.placeholder(tf.float32, [None, sx, sy, B], name="h_inp")
 conf = tf.placeholder(tf.float32, [None, sx, sy, B], name="conf_inp")
 probs = tf.placeholder(tf.float32, [None, sx, sy, B*C], name="probs_inp")
-obj = tf.placeholder(tf.float32, shape=[batchsize, sx, sy, B], name="obj")
-objI = tf.placeholder(tf.float32, shape=[batchsize, sx, sy], name="objI")
-no_obj = tf.placeholder(tf.float32, shape=[batchsize, sx, sy, B], name="no_obj")
+obj = tf.placeholder(tf.float32, shape=[None, sx, sy, B], name="obj")
+objI = tf.placeholder(tf.float32, shape=[None, sx, sy], name="objI")
+no_obj = tf.placeholder(tf.float32, shape=[None, sx, sy, B], name="no_obj")
 
 net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
 net = tf.contrib.layers.max_pool2d(net, [4, 4], stride=2, scope='maxpool1')
@@ -105,8 +106,8 @@ loss = tf.reduce_mean(lossT)
 
 optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate)
 grads = optimizer.compute_gradients(loss)
-clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
-train_op = optimizer.apply_gradients(clipped_grads)
+#clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
+train_op = optimizer.apply_gradients(grads)
 
 init_g = tf.global_variables_initializer()
 init_l = tf.local_variables_initializer()
@@ -114,7 +115,7 @@ init_l = tf.local_variables_initializer()
 db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
-    lossString = "Loss: %s | " % loss
+    lossString = "Loss: %.2e | " % loss
     batches_elapsed = "Batches elapsed: %d | " % db.batches_elapsed
     epochs_elapsed = "Epochs elapsed: %d | " % db.epochs_elapsed
     epoch_progress = "Epoch Progress: %.2f%% " % (100. * (len(db.train_arr)-len(db.train_unused))/len(db.train_arr))
@@ -124,7 +125,7 @@ with tf.Session() as sess:
     sess.run(init_g)
     sess.run(init_l)
 
-    while db.batches_elapsed < 100:
+    while db.epochs_elapsed < 10:
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)
@@ -142,8 +143,11 @@ with tf.Session() as sess:
         else:
             objI_in = np.squeeze(objI_in)
 
-        out = sess.run([train_op, loss],
+        out = sess.run([train_op, loss, net],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in})
+
+        pred_labels = np.array(out)[2][0]
         print(prettyPrint(out[1], db))
+        db.dispImage(img[0], boundingBoxes = label[0], preds = pred_labels)

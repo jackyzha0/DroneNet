@@ -59,8 +59,6 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Interpret Output
-- [ ] imshow Output
 - [ ] Calculate IOU and mAP
 
 - [ ] Look into SparkFun nRF52832 Breakout
@@ -70,6 +68,8 @@ RPI_GPIO26
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Create training scenario
+- [x] imshow Output
+- [x] Interpret Output
 - [x] Check labels for accuracy
 - [x] Check values of init labels
 - [x] Update descriptions about dataset

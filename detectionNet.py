@@ -86,16 +86,15 @@ net = tf.contrib.layers.fully_connected(net, B*(C+5))
 ### Definining Cost
 
 # Output Extraction
-tfBatch = tf.shape(x)[0]
 x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
 
 delta = tf.constant(1e-8)
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
-subW = tf.subtract(w_, w)
-subH = tf.subtract(h_, h)
-# subW = tf.subtract(tf.sqrt(w_ + delta), tf.sqrt(w + delta))
-# subH = tf.subtract(tf.sqrt(h_ + delta), tf.sqrt(h + delta))
+# subW = tf.subtract(w_, w)
+# subH = tf.subtract(h_, h)
+subW = tf.subtract(tf.sqrt(w_ + delta), tf.sqrt(w + delta))
+subH = tf.subtract(tf.sqrt(h_ + delta), tf.sqrt(h + delta))
 subC = tf.subtract(conf_, conf)
 subP = tf.subtract(prob_, probs)
 lossX = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subX, subX)), axis=[1, 2, 3]))
@@ -130,7 +129,7 @@ with tf.Session() as sess:
     sess.run(init_g)
     sess.run(init_l)
 
-    while db.batches_elapsed < 1:#1000:
+    while db.batches_elapsed < 1000:
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)
@@ -162,4 +161,4 @@ with tf.Session() as sess:
         #print(sk2.shape)
         sk2_ = np.reshape(sk2, (sx*sy, 34))
         np.savetxt('debug/label%s.txt' % db.batches_elapsed, sk2_)
-        db.dispImage(img[0], boundingBoxes = label[0])#, preds = pred_labels)
+        db.dispImage(img[0], boundingBoxes = label[0], preds = pred_labels)

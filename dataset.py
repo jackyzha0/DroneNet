@@ -97,8 +97,6 @@ class dataHandler():
         p1y = y - (h / 2) + y_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
         p2x = x + (w / 2) + x_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
         p2y = y + (h / 2) + y_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
-        if not x == 0:
-            print(p1y, p1x, p2y, p2x)
         arr = [p1y, p1x, p2y, p2x]
         return [int(x) for x in arr]
 
@@ -197,7 +195,7 @@ class dataHandler():
                                 grid[cellx][celly][5*self.B + i: 5*self.B + self.NUM_CLASSES + i] = C #Class probs
                                 grid[cellx][celly][9*self.B + i] = 1. #obj
                                 grid[cellx][celly][10*self.B + i] = 0. #noobj
-                                grid[cellx][celly][32] = 1. #objI
+                                grid[cellx][celly][33] = 1. #objI
                                 argcheck = 1
             labels.append(grid)
         return labels

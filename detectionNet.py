@@ -15,7 +15,7 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 ### PARAMETERS ###
 batchsize = 2
 epochs = 100
-learning_rate = 1e-4
+learning_rate = 5e-3
 momentum = 0.9
 #sx_dims = 120x120
 sx = 5 #448
@@ -89,21 +89,21 @@ net = tf.contrib.layers.fully_connected(net, B*(C+5))
 x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
 
 delta = tf.constant(1e-8)
-subX = tf.subtract(x_, x)
-subY = tf.subtract(y_, y)
+subX = tf.subtract(x, x_)
+subY = tf.subtract(y, y_)
 # subW = tf.subtract(w_, w)
 # subH = tf.subtract(h_, h)
-subW = tf.subtract(tf.sqrt(w_ + delta), tf.sqrt(w + delta))
-subH = tf.subtract(tf.sqrt(h_ + delta), tf.sqrt(h + delta))
-subC = tf.subtract(conf_, conf)
-subP = tf.subtract(prob_, probs)
-lossX = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subX, subX)), axis=[1, 2, 3]))
-lossY = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subY, subY)), axis=[1, 2, 3]))
-lossW = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subW, subW)), axis=[1, 2, 3]))
-lossH = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subH, subH)), axis=[1, 2, 3]))
-lossCObj = tf.reduce_sum(tf.multiply(obj, tf.multiply(subC, subC)), axis=[1,2,3])
-lossCNobj = tf.multiply(lambda_no_obj, tf.reduce_sum(tf.multiply(no_obj, tf.multiply(subC, subC)),axis=[1, 2, 3]))
-lossP = tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), axis=3)) ,axis=[1, 2])
+subW = tf.subtract(tf.sqrt(w + delta), tf.sqrt(w_ + delta))
+subH = tf.subtract(tf.sqrt(h + delta), tf.sqrt(h_ + delta))
+subC = tf.subtract(conf, conf_)
+subP = tf.subtract(probs, prob_)
+lossX = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.square(subX)), axis=[1, 2, 3]))
+lossY = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.square(subY)), axis=[1, 2, 3]))
+lossW = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.square(subW)), axis=[1, 2, 3]))
+lossH = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.square(subH)), axis=[1, 2, 3]))
+lossCObj = tf.reduce_sum(tf.multiply(obj, tf.square(subC)), axis=[1,2,3])
+lossCNobj = tf.multiply(lambda_no_obj, tf.reduce_sum(tf.multiply(no_obj, tf.square(subC)),axis=[1, 2, 3]))
+lossP = tf.reduce_sum(tf.multiply(obj,tf.reduce_sum(tf.square(subP))) ,axis=[1, 2, 3])
 lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
 loss = tf.reduce_mean(lossT)
 
@@ -141,24 +141,36 @@ with tf.Session() as sess:
         classes_in = label[:,:,:,5*B:(5+C)*B]
         obj_in = label[:,:,:,9*B:10*B]
         noobj_in = label[:,:,:,10*B:11*B]
-        objI_in = label[:,:,:,32]
+        objI_in = label[:,:,:,33]
         if x_in.shape[0] == 1:
             objI_in = [np.squeeze(objI_in)]
         else:
             objI_in = np.squeeze(objI_in)
 
-        out = sess.run([train_op, loss, net],
+        out = sess.run([train_op, loss, net, probs, prob_, obj, objI],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in})
 
+        print(np.array(out)[3][0].shape)
+        print(np.reshape(np.array(out)[3][0], (sx*sy, 12)))
+        print(np.array(out)[4][0].shape)
+        print(np.reshape(np.array(out)[4][0], (sx*sy, 12)))
+        print(np.array(out)[5][0].shape)
+        print(np.reshape(np.array(out)[5][0], (sx*sy, 3)))
+        print(np.array(out)[6][0].shape)
+        print(np.reshape(np.array(out)[6][0], (sx*sy)))
+        np.savetxt('debug/__probs.txt', out[3])
+        np.savetxt('debug/__probs_hat.txt', out[4])
+        np.savetxt('debug/__obj.txt', out[5])
+        np.savetxt('debug/__objI.txt', out[6])
         pred_labels = np.array(out)[2][0]
         sk = np.reshape(pred_labels, (sx*sy, 27))
-        np.savetxt('debug/out%s.txt' % db.batches_elapsed, sk)
+        np.savetxt('debug/lb%s_out.txt' % db.batches_elapsed, sk)
         print(prettyPrint(out[1], db))
         #print(sk.shape)
         sk2 = label[0]
         #print(sk2.shape)
         sk2_ = np.reshape(sk2, (sx*sy, 34))
-        np.savetxt('debug/label%s.txt' % db.batches_elapsed, sk2_)
+        np.savetxt('debug/lb%s_act.txt' % db.batches_elapsed, sk2_)
         db.dispImage(img[0], boundingBoxes = label[0], preds = pred_labels)

@@ -71,7 +71,7 @@ class dataHandler():
         cv.waitKey(drawTime)
 
     def softmax(self, arr):
-        if np.amax(arr) > 0.3:
+        if np.amax(arr) > 0.7:
             maxind = np.argmax(arr)
             out = np.zeros(self.NUM_CLASSES)
             out[maxind] = 1.
@@ -181,8 +181,6 @@ class dataHandler():
 
                         xywh[0] = xywh[0] - celly * (self.IMGDIMS[1] / self.sx) - ((self.IMGDIMS[1] / self.sx) / 2)
                         xywh[1] = xywh[1] - cellx * (self.IMGDIMS[1] / self.sy) - ((self.IMGDIMS[1] / self.sx) / 2)
-                        print(cellx, celly)
-                        print(xywh[0],xywh[1])
 
                         argcheck = 0
                         for i in range(0, self.B):

@@ -71,10 +71,13 @@ class dataHandler():
         cv.waitKey(drawTime)
 
     def softmax(self, arr):
-        maxind = np.argmax(arr)
-        out = np.zeros(self.NUM_CLASSES)
-        out[maxind] = 1.
-        return self.onehot_to_text(out)
+        if np.amax(arr) > 0.3:
+            maxind = np.argmax(arr)
+            out = np.zeros(self.NUM_CLASSES)
+            out[maxind] = 1.
+            return self.onehot_to_text(out)
+        else:
+            return "unknwn"
 
     def onehot_to_text(self, arr):
         if arr[0] == 1:
@@ -105,7 +108,8 @@ class dataHandler():
             im = cv.imread(imgdir)
             if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
                 im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
-            refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
+            #refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
+            refx = 0
             crop = im[:, refx:refx+self.IMGDIMS[1]]
             #crop = crop / 255. * 2. - 1.
             if imgs is not None:
@@ -141,6 +145,7 @@ class dataHandler():
         return [round(x,2) for x in arr]
 
     def getBox(self, x, y):
+        print(x,y)
         col = int(math.floor(x / self.IMGDIMS[1] * (self.sx-1)))
         row = int(math.floor(y / self.IMGDIMS[1] * (self.sy-1)))
         return [row,col]

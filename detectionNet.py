@@ -13,9 +13,9 @@ from tensorflow.contrib.framework import arg_scope
 from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
 ### PARAMETERS ###
-batchsize = 64
+batchsize = 2
 epochs = 100
-learning_rate = 1e-3
+learning_rate = 1e-4
 momentum = 0.9
 #sx_dims = 120x120
 sx = 5 #448
@@ -80,6 +80,8 @@ net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool3')
 net = fire_module(net, 64, 256, scope='fire8')
 net = tf.contrib.layers.max_pool2d(net, [6, 6], stride=4, scope='maxpool4')
 net = tf.contrib.layers.conv2d(net, B*(C+5), [1, 1], stride=1, scope='conv2')
+net = tf.contrib.layers.fully_connected(net, B*(C+5))
+net = tf.contrib.layers.fully_connected(net, B*(C+5))
 
 ### Definining Cost
 
@@ -90,8 +92,10 @@ x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
 delta = tf.constant(1e-8)
 subX = tf.subtract(x_, x)
 subY = tf.subtract(y_, y)
-subW = tf.subtract(tf.sqrt(tf.abs(w_ + delta)), tf.sqrt(tf.abs(w + delta)))
-subH = tf.subtract(tf.sqrt(tf.abs(h_ + delta)), tf.sqrt(tf.abs(h + delta)))
+subW = tf.subtract(w_, w)
+subH = tf.subtract(h_, h)
+# subW = tf.subtract(tf.sqrt(w_ + delta), tf.sqrt(w + delta))
+# subH = tf.subtract(tf.sqrt(h_ + delta), tf.sqrt(h + delta))
 subC = tf.subtract(conf_, conf)
 subP = tf.subtract(prob_, probs)
 lossX = tf.multiply(lambda_coord, tf.reduce_sum(tf.multiply(obj, tf.multiply(subX, subX)), axis=[1, 2, 3]))
@@ -104,7 +108,7 @@ lossP = tf.reduce_sum(tf.multiply(objI,tf.reduce_sum(tf.multiply(subP, subP), ax
 lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
 loss = tf.reduce_mean(lossT)
 
-optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate)
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 grads = optimizer.compute_gradients(loss)
 #clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
 train_op = optimizer.apply_gradients(grads)
@@ -112,7 +116,8 @@ train_op = optimizer.apply_gradients(grads)
 init_g = tf.global_variables_initializer()
 init_l = tf.local_variables_initializer()
 
-db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+#db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/overfit_test", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
     lossString = "Loss: %.2e | " % loss
@@ -125,7 +130,7 @@ with tf.Session() as sess:
     sess.run(init_g)
     sess.run(init_l)
 
-    while db.epochs_elapsed < 10:
+    while db.batches_elapsed < 1000:
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)
@@ -138,7 +143,7 @@ with tf.Session() as sess:
         obj_in = label[:,:,:,9*B:10*B]
         noobj_in = label[:,:,:,10*B:11*B]
         objI_in = label[:,:,:,32]
-        if batchsize == 1:
+        if x_in.shape[0] == 1:
             objI_in = [np.squeeze(objI_in)]
         else:
             objI_in = np.squeeze(objI_in)
@@ -149,5 +154,12 @@ with tf.Session() as sess:
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in})
 
         pred_labels = np.array(out)[2][0]
+        sk = np.reshape(pred_labels, (sx*sy, 27))
+        np.savetxt('debug/out%s.txt' % db.batches_elapsed, sk)
         print(prettyPrint(out[1], db))
+        #print(sk.shape)
+        sk2 = label[0]
+        #print(sk2.shape)
+        sk2_ = np.reshape(sk2, (sx*sy, 34))
+        np.savetxt('debug/label%s.txt' % db.batches_elapsed, sk2_)
         db.dispImage(img[0], boundingBoxes = label[0], preds = pred_labels)

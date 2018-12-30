@@ -59,6 +59,11 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
+- [ ] Make sure capable of overfitting
+- [ ] Add FC Layers
+- [ ] Add batch norm
+- [ ] Add checkpoint saving
+- [ ] Add test evaluation
 - [ ] Calculate IOU and mAP
 
 - [ ] Look into SparkFun nRF52832 Breakout

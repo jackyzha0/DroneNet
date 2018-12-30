@@ -92,12 +92,14 @@ class dataHandler():
             return "unknwn"
 
     def xywh_to_p1p2(self, inp, x_, y_):
-        x, y, w, h = inp
-        p1x = x - (w / 2) + x_ * (self.IMGDIMS[1] / self.sx)
-        p1y = y - (h / 2) + y_ * (self.IMGDIMS[1] / self.sx)
-        p2x = x + (w / 2) + x_ * (self.IMGDIMS[1] / self.sx)
-        p2y = y + (h / 2) + y_ * (self.IMGDIMS[1] / self.sx)
-        arr = [p1x, p1y, p2x, p2y]
+        y, x, h, w = inp
+        p1x = x - (w / 2) + x_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
+        p1y = y - (h / 2) + y_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
+        p2x = x + (w / 2) + x_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
+        p2y = y + (h / 2) + y_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
+        if not x == 0:
+            print(p1y, p1x, p2y, p2x)
+        arr = [p1y, p1x, p2y, p2x]
         return [int(x) for x in arr]
 
     def get_img(self, num_arr):
@@ -145,9 +147,8 @@ class dataHandler():
         return [round(x,2) for x in arr]
 
     def getBox(self, x, y):
-        print(x,y)
-        col = int(math.floor(x / self.IMGDIMS[1] * (self.sx-1)))
-        row = int(math.floor(y / self.IMGDIMS[1] * (self.sy-1)))
+        row = int(round((y / self.IMGDIMS[1]) * (self.sy-1)))
+        col = int(round((x / self.IMGDIMS[1]) * (self.sx-1)))
         return [row,col]
 
     def get_label(self, num_arr, refdims):
@@ -180,8 +181,10 @@ class dataHandler():
                     if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
                         cellx, celly = self.getBox(xywh[0], xywh[1])
 
-                        xywh[0] = xywh[0] - cellx * (self.IMGDIMS[1] / self.sx)
-                        xywh[1] = xywh[1] - celly * (self.IMGDIMS[1] / self.sy)
+                        xywh[0] = xywh[0] - celly * (self.IMGDIMS[1] / self.sx) - ((self.IMGDIMS[1] / self.sx) / 2)
+                        xywh[1] = xywh[1] - cellx * (self.IMGDIMS[1] / self.sy) - ((self.IMGDIMS[1] / self.sx) / 2)
+                        print(cellx, celly)
+                        print(xywh[0],xywh[1])
 
                         argcheck = 0
                         for i in range(0, self.B):

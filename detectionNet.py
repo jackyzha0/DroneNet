@@ -130,7 +130,7 @@ with tf.Session() as sess:
     sess.run(init_g)
     sess.run(init_l)
 
-    while db.batches_elapsed < 1000:
+    while db.batches_elapsed < 1:#1000:
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)
@@ -162,4 +162,4 @@ with tf.Session() as sess:
         #print(sk2.shape)
         sk2_ = np.reshape(sk2, (sx*sy, 34))
         np.savetxt('debug/label%s.txt' % db.batches_elapsed, sk2_)
-        db.dispImage(img[0], boundingBoxes = label[0], preds = pred_labels)
+        db.dispImage(img[0], boundingBoxes = label[0])#, preds = pred_labels)

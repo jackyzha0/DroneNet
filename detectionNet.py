@@ -88,32 +88,30 @@ net = tf.contrib.layers.fully_connected(net, B*(C+5))
 # Output Extraction
 bn = tf.shape(x)[0]
 x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
-prob_n = tf.reshape(prob_, (bn, sx, sy, B, C))
+prob__n = tf.reshape(prob_, (bn, sx, sy, B, C))
 probs_n = tf.reshape(probs, (bn, sx, sy, B, C))
 obj_n = tf.expand_dims(obj, axis=-1)
 
 delta = tf.constant(1e-8)
 subX = tf.subtract(x, x_)
 subY = tf.subtract(y, y_)
-# subW = tf.subtract(w_, w)
-# subH = tf.subtract(h_, h)
-subW = tf.subtract(tf.sqrt(w + delta), tf.sqrt(w_ + delta))
-subH = tf.subtract(tf.sqrt(h + delta), tf.sqrt(h_ + delta))
-subC = tf.subtract(conf, conf_)
-subP = tf.subtract(probs_n, prob_n)
+subW = tf.sqrt(w + delta) - tf.sqrt(tf.abs(w_) + delta)
+subH = tf.sqrt(h + delta) - tf.sqrt(tf.abs(h_) + delta)
+subC = conf - conf_
+subP = probs_n - prob__n
 lossX = lambda_coord * tf.reduce_sum(obj * tf.square(subX), axis=[1, 2, 3])
 lossY = lambda_coord * tf.reduce_sum(obj * tf.square(subY), axis=[1, 2, 3])
 lossW = lambda_coord * tf.reduce_sum(obj * tf.square(subW), axis=[1, 2, 3])
 lossH = lambda_coord * tf.reduce_sum(obj * tf.square(subH), axis=[1, 2, 3])
 lossCObj = tf.reduce_sum(obj * tf.square(subC), axis=[1, 2, 3])
-lossCNobj = lambda_no_obj * tf.reduce_sum(no_obj * tf.square(subC),axis=[1, 2, 3])
-lossP = tf.reduce_sum(obj_n * tf.square(subP), axis=[1, 2, 3, 4])
-lossT = tf.add_n((lossX,lossY,lossW,lossH,lossCObj,lossCNobj,lossP))
+lossCNobj = lambda_no_obj * tf.reduce_sum(no_obj * tf.square(subC), axis=[1, 2, 3])
+lossP = lambda_coord * tf.reduce_sum(obj_n * tf.square(subP), axis=[1, 2, 3, 4])
+lossT = tf.add_n((lossX, lossY, lossW, lossH, lossCObj, lossCNobj, lossP))
 loss = tf.reduce_mean(lossT)
 
+#optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum = momentum)
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 grads = optimizer.compute_gradients(loss)
-#clipped_grads = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads]
 train_op = optimizer.apply_gradients(grads)
 
 init_g = tf.global_variables_initializer()
@@ -151,23 +149,12 @@ with tf.Session() as sess:
         else:
             objI_in = np.squeeze(objI_in)
 
-        out = sess.run([train_op, loss, net, probs, prob_, obj, objI],
+        out = sess.run([train_op, loss, net, lossX, lossY, lossW, lossH, lossCObj, lossCNobj, lossP],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in})
 
-        print(np.array(out)[3][0].shape)
-        #print(np.reshape(np.array(out)[3][0], (sx*sy, 12)))
-        print(np.array(out)[4][0].shape)
-        #print(np.reshape(np.array(out)[4][0], (sx*sy, 12)))
-        print(np.array(out)[5][0].shape)
-        #print(np.reshape(np.array(out)[5][0], (sx*sy, 3)))
-        print(np.array(out)[6][0].shape)
-        #print(np.reshape(np.array(out)[6][0], (sx*sy)))
-        # np.savetxt('debug/__probs.txt', np.reshape(np.array(out)[3][0], (sx*sy, 12)))
-        # np.savetxt('debug/__probs_hat.txt', np.reshape(np.array(out)[4][0], (sx*sy, 12)))
-        # np.savetxt('debug/__obj.txt', np.reshape(np.array(out)[5][0], (sx*sy, 3)))
-        # np.savetxt('debug/__objI.txt', np.reshape(np.array(out)[6][0], (sx*sy)))
+        print('X loss: %.2f | Y Loss: %.2f | W loss: %.2f | H Loss: %.2f | Cobj loss: %.2f | CNobj Loss: %.2f | P loss: %.2f' % (out[3],out[4],out[5],out[6],out[7],out[8],out[9]))
         pred_labels = np.array(out)[2][0]
         sk = np.reshape(pred_labels, (sx*sy, 27))
         np.savetxt('debug/lb%s_out.txt' % db.batches_elapsed, sk)

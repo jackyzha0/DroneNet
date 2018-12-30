@@ -13,6 +13,7 @@ prob_ = np.full((2,sx,sy,B,C), 0.5)
 
 obj = np.zeros((2,sx,sy,B,1))
 obj[0][0][1][0] = 1.
+obj[1][0][1][0] = 1.
 
 print(probs.shape, prob_.shape, obj.shape)
 

@@ -1,1 +1,1 @@
-tensorboard --logdir tf_writer/TRAIN &
+tensorboard --logdir tf_writer &

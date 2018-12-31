@@ -67,9 +67,10 @@ class dataHandler():
                             if not classtype == "unknwn":
                                 #print(bounds)
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
-                                cv.putText(im, classtype, (bounds[2], bounds[3]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
-        cv.imshow("frame.jpg", im)
-        cv.waitKey(drawTime)
+                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
+        # cv.imshow("frame.jpg", im)
+        # cv.waitKey(drawTime)
+        return im[..., : :-1]
 
     def softmax(self, arr, conf):
         if conf > 0.7:
@@ -112,7 +113,7 @@ class dataHandler():
             #refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             refx = 0
             crop = im[:, refx:refx+self.IMGDIMS[1]]
-            crop = crop / 255. * 2. - 1.
+            #crop = crop / 255. * 2. - 1.
             if imgs is not None:
                 #print(imgs.shape, crop[np.newaxis, :].shape)
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))

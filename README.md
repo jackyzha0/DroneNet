@@ -60,7 +60,6 @@ RPI_GPIO26
 
 ## TODO
 - [ ] Add batch norm
-- [ ] Add checkpoint saving
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP
 
@@ -71,6 +70,7 @@ RPI_GPIO26
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Create training scenario
+- [x] Add checkpoint saving
 - [x] Add FC Layers
 - [x] Make sure capable of overfitting
 - [x] imshow Output

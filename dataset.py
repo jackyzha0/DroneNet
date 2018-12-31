@@ -3,7 +3,6 @@ Python script for parsing the KITTI Dataset
 '''
 import cv2 as cv
 import os
-import event
 import sys
 import glob
 import numpy as np
@@ -50,10 +49,11 @@ class dataHandler():
             for x in range(0,x_.shape[0]):
                 for y in range(0,x_.shape[1]):
                     for i in range(B):
-                        if x_[x][y][i] is not None:
+                        if not x_[x][y][i] == 0:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-                            classtype = self.onehot_to_text(classes_[x][y][i:i+4])
-                            if not classtype == "unknwn" and conf_[x][y][i] == 1:
+                            classtype = self.onehot_to_text(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
+                            #print(classes_[x][y][i:i+4])
+                            if not classtype == "unknwn":
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
         if preds is not None:
@@ -65,6 +65,7 @@ class dataHandler():
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.softmax(classes_[x][y][i:i+4], conf_[x][y][i])
                             if not classtype == "unknwn":
+                                #print(bounds)
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
         cv.imshow("frame.jpg", im)
@@ -111,7 +112,7 @@ class dataHandler():
             #refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             refx = 0
             crop = im[:, refx:refx+self.IMGDIMS[1]]
-            #crop = crop / 255. * 2. - 1.
+            crop = crop / 255. * 2. - 1.
             if imgs is not None:
                 #print(imgs.shape, crop[np.newaxis, :].shape)
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))
@@ -123,10 +124,10 @@ class dataHandler():
     def get_indices(self, batchsize, training = True):
         finarr = []
         if training:
-            if len(self.train_unused) < batchsize:
+            if len(self.train_unused) <= batchsize:
                 finarr = self.train_unused
                 self.train_unused = np.arange(len(self.train_arr))
-                np.random.shuffle(self.train_unused)
+                #np.random.shuffle(self.train_unused)
                 self.epochs_elapsed += 1
             else:
                 finarr = self.train_unused[:batchsize]
@@ -181,16 +182,15 @@ class dataHandler():
 
                         xywh[0] = xywh[0] - celly * (self.IMGDIMS[1] / self.sx) - ((self.IMGDIMS[1] / self.sx) / 2)
                         xywh[1] = xywh[1] - cellx * (self.IMGDIMS[1] / self.sy) - ((self.IMGDIMS[1] / self.sx) / 2)
-
                         argcheck = 0
                         for i in range(0, self.B):
-                            if argcheck == 0 and grid[cellx][celly][i] == 0.0:
+                            if grid[cellx][celly][i] == 0.0 and argcheck == 0:
                                 grid[cellx][celly][i] = xywh[0]
                                 grid[cellx][celly][self.B + i] = xywh[1]
                                 grid[cellx][celly][2*self.B + i] = xywh[2]
                                 grid[cellx][celly][3*self.B + i] = xywh[3]
                                 grid[cellx][celly][4*self.B + i] = 1. #Confidence
-                                grid[cellx][celly][5*self.B + i: 5*self.B + self.NUM_CLASSES + i] = C #Class probs
+                                grid[cellx][celly][5*self.B + i * self.NUM_CLASSES: 5*self.B + self.NUM_CLASSES + i * self.NUM_CLASSES] = C #Class probs
                                 grid[cellx][celly][9*self.B + i] = 1. #obj
                                 grid[cellx][celly][10*self.B + i] = 0. #noobj
                                 grid[cellx][celly][33] = 1. #objI

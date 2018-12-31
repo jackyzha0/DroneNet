@@ -59,8 +59,6 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Make sure capable of overfitting
-- [ ] Add FC Layers
 - [ ] Add batch norm
 - [ ] Add checkpoint saving
 - [ ] Add test evaluation
@@ -73,6 +71,8 @@ RPI_GPIO26
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Create training scenario
+- [x] Add FC Layers
+- [x] Make sure capable of overfitting
 - [x] imshow Output
 - [x] Interpret Output
 - [x] Check labels for accuracy

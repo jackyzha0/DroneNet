@@ -63,11 +63,11 @@ class dataHandler():
                     for i in range(B):
                         if x_[x][y][i] is not None:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-                            classtype = self.softmax(classes_[x][y][i:i+4], conf_[x][y][i])
+                            classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4], conf_[x][y][i])
                             if not classtype == "unknwn":
                                 #print(bounds)
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
-                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
+                                cv.putText(im, classtype, (bounds[2], bounds[3]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
         cv.imshow("frame.jpg", im)
         cv.waitKey(drawTime)
 

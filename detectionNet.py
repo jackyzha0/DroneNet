@@ -129,8 +129,6 @@ with graph.as_default():
         prob__n = tf.reshape(prob_, (bn, sx, sy, B, C))
         probs_n = tf.reshape(probs, (bn, sx, sy, B, C))
         obj_n = tf.expand_dims(obj, axis=-1)
-        probs_n = tf.reshape(probs, (bn, sx, sy, B, C))
-        obj_n = tf.expand_dims(obj, axis=-1)
 
     with tf.name_scope('loss_func'):
         delta = tf.constant(1e-8)
@@ -159,9 +157,9 @@ with graph.as_default():
         tf_loss = tf.summary.scalar("loss", tf.reduce_sum(loss))
 
     with tf.name_scope('optimizer'):
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon = 1.0)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon = 1e-1)
         #optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate,momentum=momentum,centered=True)
-        grads = optimizer.compute_gradients(loss)
+        grads = optimizer.compute_gradients(lossT)
         train_op = optimizer.apply_gradients(grads)
 
     with tf.name_scope('tboard_outimages'):
@@ -198,7 +196,6 @@ with tf.Session(graph = graph) as sess:
         h_in = label[:,:,:,3*B:4*B]
         conf_in = label[:,:,:,4*B:5*B]
         classes_in = label[:,:,:,5*B:(5+C)*B]
-        np.savetxt('debug/classes.txt', np.reshape(classes_in[0], (25, classes_in.shape[3])))
         obj_in = label[:,:,:,9*B:10*B]
         noobj_in = label[:,:,:,10*B:11*B]
         objI_in = label[:,:,:,33]
@@ -212,7 +209,7 @@ with tf.Session(graph = graph) as sess:
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in}, options=run_options)
 
-        pred_labels = np.array(out)[2][0]
+        pred_labels = np.array(out)[2]
         # sk = np.reshape(pred_labels, (sx*sy, 27))
         #np.savetxt('debug/lb%s_out.txt' % db.batches_elapsed, sk)
         print(prettyPrint(out[1], db))
@@ -223,8 +220,17 @@ with tf.Session(graph = graph) as sess:
             save_path = saver.save(sess, 'saved_models/save%s' % str(db.batches_elapsed))
 
         im = np.zeros((batchsize, 375, 375, 3))
+        print(label.shape, pred_labels.shape)
+        label0 = np.reshape(label[0], (sx*sy, 34))
+        label1 = np.reshape(label[1], (sx*sy, 34))
+        predlabel0 = np.reshape(pred_labels[0], (sx*sy, 27))
+        predlabel1 = np.reshape(pred_labels[1], (sx*sy, 27))
+        np.savetxt('debug/lb0_act.txt', label0)
+        np.savetxt('debug/lb1_act.txt', label1)
+        np.savetxt('debug/lb0_pred.txt', predlabel0)
+        np.savetxt('debug/lb1_pred.txt', predlabel1)
         for i in range(batchsize):
-            im[i] = db.dispImage(img[i], boundingBoxes = label[i], preds = np.reshape(pred_labels, (sx, sy, 27)))
+            im[i] = db.dispImage(img[i], boundingBoxes = label[i], preds = np.reshape(pred_labels[i], (sx, sy, 27)))
 
         im_tf = sess.run(tf_im_out, feed_dict={tf_out: im})
         train_writer.add_summary(out[3], db.batches_elapsed)

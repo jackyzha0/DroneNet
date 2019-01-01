@@ -59,6 +59,7 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
+- [ ] Add label output in Tensorboard
 - [ ] Add batch norm
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP

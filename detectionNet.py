@@ -17,13 +17,13 @@ from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
 from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-
-config=tf.ConfigProto()
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+# os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+#gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
+config=tf.ConfigProto()#gpu_options=gpu_options)
 
 ### PARAMETERS ###
-batchsize = 2
+batchsize = 5
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -102,7 +102,7 @@ with graph.as_default():
         dim_mul = sx * sy
         dim_mul_B = dim_mul * B
 
-    net = tf.contrib.layers.conv2d(images, 96, [7, 7], stride=2, scope='conv1')
+    net = conv2d(images, 96, [7, 7], stride=2, name='conv1')
     net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool1')
     net = fire_module(net, 16, 64, scope='fire1')
     net = fire_module(net, 16, 64, scope='fire2')
@@ -114,7 +114,7 @@ with graph.as_default():
     net = fire_module(net, 64, 256, scope='fire7')
     net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool3')
     net = fire_module(net, 64, 256, scope='fire8')
-    net = tf.contrib.layers.conv2d(net, dim_mul*B*(C+5), [1, 1], stride=1, scope='conv2')
+    net = conv2d(net, dim_mul*B*(C+5), [1, 1], stride=1, name='conv2')
     net = tf.layers.average_pooling2d(net, [7,7], strides=1)
     net = fc_layer(net, 512, flat=True, linear=False, trainable=True)
     net = fc_layer(net, 4096, flat=False, linear=False, trainable=True)
@@ -126,6 +126,9 @@ with graph.as_default():
     # Output Extraction
     with tf.name_scope('reshape_ops'):
         x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
+        # print(conf_.get_shape())
+        # conf_ = tf.contrib.layers.conv2d(conf_, [1, 1])
+        # print(conf_.get_shape())
         prob__n = tf.reshape(prob_, (bn, sx, sy, B, C))
         probs_n = tf.reshape(probs, (bn, sx, sy, B, C))
         obj_n = tf.expand_dims(obj, axis=-1)
@@ -147,6 +150,28 @@ with graph.as_default():
         lossP = tf.reduce_sum(obj_n * tf.square(subP), axis=[1, 2, 3, 4])
         lossT = tf.add_n((lossX, lossY, lossW, lossH, lossCObj, lossCNobj, lossP))
         loss = tf.reduce_mean(lossT)
+
+    with tf.name_scope('label_text_tf_board'):
+        tf_label_x = tf.summary.text("label_x", tf.as_string(tf.reshape(x, (bn, sx * sy * B))))
+        tf_label_y = tf.summary.text("label_y", tf.as_string(tf.reshape(y, (bn, sx * sy * B))))
+        tf_label_w = tf.summary.text("label_w", tf.as_string(tf.reshape(w, (bn, sx * sy * B))))
+        tf_label_h = tf.summary.text("label_h", tf.as_string(tf.reshape(h, (bn, sx * sy * B))))
+        tf_label_conf = tf.summary.text("label_conf", tf.as_string(tf.reshape(conf, (bn, sx * sy * B))))
+        tf_label_prob = tf.summary.text("label_prob", tf.as_string(tf.reshape(probs_n, (bn, sx * sy * B * C))))
+        tf_label_obj = tf.summary.text("label_obj", tf.as_string(tf.reshape(obj, (bn, sx * sy * B))))
+        tf_label_no_obj = tf.summary.text("label_no_obj", tf.as_string(tf.reshape(no_obj, (bn, sx * sy * B))))
+        tf_label = tf.summary.merge([tf_label_x, tf_label_y, tf_label_w, tf_label_h, tf_label_conf, tf_label_prob, tf_label_obj, tf_label_no_obj])
+
+    with tf.name_scope('pred_text_tf_board'):
+        tf_pred_x = tf.summary.text("pred_x", tf.as_string(tf.reshape(x_, (bn, sx * sy * B))))
+        tf_pred_y = tf.summary.text("pred_y", tf.as_string(tf.reshape(y_, (bn, sx * sy * B))))
+        tf_pred_w = tf.summary.text("pred_w", tf.as_string(tf.reshape(w_, (bn, sx * sy * B))))
+        tf_pred_h = tf.summary.text("pred_h", tf.as_string(tf.reshape(h_, (bn, sx * sy * B))))
+        tf_pred_conf = tf.summary.text("pred_conf", tf.as_string(tf.reshape(conf_, (bn, sx * sy * B))))
+        tf_pred_prob = tf.summary.text("pred_prob", tf.as_string(tf.reshape(prob__n, (bn, sx * sy * B * C))))
+        tf_pred = tf.summary.merge([tf_pred_x, tf_pred_y, tf_pred_w, tf_pred_h, tf_pred_conf, tf_pred_prob])
+
+    with tf.name_scope('loss_func_tf_board'):
         tf_lossX = tf.summary.scalar("lossX", tf.reduce_sum(lossX))
         tf_lossY = tf.summary.scalar("lossY", tf.reduce_sum(lossY))
         tf_lossW = tf.summary.scalar("lossW", tf.reduce_sum(lossW))
@@ -155,9 +180,10 @@ with graph.as_default():
         tf_lossC_no_obj = tf.summary.scalar("lossC_no_obj", tf.reduce_sum(lossCNobj))
         tf_lossP = tf.summary.scalar("lossP", tf.reduce_sum(lossP))
         tf_loss = tf.summary.scalar("loss", tf.reduce_sum(loss))
+        merged = tf.summary.merge([tf_lossX, tf_lossY, tf_lossW, tf_lossH, tf_lossC_obj, tf_lossC_no_obj, tf_lossP, tf_loss])
 
     with tf.name_scope('optimizer'):
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon = 1e-1)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, epsilon = 1e-0)
         #optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate,momentum=momentum,centered=True)
         grads = optimizer.compute_gradients(lossT)
         train_op = optimizer.apply_gradients(grads)
@@ -165,10 +191,9 @@ with graph.as_default():
     with tf.name_scope('tboard_outimages'):
         tf_out = tf.placeholder(tf.float32, shape=[None, 375, 375, 3])
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
-    merged = tf.summary.merge([tf_lossX, tf_lossY, tf_lossW, tf_lossH, tf_lossC_obj, tf_lossC_no_obj, tf_lossP, tf_loss])
 
 #db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-db = dataset.dataHandler(train = "data/overfit_test", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/overfit_test_large", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
     lossString = "Loss: %.2e | " % loss
@@ -177,7 +202,7 @@ def prettyPrint(loss, db):
     epoch_progress = "Epoch Progress: %.2f%% " % (100. * (len(db.train_arr)-len(db.train_unused))/len(db.train_arr))
     return lossString + batches_elapsed + epochs_elapsed + epoch_progress
 
-with tf.Session(graph = graph) as sess:
+with tf.Session(graph = graph, config = config) as sess:
     tf.global_variables_initializer().run()
     tf.local_variables_initializer().run()
 
@@ -204,7 +229,7 @@ with tf.Session(graph = graph) as sess:
         else:
             objI_in = np.squeeze(objI_in)
 
-        out = sess.run([train_op, loss, net, merged],
+        out = sess.run([train_op, loss, net, merged, tf_label, tf_pred],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in}, options=run_options)
@@ -220,19 +245,21 @@ with tf.Session(graph = graph) as sess:
             save_path = saver.save(sess, 'saved_models/save%s' % str(db.batches_elapsed))
 
         im = np.zeros((batchsize, 375, 375, 3))
-        print(label.shape, pred_labels.shape)
-        label0 = np.reshape(label[0], (sx*sy, 34))
-        label1 = np.reshape(label[1], (sx*sy, 34))
-        predlabel0 = np.reshape(pred_labels[0], (sx*sy, 27))
-        predlabel1 = np.reshape(pred_labels[1], (sx*sy, 27))
-        np.savetxt('debug/lb0_act.txt', label0)
-        np.savetxt('debug/lb1_act.txt', label1)
-        np.savetxt('debug/lb0_pred.txt', predlabel0)
-        np.savetxt('debug/lb1_pred.txt', predlabel1)
+        # label0 = np.reshape(label[0], (sx*sy, 34))
+        # label1 = np.reshape(label[1], (sx*sy, 34))
+        # predlabel0 = np.reshape(pred_labels[0], (sx*sy, 27))
+        # predlabel1 = np.reshape(pred_labels[1], (sx*sy, 27))
+        # np.savetxt('debug/lb0_act.txt', label0)
+        # np.savetxt('debug/lb1_act.txt', label1)
+        # np.savetxt('debug/lb0_pred.txt', predlabel0)
+        # np.savetxt('debug/lb1_pred.txt', predlabel1)
         for i in range(batchsize):
             im[i] = db.dispImage(img[i], boundingBoxes = label[i], preds = np.reshape(pred_labels[i], (sx, sy, 27)))
 
         im_tf = sess.run(tf_im_out, feed_dict={tf_out: im})
         train_writer.add_summary(out[3], db.batches_elapsed)
-        train_writer.add_summary(im_tf, db.batches_elapsed)
+        if db.batches_elapsed % 32 == 0:
+            train_writer.add_summary(im_tf, db.batches_elapsed)
+            train_writer.add_summary(out[4], db.batches_elapsed)
+            train_writer.add_summary(out[5], db.batches_elapsed)
         train_writer.flush()

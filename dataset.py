@@ -63,7 +63,7 @@ class dataHandler():
                     for i in range(B):
                         if conf_[x][y][i] > 0.7:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-                            classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4], conf_[x][y][i])
+                            classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
                             if not classtype == "unknwn":
                                 #print(bounds)
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
@@ -72,8 +72,8 @@ class dataHandler():
         # cv.waitKey(drawTime)
         return im
     def softmax(self, arr, conf):
-        if conf > 0.7:
-            maxind = np.argmax(arr)
+        maxind = np.argmax(arr)
+        if maxind > 0.7:
             out = np.zeros(self.NUM_CLASSES)
             out[maxind] = 1.
             return self.onehot_to_text(out)

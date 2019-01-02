@@ -59,8 +59,12 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Add label output in Tensorboard
+- [ ] Normalize xy
+- [ ] Normalize wh
+- [ ] Convert from B(C+5) to B*C + 5
 - [ ] Add batch norm
+- [ ] Add dropout layers
+- [ ] Implement data augmentation
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP
 
@@ -71,6 +75,7 @@ RPI_GPIO26
 - [ ] Evaluate types of 3D reconstruction
 - [ ] Evaluate types of machine learning
 - [ ] Create training scenario
+- [x] Add label output in Tensorboard
 - [x] Add checkpoint saving
 - [x] Add FC Layers
 - [x] Make sure capable of overfitting

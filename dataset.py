@@ -56,18 +56,18 @@ class dataHandler():
                             if not classtype == "unknwn":
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
-        if preds is not None:
-            x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(preds)
-            for x in range(0,x_.shape[0]):
-                for y in range(0,x_.shape[1]):
-                    for i in range(B):
-                        if conf_[x][y][i] > 0.7:
-                            bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-                            classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
-                            if not classtype == "unknwn":
-                                #print(bounds)
-                                cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
-                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+        # if preds is not None:
+        #     x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(preds)
+        #     for x in range(0,x_.shape[0]):
+        #         for y in range(0,x_.shape[1]):
+        #             for i in range(B):
+        #                 if conf_[x][y][i] > 0.7:
+        #                     bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
+        #                     classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
+        #                     if not classtype == "unknwn":
+        #                         #print(bounds)
+        #                         cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
+        #                         cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
         # cv.imshow("frame.jpg", im)
         # cv.waitKey(drawTime)
         return im

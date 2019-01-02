@@ -61,19 +61,18 @@ RPI_GPIO26
 ## TODO
 - [ ] Normalize xy
 - [ ] Normalize wh
-- [ ] Convert from B(C+5) to B*C + 5
+- [ ] Interpret output with confidence filtering
+- [ ] Convert from form B(5+C) to B*5 + C form if needed
 - [ ] Add batch norm
 - [ ] Add dropout layers
 - [ ] Implement data augmentation
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP
+- [ ] Add documentation for detectionNet
 
-- [ ] Look into SparkFun nRF52832 Breakout
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
-- [ ] Draw on MapDisp
-- [ ] Evaluate types of 3D reconstruction
-- [ ] Evaluate types of machine learning
+- [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
 - [x] Add label output in Tensorboard
 - [x] Add checkpoint saving

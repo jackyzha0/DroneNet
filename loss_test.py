@@ -15,6 +15,11 @@ obj = np.zeros((2,sx,sy,B,1))
 obj[0][0][1][0] = 1.
 obj[1][0][1][0] = 1.
 
+print(probs)
+print('___________')
+print(prob_)
+print('___________')
+print(obj)
 print(probs.shape, prob_.shape, obj.shape)
 
 subP = probs - prob_

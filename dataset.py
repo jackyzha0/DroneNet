@@ -61,7 +61,7 @@ class dataHandler():
             for x in range(0,x_.shape[0]):
                 for y in range(0,x_.shape[1]):
                     for i in range(B):
-                        if x_[x][y][i] is not None:
+                        if conf_[x][y][i] > 0.7:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4], conf_[x][y][i])
                             if not classtype == "unknwn":

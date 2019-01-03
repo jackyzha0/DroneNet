@@ -41,8 +41,8 @@ class dataHandler():
         classes = arr[:,:,5*B:(5+C)*B]
         return x,y,w,h,conf,classes
 
-    def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 1000):
-        im = ((image + 1.) / 2.) * 255.
+    def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 0):
+        im = ((image[..., : :-1] + 1.) / 2.)# * 255.
         B = self.B
         if boundingBoxes is not None:
             x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(boundingBoxes)
@@ -52,7 +52,6 @@ class dataHandler():
                         if not x_[x][y][i] == 0:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.onehot_to_text(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
-                            #print(classes_[x][y][i:i+4])
                             if not classtype == "unknwn":
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
@@ -68,9 +67,12 @@ class dataHandler():
         #                         #print(bounds)
         #                         cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
         #                         cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
-        # cv.imshow("frame.jpg", im)
-        # cv.waitKey(drawTime)
-        return im
+        if drawTime == 0:
+            return im
+        else:
+            cv.imshow("frame.jpg", im)
+            cv.waitKey(drawTime)
+
     def softmax(self, arr, conf):
         maxind = np.argmax(arr)
         if maxind > 0.7:
@@ -92,12 +94,24 @@ class dataHandler():
         else:
             return "unknwn"
 
-    def xywh_to_p1p2(self, inp, x_, y_):
+    def xywh_to_p1p2(self, inp, celly, cellx):
         y, x, h, w = inp
-        p1x = x - (w / 2) + x_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
-        p1y = y - (h / 2) + y_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
-        p2x = x + (w / 2) + x_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
-        p2y = y + (h / 2) + y_ * (self.IMGDIMS[1] / self.sx) + ((self.IMGDIMS[1] / self.sx) / 2)
+        print(x,y,celly,cellx)
+
+        boundx = (celly) * (self.IMGDIMS[1] / self.sx)
+        boundy = (cellx) * (self.IMGDIMS[1] / self.sy)
+
+        true_x = (x * (self.IMGDIMS[1] / self.sx)) + boundx
+        true_y = (y * (self.IMGDIMS[1] / self.sx)) + boundy
+        true_w = w * self.IMGDIMS[1]
+        true_h = h * self.IMGDIMS[1]
+
+        print(true_x, true_y)
+
+        p1x = true_x - (true_w / 2)
+        p1y = true_y - (true_h / 2)
+        p2x = true_x + (true_w / 2)
+        p2y = true_y + (true_h / 2)
         arr = [p1y, p1x, p2y, p2x]
         return [int(x) for x in arr]
 
@@ -180,8 +194,15 @@ class dataHandler():
                     if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
                         cellx, celly = self.getBox(xywh[0], xywh[1])
 
-                        xywh[0] = xywh[0] - celly * (self.IMGDIMS[1] / self.sx) - ((self.IMGDIMS[1] / self.sx) / 2)
-                        xywh[1] = xywh[1] - cellx * (self.IMGDIMS[1] / self.sy) - ((self.IMGDIMS[1] / self.sx) / 2)
+                        const = (self.IMGDIMS[1] / self.sx)
+
+                        print(xywh[0], xywh[1])
+
+                        xywh[0] = (xywh[0] - cellx*cont) / cont
+                        xywh[1] = (xywh[1] - celly*cont) / cont
+                        xywh[2] = xywh[2] / self.IMGDIMS[1]
+                        xywh[3] = xywh[3] / self.IMGDIMS[1]
+
                         argcheck = 0
                         for i in range(0, self.B):
                             if grid[cellx][celly][i] == 0.0 and argcheck == 0:

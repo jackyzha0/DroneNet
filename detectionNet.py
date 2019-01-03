@@ -23,7 +23,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 config=tf.ConfigProto()#gpu_options=gpu_options)
 
 ### PARAMETERS ###
-batchsize = 5
+batchsize = 64
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -194,7 +194,7 @@ with graph.as_default():
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
 #db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-db = dataset.dataHandler(train = "data/overfit_test_large", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/overfit_test", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
     lossString = "Loss: %.2e | " % loss

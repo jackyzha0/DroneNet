@@ -59,8 +59,6 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Normalize xy
-- [ ] Normalize wh
 - [ ] Interpret output with confidence filtering
 - [ ] Convert from form B(5+C) to B*5 + C form if needed
 - [ ] Add batch norm
@@ -74,6 +72,9 @@ RPI_GPIO26
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Linearize last layer
+- [x] Normalize xy
+- [x] Normalize wh
 - [x] Add label output in Tensorboard
 - [x] Add checkpoint saving
 - [x] Add FC Layers

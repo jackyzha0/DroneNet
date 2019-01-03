@@ -23,7 +23,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 config=tf.ConfigProto()#gpu_options=gpu_options)
 
 ### PARAMETERS ###
-batchsize = 64
+batchsize = 3
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -126,8 +126,6 @@ with graph.as_default():
     # Output Extraction
     with tf.name_scope('reshape_ops'):
         x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
-        conf_ = conv2d(conf_, B, [1, 1], stride=1, name='sigm_out', activation = tf.sigmoid)
-        prob_ = conv2d(prob_, B * C, [1, 1], stride=1, name='sigm_out', activation = tf.sigmoid)
         prob__n = tf.reshape(prob_, (bn, sx, sy, B, C))
         probs_n = tf.reshape(probs, (bn, sx, sy, B, C))
         obj_n = tf.expand_dims(obj, axis=-1)
@@ -197,7 +195,7 @@ with graph.as_default():
 db = dataset.dataHandler(train = "data/overfit_test", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
-    lossString = "Loss: %.2e | " % loss
+    lossString = "Loss: %.3f | " % loss
     batches_elapsed = "Batches elapsed: %d | " % db.batches_elapsed
     epochs_elapsed = "Epochs elapsed: %d | " % db.epochs_elapsed
     epoch_progress = "Epoch Progress: %.2f%% " % (100. * (len(db.train_arr)-len(db.train_unused))/len(db.train_arr))
@@ -236,12 +234,7 @@ with tf.Session(graph = graph, config = config) as sess:
                                   obj: obj_in, no_obj: noobj_in, objI: objI_in}, options=run_options)
 
         pred_labels = np.array(out)[2]
-        # sk = np.reshape(pred_labels, (sx*sy, 27))
-        #np.savetxt('debug/lb%s_out.txt' % db.batches_elapsed, sk)
         print(prettyPrint(out[1], db))
-        # sk2 = label[0]
-        # sk2_ = np.reshape(sk2, (sx*sy, 34))
-        #np.savetxt('debug/lb%s_act.txt' % db.batches_elapsed, sk2_)
         if db.batches_elapsed % 1000 == 0:#batchsize == 0:
             save_path = saver.save(sess, 'saved_models/save%s' % str(db.batches_elapsed))
 

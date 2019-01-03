@@ -42,7 +42,7 @@ class dataHandler():
         return x,y,w,h,conf,classes
 
     def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 0):
-        im = ((image[..., : :-1] + 1.) / 2.)# * 255.
+        im = ((image + 1.) / 2.) * 255.
         B = self.B
         if boundingBoxes is not None:
             x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(boundingBoxes)
@@ -96,17 +96,13 @@ class dataHandler():
 
     def xywh_to_p1p2(self, inp, celly, cellx):
         y, x, h, w = inp
-        print(x,y,celly,cellx)
 
-        boundx = (celly) * (self.IMGDIMS[1] / self.sx)
-        boundy = (cellx) * (self.IMGDIMS[1] / self.sy)
+        const = (self.IMGDIMS[1] / self.sx)
 
-        true_x = (x * (self.IMGDIMS[1] / self.sx)) + boundx
-        true_y = (y * (self.IMGDIMS[1] / self.sx)) + boundy
+        true_x = (x * const) + const * cellx
+        true_y = (y * const) + const * celly
         true_w = w * self.IMGDIMS[1]
         true_h = h * self.IMGDIMS[1]
-
-        print(true_x, true_y)
 
         p1x = true_x - (true_w / 2)
         p1y = true_y - (true_h / 2)
@@ -160,8 +156,8 @@ class dataHandler():
         return [round(x,2) for x in arr]
 
     def getBox(self, x, y):
-        row = int(round((y / self.IMGDIMS[1]) * (self.sy-1)))
-        col = int(round((x / self.IMGDIMS[1]) * (self.sx-1)))
+        row = int((y / self.IMGDIMS[1]) * (self.sy))
+        col = int((x / self.IMGDIMS[1]) * (self.sx))
         return [row,col]
 
     def get_label(self, num_arr, refdims):
@@ -192,14 +188,12 @@ class dataHandler():
                     p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
                     xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
                     if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
-                        cellx, celly = self.getBox(xywh[0], xywh[1])
+                        celly, cellx = self.getBox(xywh[0], xywh[1])
 
                         const = (self.IMGDIMS[1] / self.sx)
 
-                        print(xywh[0], xywh[1])
-
-                        xywh[0] = (xywh[0] - cellx*cont) / cont
-                        xywh[1] = (xywh[1] - celly*cont) / cont
+                        xywh[0] = (xywh[0] - cellx*const) / const
+                        xywh[1] = (xywh[1] - celly*const) / const
                         xywh[2] = xywh[2] / self.IMGDIMS[1]
                         xywh[3] = xywh[3] / self.IMGDIMS[1]
 

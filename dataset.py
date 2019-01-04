@@ -12,13 +12,15 @@ class dataHandler():
 
     train_img_dir = ""
     train_label_dir = ""
-    test_img_dir = ""
+    val_img_dir = ""
 
     train_arr = []
-    test_arr = []
+    val_arr = []
 
     train_unused = []
-    test_unused = []
+    val_unused = []
+
+    val_percent = 0.8
 
     sx = -1
     sy = -1
@@ -231,20 +233,27 @@ class dataHandler():
             labels.append(grid)
         return labels
 
-    def minibatch(self, batchsize, training = True, tfrecord_path = None):
-        if tfrecord_path is not None:
-            pass
+    def minibatch(self, batchsize, training = True, useTFRecord = False):
+        if useTFRecord:
+            if training:
+                path = tfrecord_path + 'TRAIN/'
+                imgs = 0
+            else:
+                path = tfrecord_path + 'VAL/'
+                labels = 0
         else:
             indices = self.get_indices(batchsize, training = training)
             imgs, refdims = self.get_img(indices)
             labels = self.get_label(indices, refdims)
         return imgs, labels
 
-    def __init__(self, train, test, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5):
-        if os.path.exists(train) and os.path.exists(test):
+    def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5, val_perc = 0.8):
+        if os.path.exists(train) and os.path.exists(val):
             self.train_img_dir = train + "/image"
             self.train_label_dir = train + "/label"
-            self.test_img_dir = test + "/image"
+            self.val_img_dir = val + "/image"
+
+            self.val_percent = val_perc
 
             self.NUM_CLASSES = NUM_CLASSES
             self.B = B
@@ -253,19 +262,19 @@ class dataHandler():
             self.sy = sy
 
             self.train_arr = [x[:-4] for x in os.listdir(self.train_img_dir)]
-            self.test_arr = [x[:-4] for x in os.listdir(self.test_img_dir)]
+            self.val_arr = [x[:-4] for x in os.listdir(self.val_img_dir)]
 
             self.train_unused = np.arange(len(self.train_arr))
             np.random.shuffle(self.train_unused)
-            self.test_unused = np.arange(len(self.test_arr))
-            np.random.shuffle(self.test_unused)
+            self.val_unused = np.arange(len(self.val_arr))
+            np.random.shuffle(self.val_unused)
         else:
             print("Invalid directory! Check path.")
 
     def __str__(self):
         traindatalen = "Number of training examples: " + str(len(self.train_arr)) + "\n"
-        testdatalen = "Number of testing examples: " + str(len(self.test_arr)) + "\n"
+        valdatalen = "Number of validation examples: " + str(len(self.val_arr)) + "\n"
         unusedlentraining = "Number of training examples remaining: " + str(len(self.train_unused)) + "\n"
         currbatches = "Number of batches elapsed: " + str(self.batches_elapsed) + "\n"
         currepochs = "Number of epochs elapsed: " + str(self.epochs_elapsed) + "\n"
-        return "[OK] Loading \n" + traindatalen + testdatalen + unusedlentraining + currbatches + currepochs
+        return "[OK] Loading \n" + traindatalen + valdatalen + unusedlentraining + currbatches + currepochs

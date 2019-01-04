@@ -1,7 +1,7 @@
 import dataset
 import numpy as np
 import tensorflow as tf
-db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/training", train = "data/testing", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
 print(db)
 
 VAL_PERCENT = 0.8

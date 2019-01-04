@@ -176,7 +176,7 @@ with graph.as_default():
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
 #db = dataset.dataHandler(train = "data/overfit_test_large", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-db = dataset.dataHandler(train = "data/training", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/training", val="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
     lossString = "Loss: %.3f | " % loss

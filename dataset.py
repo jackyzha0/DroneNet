@@ -231,10 +231,13 @@ class dataHandler():
             labels.append(grid)
         return labels
 
-    def minibatch(self, batchsize, training = True):
-        indices = self.get_indices(batchsize, training = training)
-        imgs, refdims = self.get_img(indices)
-        labels = self.get_label(indices, refdims)
+    def minibatch(self, batchsize, training = True, tfrecord_path = None):
+        if tfrecord_path is not None:
+            pass
+        else:
+            indices = self.get_indices(batchsize, training = training)
+            imgs, refdims = self.get_img(indices)
+            labels = self.get_label(indices, refdims)
         return imgs, labels
 
     def __init__(self, train, test, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5):

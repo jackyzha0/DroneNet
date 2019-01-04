@@ -1,3 +1,4 @@
 *.pyc
 data/
 serialized_data/
+*.npy

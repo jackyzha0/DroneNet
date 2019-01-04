@@ -12,12 +12,8 @@ val_arr = db.train_arr[ind_val:]
 
 serialized_path = 'serialized_data/'
 
-def _float_feature(value):
-  return tf.train.Feature(float_list=tf.train.FloatList(value=value))
-
 #Write Training Data
-serialized_train = serialized_path + 'TRAIN'
-train_writer = tf.python_io.TFRecordWriter(serialized_train)
+serialized_train = serialized_path + 'TRAIN/'
 
 for i in range(len(train_arr)):
     imgdir = db.train_img_dir + "/" + train_arr[i] + ".png"
@@ -31,20 +27,18 @@ for i in range(len(train_arr)):
     img = img.flatten()
     label = label.flatten()
 
-    feat = {'train/label': _float_feature(label),
-            'train/image': _float_feature(img)}
-    example = tf.train.Example(features=tf.train.Features(feature=feat))
+    save_loc_im = serialized_train + "im/" + train_arr[i] + ".npy"
+    np.save(save_loc_im, img)
 
-    train_writer.write(example.SerializeToString())
+    save_loc_lb = serialized_train + "lb/" + train_arr[i] + ".npy"
+    np.save(save_loc_lb, label)
 
     print('Train data: {}/{}'.format(i+1, len(train_arr)))
 
 print('Train data serialized!')
-train_writer.close()
 
 #Write Validation Data
-serialized_val = serialized_path + 'VAL'
-val_writer = tf.python_io.TFRecordWriter(serialized_val)
+serialized_train = serialized_path + 'VAL/'
 
 for i in range(len(val_arr)):
     imgdir = db.train_img_dir + "/" + val_arr[i] + ".png"
@@ -58,13 +52,12 @@ for i in range(len(val_arr)):
     img = img.flatten()
     label = label.flatten()
 
-    feat = {'val/label': _float_feature(label),
-            'val/image': _float_feature(img)}
-    example = tf.train.Example(features=tf.train.Features(feature=feat))
+    save_loc_im = serialized_train + "im/" + val_arr[i] + ".npy"
+    np.save(save_loc_im, img)
 
-    val_writer.write(example.SerializeToString())
+    save_loc_lb = serialized_train + "lb/" + val_arr[i] + ".npy"
+    np.save(save_loc_lb, label)
 
-    print('Val data: {}/{}'.format(i+1, len(val_arr)))
+    print('Validation data: {}/{}'.format(i+1, len(val_arr)))
 
 print('Validation data serialized!')
-val_writer.close()

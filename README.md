@@ -60,7 +60,8 @@ RPI_GPIO26
 
 ## TODO
 - [ ] Add test evaluation
-- [ ] TFRecords
+- [ ] TFRecords Writer
+- [ ] TFRecords Reader
 - [ ] Calculate IOU and mAP
 - [ ] Add documentation for detectionNet
 

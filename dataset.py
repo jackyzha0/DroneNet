@@ -41,8 +41,11 @@ class dataHandler():
         classes = arr[:,:,5*B:(5+C)*B]
         return x,y,w,h,conf,classes
 
-    def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 0):
-        im = ((image + 1.) / 2.) * 255.
+    def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 0, test=False):
+        if test:
+            im = ((image[:,:,::-1] + 1.) / 2.)
+        else:
+            im = ((image + 1.) / 2.) * 255.
         B = self.B
         if boundingBoxes is not None:
             x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(boundingBoxes)
@@ -118,9 +121,18 @@ class dataHandler():
             im = cv.imread(imgdir)
             if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
                 im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
-            refx = 0#np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
+            refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             crop = im[:, refx:refx+self.IMGDIMS[1]]
+
+            #Data augmentation
+            (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
+            s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
+            s = np.clip((s * s_adj), 0, 255)
+            v = np.clip((v * v_adj), 0, 255)
+            crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
+
             crop = crop / 255. * 2. - 1.
+
             if imgs is not None:
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))
             else:

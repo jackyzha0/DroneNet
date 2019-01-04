@@ -59,9 +59,8 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Add batch norm
-- [ ] Implement data augmentation
 - [ ] Add test evaluation
+- [ ] TFRecords
 - [ ] Calculate IOU and mAP
 - [ ] Add documentation for detectionNet
 
@@ -69,6 +68,8 @@ RPI_GPIO26
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Implement data augmentation
+- [x] Add batch norm
 - [x] Interpret output with confidence filtering
 - [x] Linearize last layer
 - [x] Normalize xy
@@ -383,24 +384,3 @@ https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/
 
 https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
 > Camera Calibration and 3D Reconstruction
-
-https://www.unmannedtechshop.co.uk/tattu-1550mah-14-8v-45c-4s1p-lipo-battery-pack/
-> Battery Information
-
-https://hobbyking.com/en_us/favourite-little-bee-20a-2-4s-esc-no-bec.html
-> ESC Information
-
-https://hobbyking.com/en_us/hobby-king-quadcopter-power-distribution-board-lite.html
-> Power Distribution Board
-
-https://emax-usa.com/emax-rs2205-racespec-motor-cooling-series.html
-> Motor
-
-https://www.banggood.com/4PCS-Bullnose-5045-2-Blade-Propellers-2CW2CCW-For-250-280-310-Frame-Kits-p-985839.html?ID=224&cur_warehouse=CN
-> Propeller
-
-https://www.dronetrest.com/t/what-to-consider-when-buying-a-esc-for-your-multirotor/1305
-> Determining Correct ESC
-
-https://www.dronetrest.com/t/how-to-choose-the-right-motor-for-your-multicopter-drone/568
-> Motor Information

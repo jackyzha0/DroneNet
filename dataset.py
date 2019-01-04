@@ -113,25 +113,30 @@ class dataHandler():
         arr = [p1y, p1x, p2y, p2x]
         return [int(x) for x in arr]
 
+    def ret_img(self, imgdir):
+        im = cv.imread(imgdir)
+        if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
+            im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
+        refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
+        crop = im[:, refx:refx+self.IMGDIMS[1]]
+
+        #Data augmentation
+        (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
+        s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
+        s = np.clip((s * s_adj), 0, 255)
+        v = np.clip((v * v_adj), 0, 255)
+        crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
+
+        crop = crop / 255. * 2. - 1.
+        return crop, refx
+
     def get_img(self, num_arr):
         refdims = {}
         imgs = None
         for indice in num_arr:
             imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
-            im = cv.imread(imgdir)
-            if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
-                im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
-            refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
-            crop = im[:, refx:refx+self.IMGDIMS[1]]
 
-            #Data augmentation
-            (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
-            s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
-            s = np.clip((s * s_adj), 0, 255)
-            v = np.clip((v * v_adj), 0, 255)
-            crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
-
-            crop = crop / 255. * 2. - 1.
+            crop, refx = self.ret_img(imgdir)
 
             if imgs is not None:
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))
@@ -169,55 +174,60 @@ class dataHandler():
         col = int((x / self.IMGDIMS[1]) * (self.sx))
         return [row,col]
 
+    def ret_label(self, fname, refdims, indice):
+        with open(fname, "r") as f:
+            pre_grid = np.zeros([self.sx, self.sy, self.B*(self.NUM_CLASSES + 5 + 1)])
+            noobj = np.ones([self.sx, self.sy, self.B])
+            objI = np.zeros([self.sx, self.sy, 1])
+            grid = np.concatenate((pre_grid, noobj, objI), axis=2)
+            for line in f:
+                box_det = line.split(" ")
+                C = [0.] * self.NUM_CLASSES
+                keep = True
+
+                if box_det[0] == "Car":
+                    C[3] = 1.
+                elif box_det[0] == "Pedestrian":
+                    C[1] = 1.
+                elif box_det[0] == "Cyclist":
+                    C[2] = 1.
+                elif box_det[0] == "Truck" or box_det[0] == "Van":
+                    C[0] = 1.
+                else:
+                    keep = False
+
+                p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
+                xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
+                if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
+                    celly, cellx = self.getBox(xywh[0], xywh[1])
+
+                    const = (self.IMGDIMS[1] / self.sx)
+
+                    xywh[0] = (xywh[0] - cellx*const) / const
+                    xywh[1] = (xywh[1] - celly*const) / const
+                    xywh[2] = xywh[2] / self.IMGDIMS[1]
+                    xywh[3] = xywh[3] / self.IMGDIMS[1]
+
+                    argcheck = 0
+                    for i in range(0, self.B):
+                        if grid[cellx][celly][i] == 0.0 and argcheck == 0:
+                            grid[cellx][celly][i] = xywh[0]
+                            grid[cellx][celly][self.B + i] = xywh[1]
+                            grid[cellx][celly][2*self.B + i] = xywh[2]
+                            grid[cellx][celly][3*self.B + i] = xywh[3]
+                            grid[cellx][celly][4*self.B + i] = 1. #Confidence
+                            grid[cellx][celly][5*self.B + i * self.NUM_CLASSES: 5*self.B + self.NUM_CLASSES + i * self.NUM_CLASSES] = C #Class probs
+                            grid[cellx][celly][9*self.B + i] = 1. #obj
+                            grid[cellx][celly][10*self.B + i] = 0. #noobj
+                            grid[cellx][celly][33] = 1. #objI
+                            argcheck = 1
+        return grid
+
     def get_label(self, num_arr, refdims):
         labels = []
         for indice in num_arr:
-            with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
-                pre_grid = np.zeros([self.sx, self.sy, self.B*(self.NUM_CLASSES + 5 + 1)])
-                noobj = np.ones([self.sx, self.sy, self.B])
-                objI = np.zeros([self.sx, self.sy, 1])
-                grid = np.concatenate((pre_grid, noobj, objI), axis=2)
-                for line in f:
-                    box_det = line.split(" ")
-                    C = [0.] * self.NUM_CLASSES
-                    keep = True
-
-                    if box_det[0] == "Car":
-                        C[3] = 1.
-                    elif box_det[0] == "Pedestrian":
-                        C[1] = 1.
-                    elif box_det[0] == "Cyclist":
-                        C[2] = 1.
-                    elif box_det[0] == "Truck" or box_det[0] == "Van":
-                        C[0] = 1.
-                    else:
-                        keep = False
-
-                    p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
-                    xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
-                    if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
-                        celly, cellx = self.getBox(xywh[0], xywh[1])
-
-                        const = (self.IMGDIMS[1] / self.sx)
-
-                        xywh[0] = (xywh[0] - cellx*const) / const
-                        xywh[1] = (xywh[1] - celly*const) / const
-                        xywh[2] = xywh[2] / self.IMGDIMS[1]
-                        xywh[3] = xywh[3] / self.IMGDIMS[1]
-
-                        argcheck = 0
-                        for i in range(0, self.B):
-                            if grid[cellx][celly][i] == 0.0 and argcheck == 0:
-                                grid[cellx][celly][i] = xywh[0]
-                                grid[cellx][celly][self.B + i] = xywh[1]
-                                grid[cellx][celly][2*self.B + i] = xywh[2]
-                                grid[cellx][celly][3*self.B + i] = xywh[3]
-                                grid[cellx][celly][4*self.B + i] = 1. #Confidence
-                                grid[cellx][celly][5*self.B + i * self.NUM_CLASSES: 5*self.B + self.NUM_CLASSES + i * self.NUM_CLASSES] = C #Class probs
-                                grid[cellx][celly][9*self.B + i] = 1. #obj
-                                grid[cellx][celly][10*self.B + i] = 0. #noobj
-                                grid[cellx][celly][33] = 1. #objI
-                                argcheck = 1
+            fname = self.train_label_dir + "/" + self.train_arr[indice] + ".txt"
+            grid = self.ret_label(fname, refdims, indice)
             labels.append(grid)
         return labels
 

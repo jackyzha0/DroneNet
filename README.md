@@ -59,8 +59,6 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Interpret output with confidence filtering
-- [ ] Convert from form B(5+C) to B*5 + C form if needed
 - [ ] Add batch norm
 - [ ] Add dropout layers
 - [ ] Implement data augmentation
@@ -72,6 +70,7 @@ RPI_GPIO26
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Interpret output with confidence filtering
 - [x] Linearize last layer
 - [x] Normalize xy
 - [x] Normalize wh

@@ -55,25 +55,25 @@ class dataHandler():
                             if not classtype == "unknwn":
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
-        # if preds is not None:
-        #     x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(preds)
-        #     for x in range(0,x_.shape[0]):
-        #         for y in range(0,x_.shape[1]):
-        #             for i in range(B):
-        #                 if conf_[x][y][i] > 0.7:
-        #                     bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-        #                     classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
-        #                     if not classtype == "unknwn":
-        #                         #print(bounds)
-        #                         cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
-        #                         cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+        if preds is not None:
+            x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(preds)
+            for x in range(0,x_.shape[0]):
+                for y in range(0,x_.shape[1]):
+                    for i in range(B):
+                        if conf_[x][y][i] > 0.7:
+                            bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
+                            classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
+                            if not classtype == "unknwn":
+                                #print(bounds)
+                                cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
+                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
         if drawTime == 0:
             return im
         else:
             cv.imshow("frame.jpg", im)
             cv.waitKey(drawTime)
 
-    def softmax(self, arr, conf):
+    def softmax(self, arr):
         maxind = np.argmax(arr)
         if maxind > 0.7:
             out = np.zeros(self.NUM_CLASSES)
@@ -164,7 +164,6 @@ class dataHandler():
         labels = []
         for indice in num_arr:
             with open(self.train_label_dir + "/" + self.train_arr[indice] + ".txt", "r") as f:
-                #grid = [[[None for x in range(self.B*(self.NUM_CLASSES + 5))] for x in range(self.sx)] for x in range(self.sy)]
                 pre_grid = np.zeros([self.sx, self.sy, self.B*(self.NUM_CLASSES + 5 + 1)])
                 noobj = np.ones([self.sx, self.sy, self.B])
                 objI = np.zeros([self.sx, self.sy, 1])

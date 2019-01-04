@@ -64,7 +64,6 @@ class dataHandler():
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
                             if not classtype == "unknwn":
-                                #print(bounds)
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
         if drawTime == 0:
@@ -119,12 +118,10 @@ class dataHandler():
             im = cv.imread(imgdir)
             if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
                 im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
-            #refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
-            refx = 0
+            refx = 0#np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
             crop = im[:, refx:refx+self.IMGDIMS[1]]
             crop = crop / 255. * 2. - 1.
             if imgs is not None:
-                #print(imgs.shape, crop[np.newaxis, :].shape)
                 imgs = np.vstack((imgs, crop[np.newaxis, :]))
             else:
                 imgs = crop[np.newaxis, :]
@@ -137,7 +134,7 @@ class dataHandler():
             if len(self.train_unused) <= batchsize:
                 finarr = self.train_unused
                 self.train_unused = np.arange(len(self.train_arr))
-                #np.random.shuffle(self.train_unused)
+                np.random.shuffle(self.train_unused)
                 self.epochs_elapsed += 1
             else:
                 finarr = self.train_unused[:batchsize]

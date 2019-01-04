@@ -24,7 +24,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 config=tf.ConfigProto()#gpu_options=gpu_options)
 
 ### PARAMETERS ###
-batchsize = 6
+batchsize = 1
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -41,19 +41,25 @@ graph = tf.Graph()
 with graph.as_default():
 
     @add_arg_scope
-    def conv2d(inputs, filters, kernel_size, stride=1,
-               kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
-               bias_initializer=tf.zeros_initializer(),
-               kernel_regularizer=None,#tf.contrib.layers.l2_regularizer(scale=0.0002),
-               name=None, activation=tf.nn.relu):
+    def conv2d(inputs, filters, kernel_size, stride=1, name=None, training = True, alpha=0.):
         with tf.name_scope('conv2d'):
-            _conv2d = tf.layers.conv2d(inputs, filters, kernel_size, stride,
-              kernel_initializer=kernel_initializer,
-              bias_initializer=bias_initializer,
-              kernel_regularizer=kernel_regularizer,
-              activation=activation,
-              padding="same")
-            return _conv2d
+            size = kernel_size[0]
+            channels = int(inputs.get_shape()[3])
+            initializer = tf.contrib.layers.xavier_initializer_conv2d()
+            weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
+            #tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=1e-1, mean=0.))
+            biases = tf.Variable(tf.constant(0., shape=[filters]))
+
+            pad_size = size // 2
+            pad_mat = np.array([[0, 0], [pad_size, pad_size], [pad_size, pad_size], [0, 0]])
+            inputs_pad = tf.pad(inputs, pad_mat)
+
+            conv = tf.nn.conv2d(inputs_pad, weight, strides=[1, stride, stride, 1], padding='VALID')
+            conv_biased = tf.add(conv, biases)
+
+            conv_biased = tf.layers.batch_normalization(conv_biased, training= True)
+
+            return tf.maximum((alpha * conv_biased), conv_biased, name='leaky_relu')
 
     def fire_module(inputs, squeeze_depth, expand_depth, scope=None, reuse=None):
         with tf.name_scope(scope):
@@ -64,7 +70,7 @@ with graph.as_default():
                 net = tf.concat([e1x1, e3x3], 3)
                 return net
 
-    def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, alpha=0.1):
+    def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, training=True, alpha=0.1, bn = True):
         with tf.name_scope('fc'):
             input_shape = inputs.get_shape().as_list()
             if flat:
@@ -77,6 +83,10 @@ with graph.as_default():
             weight = tf.Variable(tf.truncated_normal([dim, hiddens], stddev = 1e-1, mean=0.), trainable=trainable)
             biases = tf.Variable(tf.constant(0., shape=[hiddens]), trainable=trainable)
             ip = tf.matmul(inputs_processed, weight) + biases
+
+            if training:
+                ip = tf.layers.batch_normalization(ip, training= True)
+
             if linear:
                 return ip
             else:
@@ -165,8 +175,8 @@ with graph.as_default():
         tf_out = tf.placeholder(tf.float32, shape=[None, 375, 375, 3])
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
-db = dataset.dataHandler(train = "data/overfit_test_large", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-#db = dataset.dataHandler(train = "data/overfit_test", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+#db = dataset.dataHandler(train = "data/overfit_test_large", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/overfit_test", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
 
 def prettyPrint(loss, db):
     lossString = "Loss: %.3f | " % loss
@@ -193,7 +203,7 @@ with tf.Session(graph = graph, config = config) as sess:
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE,output_partition_graphs=True)
     saver = tf.train.Saver()
 
-    while db.batches_elapsed < 1000:
+    while db.batches_elapsed < 100000:
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)

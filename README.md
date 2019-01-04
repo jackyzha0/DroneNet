@@ -60,7 +60,6 @@ RPI_GPIO26
 
 ## TODO
 - [ ] Add batch norm
-- [ ] Add dropout layers
 - [ ] Implement data augmentation
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP

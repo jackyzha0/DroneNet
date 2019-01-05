@@ -61,6 +61,8 @@ RPI_GPIO26
 ## TODO
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP
+- [ ] Add checkpoint saving
+- [ ] Add ability to restore weights
 - [ ] Add documentation for detectionNet
 
 - [ ] Build and compile APM for PXFMini and Pi0

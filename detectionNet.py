@@ -20,11 +20,14 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-#gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
-config=tf.ConfigProto()#gpu_options=gpu_options)
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
+run_metadata = tf.RunMetadata()
+options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE, output_partition_graphs=True)
+config=tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options)
+WRITE_DEBUG = False
 
 ### PARAMETERS ###
-batchsize = 32
+batchsize = 1
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -176,7 +179,7 @@ with graph.as_default():
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
 #db = dataset.dataHandler(train = "data/overfit_test_large", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-db = dataset.dataHandler(train = "data/training", val="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
 
 def prettyPrint(loss, db):
     lossString = "Loss: %.3f | " % loss
@@ -203,7 +206,9 @@ with tf.Session(graph = graph, config = config) as sess:
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE,output_partition_graphs=True)
     saver = tf.train.Saver()
 
-    while db.batches_elapsed < 100000:
+    prev_epoch = 0
+    while db.epochs_elapsed < epochs:
+
         img, label = db.minibatch(batchsize)
 
         label = np.array(label)
@@ -224,12 +229,15 @@ with tf.Session(graph = graph, config = config) as sess:
         out = sess.run([train_op, loss, net, merged],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
-                                  obj: obj_in, no_obj: noobj_in, objI: objI_in}, options=run_options)
+                                  obj: obj_in, no_obj: noobj_in, objI: objI_in}, options=run_options, run_metadata=run_metadata)
 
         pred_labels = np.array(out)[2]
         print(prettyPrint(out[1], db))
-        if db.batches_elapsed % 1000 == 0:#batchsize == 0:
-            save_path = saver.save(sess, 'saved_models/save%s' % str(db.batches_elapsed))
+
+        if not db.epochs_elapsed == prev_epoch:
+            print('epoch ticker')
+            #save_path = saver.save(sess, 'saved_models/save%s' % str(db.batches_elapsed))
+            prev_epoch += 1
 
         im = np.zeros((batchsize, 375, 375, 3))
         for i in range(len(img)):
@@ -238,7 +246,8 @@ with tf.Session(graph = graph, config = config) as sess:
         im_tf = sess.run(tf_im_out, feed_dict={tf_out: im})
         train_writer.add_summary(out[3], db.batches_elapsed)
         train_writer.flush()
-        if db.batches_elapsed % 16 == 0 or db.batches_elapsed == 1:
+
+        if WRITE_DEBUG and (db.batches_elapsed % 16 == 0 or db.batches_elapsed == 1):
             write4DData(label, 'debug/lb$_act', db.batches_elapsed)
             write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
             train_writer.add_summary(im_tf, db.batches_elapsed)

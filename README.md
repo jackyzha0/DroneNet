@@ -59,9 +59,8 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
+- [ ] Add augmentation after read
 - [ ] Add test evaluation
-- [ ] TFRecords Writer
-- [ ] TFRecords Reader
 - [ ] Calculate IOU and mAP
 - [ ] Add documentation for detectionNet
 
@@ -69,6 +68,7 @@ RPI_GPIO26
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] np Pickle Writer
 - [x] Implement data augmentation
 - [x] Add batch norm
 - [x] Interpret output with confidence filtering

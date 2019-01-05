@@ -45,7 +45,7 @@ class dataHandler():
 
     def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 0, test=False):
         if test:
-            im = ((image[:,:,::-1] + 1.) / 2.)
+            im = ((image + 1.) / 2.)
         else:
             im = ((image + 1.) / 2.) * 255.
         B = self.B
@@ -115,38 +115,6 @@ class dataHandler():
         arr = [p1y, p1x, p2y, p2x]
         return [int(x) for x in arr]
 
-    def ret_img(self, imgdir):
-        im = cv.imread(imgdir)
-        if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
-            im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
-        refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
-        crop = im[:, refx:refx+self.IMGDIMS[1]]
-
-        #Data augmentation
-        (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
-        s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
-        s = np.clip((s * s_adj), 0, 255)
-        v = np.clip((v * v_adj), 0, 255)
-        crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
-
-        crop = crop / 255. * 2. - 1.
-        return crop, refx
-
-    def get_img(self, num_arr):
-        refdims = {}
-        imgs = None
-        for indice in num_arr:
-            imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
-
-            crop, refx = self.ret_img(imgdir)
-
-            if imgs is not None:
-                imgs = np.vstack((imgs, crop[np.newaxis, :]))
-            else:
-                imgs = crop[np.newaxis, :]
-            refdims[indice]= [refx, refx+self.IMGDIMS[1]]
-        return imgs[..., : :-1], refdims
-
     def get_indices(self, batchsize, training = True):
         finarr = []
         if training:
@@ -160,7 +128,15 @@ class dataHandler():
                 self.train_unused = self.train_unused[batchsize:]
             self.batches_elapsed += 1
         else:
-            pass
+            if len(self.val_unused) <= batchsize:
+                finarr = self.val_unused
+                self.val_unused = np.arange(len(self.val_arr))
+                np.random.shuffle(self.val_unused)
+                self.epochs_elapsed += 1
+            else:
+                finarr = self.val_unused[:batchsize]
+                self.val_unused = self.val_unused[batchsize:]
+            self.batches_elapsed += 1
         return finarr
 
     def p1p2_to_xywh(self, p1x, p1y, p2x, p2y, xref):
@@ -227,33 +203,79 @@ class dataHandler():
 
     def get_label(self, num_arr, refdims):
         labels = []
-        for indice in num_arr:
-            fname = self.train_label_dir + "/" + self.train_arr[indice] + ".txt"
-            grid = self.ret_label(fname, refdims, indice)
-            labels.append(grid)
+        if self.NP:
+            for indice in num_arr:
+                fname = self.train_label_dir + "/" + self.train_arr[indice] + ".npy"
+                grid = np.load(fname)
+                grid = np.reshape(grid, [self.sx, self.sy, 34])
+                labels.append(grid)
+        else:
+            for indice in num_arr:
+                fname = self.train_label_dir + "/" + self.train_arr[indice] + ".txt"
+                grid = self.ret_label(fname, refdims, indice)
+                labels.append(grid)
         return labels
 
-    def minibatch(self, batchsize, training = True, useTFRecord = False):
-        if useTFRecord:
-            if training:
-                path = tfrecord_path + 'TRAIN/'
-                imgs = 0
-            else:
-                path = tfrecord_path + 'VAL/'
-                labels = 0
+    def ret_img(self, imgdir):
+        im = cv.imread(imgdir)
+        if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
+            im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
+        refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
+        crop = im[:, refx:refx+self.IMGDIMS[1]]
+
+        #Data augmentation
+        (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
+        s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
+        s = np.clip((s * s_adj), 0, 255)
+        v = np.clip((v * v_adj), 0, 255)
+        crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
+
+        crop = crop / 255. * 2. - 1.
+        return crop, refx
+
+    def get_img(self, num_arr):
+        refdims = {}
+        imgs = None
+        if self.NP:
+            for indice in num_arr:
+                imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".npy"
+
+                crop = np.load(imgdir)
+                crop = np.reshape(crop, [self.IMGDIMS[1], self.IMGDIMS[1], 3])
+
+                if imgs is not None:
+                    imgs = np.vstack((imgs, crop[np.newaxis, :]))
+                else:
+                    imgs = crop[np.newaxis, :]
+
+            return imgs, None
         else:
-            indices = self.get_indices(batchsize, training = training)
-            imgs, refdims = self.get_img(indices)
-            labels = self.get_label(indices, refdims)
+            for indice in num_arr:
+                imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
+
+                crop, refx = self.ret_img(imgdir)
+
+                if imgs is not None:
+                    imgs = np.vstack((imgs, crop[np.newaxis, :]))
+                else:
+                    imgs = crop[np.newaxis, :]
+                refdims[indice]= [refx, refx+self.IMGDIMS[1]]
+            return imgs[..., : :-1], refdims
+
+    def minibatch(self, batchsize, training = True):
+        indices = self.get_indices(batchsize, training = training)
+        imgs, refdims = self.get_img(indices)
+        labels = self.get_label(indices, refdims)
         return imgs, labels
 
-    def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5, val_perc = 0.8):
+    def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5, val_perc = 0.8, useNP = False):
         if os.path.exists(train) and os.path.exists(val):
             self.train_img_dir = train + "/image"
             self.train_label_dir = train + "/label"
             self.val_img_dir = val + "/image"
 
             self.val_percent = val_perc
+            self.NP = useNP
 
             self.NUM_CLASSES = NUM_CLASSES
             self.B = B

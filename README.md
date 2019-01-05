@@ -59,7 +59,6 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Add augmentation after read
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP
 - [ ] Add documentation for detectionNet
@@ -68,6 +67,7 @@ RPI_GPIO26
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Add augmentation after read
 - [x] np Pickle Writer
 - [x] Implement data augmentation
 - [x] Add batch norm

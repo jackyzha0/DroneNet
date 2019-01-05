@@ -223,14 +223,7 @@ class dataHandler():
         refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
         crop = im[:, refx:refx+self.IMGDIMS[1]]
 
-        #Data augmentation
-        (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
-        s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
-        s = np.clip((s * s_adj), 0, 255)
-        v = np.clip((v * v_adj), 0, 255)
-        crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
 
-        crop = crop / 255. * 2. - 1.
         return crop, refx
 
     def get_img(self, num_arr):
@@ -242,6 +235,15 @@ class dataHandler():
 
                 crop = np.load(imgdir)
                 crop = np.reshape(crop, [self.IMGDIMS[1], self.IMGDIMS[1], 3])
+
+                #Data augmentation
+                crop = np.uint8(crop)
+                (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_RGB2HSV).astype("float32"))
+                s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
+                s = np.clip((s * s_adj), 0, 255)
+                v = np.clip((v * v_adj), 0, 255)
+                crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2RGB)
+                crop = crop / 255. * 2. - 1.
 
                 if imgs is not None:
                     imgs = np.vstack((imgs, crop[np.newaxis, :]))

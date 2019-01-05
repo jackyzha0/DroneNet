@@ -1,7 +1,7 @@
 import dataset
 import numpy as np
 import tensorflow as tf
-db = dataset.dataHandler(train = "data/training", train = "data/testing", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/training", val = "data/testing", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
 print(db)
 
 VAL_PERCENT = 0.8
@@ -27,10 +27,10 @@ for i in range(len(train_arr)):
     img = img.flatten()
     label = label.flatten()
 
-    save_loc_im = serialized_train + "im/" + train_arr[i] + ".npy"
+    save_loc_im = serialized_train + "image/" + train_arr[i] + ".npy"
     np.save(save_loc_im, img)
 
-    save_loc_lb = serialized_train + "lb/" + train_arr[i] + ".npy"
+    save_loc_lb = serialized_train + "label/" + train_arr[i] + ".npy"
     np.save(save_loc_lb, label)
 
     print('Train data: {}/{}'.format(i+1, len(train_arr)))
@@ -52,10 +52,10 @@ for i in range(len(val_arr)):
     img = img.flatten()
     label = label.flatten()
 
-    save_loc_im = serialized_train + "im/" + val_arr[i] + ".npy"
+    save_loc_im = serialized_train + "image/" + val_arr[i] + ".npy"
     np.save(save_loc_im, img)
 
-    save_loc_lb = serialized_train + "lb/" + val_arr[i] + ".npy"
+    save_loc_lb = serialized_train + "label/" + val_arr[i] + ".npy"
     np.save(save_loc_lb, label)
 
     print('Validation data: {}/{}'.format(i+1, len(val_arr)))

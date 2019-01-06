@@ -20,14 +20,15 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
+#gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
+
 run_metadata = tf.RunMetadata()
 options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE, output_partition_graphs=True)
-config=tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options)
+config=tf.ConfigProto()#gpu_options=gpu_options)
 WRITE_DEBUG = False
 
 ### PARAMETERS ###
-batchsize = 1
+batchsize = 32
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -60,16 +61,16 @@ with graph.as_default():
             conv = tf.nn.conv2d(inputs_pad, weight, strides=[1, stride, stride, 1], padding='VALID')
             conv_biased = tf.add(conv, biases)
 
-            conv_biased = tf.layers.batch_normalization(conv_biased, training= True)
+            conv_biased = tf.layers.batch_normalization(conv_biased, training=training)
 
             return tf.maximum((alpha * conv_biased), conv_biased, name='leaky_relu')
 
-    def fire_module(inputs, squeeze_depth, expand_depth, scope=None, reuse=None):
+    def fire_module(inputs, squeeze_depth, expand_depth, scope=None, reuse=None, training = True):
         with tf.name_scope(scope):
             with arg_scope([conv2d, max_pool2d]):
-                net = conv2d(inputs, squeeze_depth, [1, 1], name='squeeze')
-                e1x1 = conv2d(net, expand_depth, [1, 1], name='e1x1')
-                e3x3 = conv2d(net, expand_depth, [3, 3], name='e3x3')
+                net = conv2d(inputs, squeeze_depth, [1, 1], name='squeeze', training = training)
+                e1x1 = conv2d(net, expand_depth, [1, 1], name='e1x1', training = training)
+                e3x3 = conv2d(net, expand_depth, [3, 3], name='e3x3', training = training)
                 net = tf.concat([e1x1, e3x3], 3)
                 return net
 
@@ -88,7 +89,7 @@ with graph.as_default():
             ip = tf.matmul(inputs_processed, weight) + biases
 
             if training:
-                ip = tf.layers.batch_normalization(ip, training= True)
+                ip = tf.layers.batch_normalization(ip, training=training)
 
             if linear:
                 return ip
@@ -107,27 +108,28 @@ with graph.as_default():
         obj = tf.placeholder(tf.float32, shape=[None, sx, sy, B], name="obj")
         objI = tf.placeholder(tf.float32, shape=[None, sx, sy], name="objI")
         no_obj = tf.placeholder(tf.float32, shape=[None, sx, sy, B], name="no_obj")
+        train = tf.placeholder(tf.bool, name="train_flag")
 
         dim_mul = sx * sy
         dim_mul_B = dim_mul * B
 
-    net = conv2d(images, 96, [7, 7], stride=2, name='conv1')
+    net = conv2d(images, 96, [7, 7], stride=2, name='conv1', training = train)
     net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool1')
-    net = fire_module(net, 16, 64, scope='fire1')
-    net = fire_module(net, 16, 64, scope='fire2')
-    net = fire_module(net, 32, 128, scope='fire3')
+    net = fire_module(net, 16, 64, scope='fire1', training = train)
+    net = fire_module(net, 16, 64, scope='fire2', training = train)
+    net = fire_module(net, 32, 128, scope='fire3', training = train)
     net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool2')
-    net = fire_module(net, 32, 128, scope='fire4')
-    net = fire_module(net, 48, 192, scope='fire5')
-    net = fire_module(net, 48, 192, scope='fire6')
-    net = fire_module(net, 64, 256, scope='fire7')
+    net = fire_module(net, 32, 128, scope='fire4', training = train)
+    net = fire_module(net, 48, 192, scope='fire5', training = train)
+    net = fire_module(net, 48, 192, scope='fire6', training = train)
+    net = fire_module(net, 64, 256, scope='fire7', training = train)
     net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool3')
-    net = fire_module(net, 64, 256, scope='fire8')
+    net = fire_module(net, 64, 256, scope='fire8', training = train)
     net = tf.layers.average_pooling2d(net, [7,7], strides=1)
 
-    net = fc_layer(net, 512, flat=True, linear=False, trainable=True)
-    net = fc_layer(net, 4096, flat=False, linear=False, trainable=True)
-    net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True)
+    net = fc_layer(net, 512, flat=True, linear=False, trainable=True, training = train)
+    net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train)
+    net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train)
 
     bn = tf.shape(x)[0]
     net = tf.reshape(net, (bn, sx, sy, B*(C+5)))
@@ -229,7 +231,7 @@ with tf.Session(graph = graph, config = config) as sess:
         out = sess.run([train_op, loss, net, merged],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,
-                                  obj: obj_in, no_obj: noobj_in, objI: objI_in}, options=run_options, run_metadata=run_metadata)
+                                  obj: obj_in, no_obj: noobj_in, objI: objI_in, train: True}, options=run_options, run_metadata=run_metadata)
 
         pred_labels = np.array(out)[2]
         print(prettyPrint(out[1], db))

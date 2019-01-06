@@ -61,13 +61,13 @@ RPI_GPIO26
 ## TODO
 - [ ] Add test evaluation
 - [ ] Calculate IOU and mAP
-- [ ] Add checkpoint saving
 - [ ] Add documentation for detectionNet
 
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Add checkpoint saving
 - [x] Add ability to restore weights
 - [x] Add augmentation after read
 - [x] np Pickle Writer

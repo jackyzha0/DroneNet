@@ -32,7 +32,7 @@ WRITE_DEBUG = False
 RESTORE_SAVED = False
 
 ### PARAMETERS ###
-batchsize = 1#32
+batchsize = 32
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -185,15 +185,20 @@ with graph.as_default():
         tf_out = tf.placeholder(tf.float32, shape=[None, 375, 375, 3])
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
-db = dataset.dataHandler(train = "data/overfit_test_large", val="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-#db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
+#db = dataset.dataHandler(train = "data/overfit_test_large", val="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
 
-def prettyPrint(loss, db):
-    lossString = "Loss: %.3f | " % loss
-    batches_elapsed = "Batches elapsed: %d | " % db.batches_elapsed
-    epochs_elapsed = "Epochs elapsed: %d | " % db.epochs_elapsed
-    epoch_progress = "Epoch Progress: %.2f%% " % (100. * (len(db.train_arr)-len(db.train_unused))/len(db.train_arr))
-    return lossString + batches_elapsed + epochs_elapsed + epoch_progress
+def prettyPrint(loss, db, test_eval = False):
+    if test_eval:
+        lossString = "Test Loss: %.3f | " % loss
+        epoch_progress = "Validation Progress: %.2f%% " % (100. * (len(db.val_arr)-len(db.val_unused))/len(db.val_arr))
+        return lossString + epoch_progress
+    else:
+        lossString = "Loss: %.3f | " % loss
+        batches_elapsed = "Batches elapsed: %d | " % db.batches_elapsed
+        epochs_elapsed = "Epochs elapsed: %d | " % db.epochs_elapsed
+        epoch_progress = "Epoch Progress: %.2f%% " % (100. * (len(db.train_arr)-len(db.train_unused))/len(db.train_arr))
+        return lossString + batches_elapsed + epochs_elapsed + epoch_progress
 
 def write4DData(arr, path, ind):
     n_split = path.split('$')
@@ -217,6 +222,7 @@ with tf.Session(graph = graph, config = config) as sess:
     tf.local_variables_initializer().run()
 
     train_writer = tf.summary.FileWriter('tf_writer/TRAIN/%s' % str(datetime.now()).split(' ')[1][:8], graph=sess.graph)
+    val_writer = tf.summary.FileWriter('tf_writer/TEST/%s' % str(datetime.now()).split(' ')[1][:8], graph=sess.graph)
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE,output_partition_graphs=True)
     saver = tf.train.Saver()
 
@@ -248,12 +254,6 @@ with tf.Session(graph = graph, config = config) as sess:
         pred_labels = np.array(out)[2]
         print(prettyPrint(out[1], db))
 
-        if not db.epochs_elapsed == prev_epoch:
-            print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
-            save_path = saver.save(sess, 'saved_models/save{0:06d}'.format(db.batches_elapsed))
-            print("Weights saved.")
-            prev_epoch += 1
-
         im = np.zeros((batchsize, 375, 375, 3))
         for i in range(len(img)):
             im[i] = db.dispImage(img[i], boundingBoxes = label[i], preds = np.reshape(pred_labels[i], (sx, sy, 27)))
@@ -267,3 +267,43 @@ with tf.Session(graph = graph, config = config) as sess:
             write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
             train_writer.add_summary(im_tf, db.batches_elapsed)
             train_writer.flush()
+
+        if not db.epochs_elapsed == prev_epoch:
+            t_img, t_label = db.minibatch(batchsize, training = False)
+            t_label = np.array(t_label)
+            t_x_in = t_label[:,:,:,:B]
+            t_y_in = t_label[:,:,:,B:2*B]
+            t_w_in = t_label[:,:,:,2*B:3*B]
+            t_h_in = t_label[:,:,:,3*B:4*B]
+            t_conf_in = t_label[:,:,:,4*B:5*B]
+            t_classes_in = t_label[:,:,:,5*B:(5+C)*B]
+            t_obj_in = t_label[:,:,:,9*B:10*B]
+            t_noobj_in = t_label[:,:,:,10*B:11*B]
+            t_objI_in = t_label[:,:,:,33]
+            if t_x_in.shape[0] == 1:
+                t_objI_in = [np.squeeze(t_objI_in)]
+            else:
+                t_objI_in = np.squeeze(t_objI_in)
+
+            t_out = sess.run([loss, net, merged],
+                             feed_dict={images: img, x: t_x_in, y: t_y_in, w: t_w_in, h: t_h_in,
+                                        conf: t_conf_in, probs: t_classes_in,
+                                        obj: t_obj_in, no_obj: t_noobj_in, objI: t_objI_in, train: False},
+                                        options=run_options, run_metadata=run_metadata)
+
+            print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
+            save_path = saver.save(sess, 'saved_models/save{0:06d}'.format(db.batches_elapsed))
+            print("Weights saved.")
+
+            t_pred_labels = np.array(t_out)[1]
+            print(prettyPrint(t_out[0], db, test_eval=True))
+
+            t_im = np.zeros((batchsize, 375, 375, 3))
+            for i in range(len(img)):
+                t_im[i] = db.dispImage(t_img[i], boundingBoxes = t_label[i], preds = np.reshape(t_pred_labels[i], (sx, sy, 27)))
+
+            t_im_tf = sess.run(tf_im_out, feed_dict={tf_out: t_im})
+            val_writer.add_summary(t_out[2], db.batches_elapsed)
+            val_writer.flush()
+
+            prev_epoch += 1

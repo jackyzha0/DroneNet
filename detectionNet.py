@@ -5,6 +5,7 @@ import cv2 as cv
 import sugartensor as tf
 import dataset
 import random
+import glob
 import math
 import numpy as np
 from decimal import Decimal
@@ -25,10 +26,13 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 run_metadata = tf.RunMetadata()
 options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE, output_partition_graphs=True)
 config=tf.ConfigProto()#gpu_options=gpu_options)
+
+restore_path = "saved_models/"
 WRITE_DEBUG = False
+RESTORE_SAVED = False
 
 ### PARAMETERS ###
-batchsize = 32
+batchsize = 1#32
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -61,9 +65,11 @@ with graph.as_default():
             conv = tf.nn.conv2d(inputs_pad, weight, strides=[1, stride, stride, 1], padding='VALID')
             conv_biased = tf.add(conv, biases)
 
-            conv_biased = tf.layers.batch_normalization(conv_biased, training=training)
+            conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name='leaky_relu')
 
-            return tf.maximum((alpha * conv_biased), conv_biased, name='leaky_relu')
+            conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True), false_fn=lambda: conv_biased)
+
+            return conv_biased
 
     def fire_module(inputs, squeeze_depth, expand_depth, scope=None, reuse=None, training = True):
         with tf.name_scope(scope):
@@ -88,8 +94,7 @@ with graph.as_default():
             biases = tf.Variable(tf.constant(0., shape=[hiddens]), trainable=trainable)
             ip = tf.matmul(inputs_processed, weight) + biases
 
-            if training:
-                ip = tf.layers.batch_normalization(ip, training=training)
+            ip = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(ip, training=True), false_fn=lambda: ip)
 
             if linear:
                 return ip
@@ -180,8 +185,8 @@ with graph.as_default():
         tf_out = tf.placeholder(tf.float32, shape=[None, 375, 375, 3])
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
-#db = dataset.dataHandler(train = "data/overfit_test_large", test="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
+db = dataset.dataHandler(train = "data/overfit_test_large", val="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+#db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
 
 def prettyPrint(loss, db):
     lossString = "Loss: %.3f | " % loss
@@ -199,11 +204,18 @@ def write4DData(arr, path, ind):
                 wfile.write('------ Dim separator ------\n')
                 np.savetxt(wfile, d_slice, fmt='%.2f', delimiter = '|')
 
+if RESTORE_SAVED:
+    tf.reset_default_graph()
+    meta_list = [f for f in glob.glob(restore_path+"*.meta")]
+    meta_name = meta_list[-1]
+    imported_meta = tf.train.import_meta_graph(meta_name)
+    with tf.Session() as sess:
+        imported_meta.restore(sess, tf.train.latest_checkpoint(restore_path))
+
 with tf.Session(graph = graph, config = config) as sess:
     tf.global_variables_initializer().run()
     tf.local_variables_initializer().run()
 
-    print('tf_writer/TRAIN/%s' % str(datetime.now()).split(' ')[1][:8])
     train_writer = tf.summary.FileWriter('tf_writer/TRAIN/%s' % str(datetime.now()).split(' ')[1][:8], graph=sess.graph)
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE,output_partition_graphs=True)
     saver = tf.train.Saver()
@@ -237,8 +249,9 @@ with tf.Session(graph = graph, config = config) as sess:
         print(prettyPrint(out[1], db))
 
         if not db.epochs_elapsed == prev_epoch:
-            print('epoch ticker')
-            #save_path = saver.save(sess, 'saved_models/save%s' % str(db.batches_elapsed))
+            print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
+            save_path = saver.save(sess, 'saved_models/save{0:06d}'.format(db.batches_elapsed))
+            print("Weights saved.")
             prev_epoch += 1
 
         im = np.zeros((batchsize, 375, 375, 3))

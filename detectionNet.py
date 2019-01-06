@@ -32,7 +32,7 @@ WRITE_DEBUG = False
 RESTORE_SAVED = False
 
 ### PARAMETERS ###
-batchsize = 32
+batchsize = 1#32
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -185,8 +185,8 @@ with graph.as_default():
         tf_out = tf.placeholder(tf.float32, shape=[None, 375, 375, 3])
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
-#db = dataset.dataHandler(train = "data/overfit_test_large", val="data/testing", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
+db = dataset.dataHandler(train = "data/overfit_test_large", val="data/overfit_test", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+#db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
 
 def prettyPrint(loss, db, test_eval = False):
     if test_eval:
@@ -295,7 +295,7 @@ with tf.Session(graph = graph, config = config) as sess:
             save_path = saver.save(sess, 'saved_models/save{0:06d}'.format(db.batches_elapsed))
             print("Weights saved.")
 
-            t_pred_labels = np.array(t_out)[1]
+            t_pred_labels = t_out[1]
             print(prettyPrint(t_out[0], db, test_eval=True))
 
             t_im = np.zeros((batchsize, 375, 375, 3))

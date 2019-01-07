@@ -45,7 +45,7 @@ def get_stats(boxes, labels, iou_thresh = 0.5):
     given prediction boxes and labels. True Negatives (TN) are not recorded
     '''
 
-    TP, FP, FN = 0, 0, 0
+    TP, FP, FN = 0., 0., 0.
 
     for label_box in labels:
         for pred_box in boxes:
@@ -61,4 +61,11 @@ def get_stats(boxes, labels, iou_thresh = 0.5):
         if not check:
             FN += 1
 
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    f1 = 2. * ((precision * recall) / (precision + recall))
+
     return TP, FP, FN
+
+    def mAP(boxes, labels):
+        pass

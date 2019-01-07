@@ -42,8 +42,7 @@ Heavily reliant on global communication methods such as GPS and central communic
   - Object Detection
     - YOLOv1 implemented with SqueezeNet, input size [375, 375]
     - Dataset
-      - [Deprecated] Kitware - VIRAT Dataset
-      - KITTI Vision Benchmark - Bird's Eye View
+      - KITTI Vision Benchmark
   - Hardware interfacing
 
 ## Temporary Notes Section
@@ -59,7 +58,9 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Add test evaluation
+- [ ] Ensure weight saving saves current epoch
+- [ ] Define TP / TN / FP / FN
+- [ ] Fix non-max suppression
 - [ ] Calculate IOU and mAP
 - [ ] Add documentation for detectionNet
 
@@ -67,6 +68,7 @@ RPI_GPIO26
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Add test evaluation
 - [x] Add checkpoint saving
 - [x] Add ability to restore weights
 - [x] Add augmentation after read

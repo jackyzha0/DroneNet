@@ -21,11 +21,10 @@ from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-#gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
 
 run_metadata = tf.RunMetadata()
 options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE, output_partition_graphs=True)
-config=tf.ConfigProto()#gpu_options=gpu_options)
+config=tf.ConfigProto()
 
 restore_path = "saved_models/"
 WRITE_DEBUG = False
@@ -214,6 +213,8 @@ if RESTORE_SAVED:
     meta_list = [f for f in glob.glob(restore_path+"*.meta")]
     meta_name = meta_list[-1]
     imported_meta = tf.train.import_meta_graph(meta_name)
+    rest_f = open(restore_path + "epoch_marker")
+    db.epochs_elapsed = int(rest_f.readline())
     with tf.Session() as sess:
         imported_meta.restore(sess, tf.train.latest_checkpoint(restore_path))
 
@@ -292,7 +293,9 @@ with tf.Session(graph = graph, config = config) as sess:
                                         options=run_options, run_metadata=run_metadata)
 
             print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
-            save_path = saver.save(sess, 'saved_models/save{0:06d}'.format(db.batches_elapsed))
+            save_path = saver.save(sess, restore_path + 'save{0:06d}'.format(db.batches_elapsed))
+            f = open(restore_path + "epoch_marker")
+            f.write(db.batches_elapsed)
             print("Weights saved.")
 
             t_pred_labels = t_out[1]

@@ -58,7 +58,6 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Ensure weight saving saves current epoch
 - [ ] Define TP / TN / FP / FN
 - [ ] Fix non-max suppression
 - [ ] Calculate IOU and mAP
@@ -68,6 +67,7 @@ RPI_GPIO26
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Ensure weight saving saves current epoch
 - [x] Add test evaluation
 - [x] Add checkpoint saving
 - [x] Add ability to restore weights

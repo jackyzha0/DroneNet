@@ -17,8 +17,28 @@ def IOU(boxes, labels):
 
     iou = intersection / float(boxesArea + labelsArea - intersection + 1e-8)
 
-    # return the intersection over union value
     return iou
+
+# def multIOU(box, targ):
+#     src_box_left = box[0]
+#     src_box_top = box[1]
+#     src_box_right = box[0] + box[2]
+#     src_box_bottom = box[1] + box[3]
+#
+#     targ_left = targ[:,0]
+#     targ_top = targ[:,1]
+#     targ_right = targ[:,0] + targ[:,2]
+#     targ_bottom = targ[:,1] + targ[:,3]
+#
+#     intersect_width = np.maximum(0, np.minimum(targ_right, src_box_right) - np.maximum(targ_left, src_box_left))
+#     intersect_height = np.maximum(0, np.minimum(targ_bottom, src_box_bottom) - np.maximum(targ_top, src_box_top))
+#     intersection = intersect_width * intersect_height
+#
+#     area_src = box[2] * box[3]
+#     area_target = targ[:,2] * targ[:,3]
+#     union = area_src + area_target - intersection
+#
+#     return np.divide(intersection, union)
 
 def confFilter(boxes, labels, db, conf_thresh):
     x_pred, y_pred, w_pred, h_pred, conf_pred, classes_pred = db.seperate_labels(boxes)
@@ -32,15 +52,26 @@ def confFilter(boxes, labels, db, conf_thresh):
             for B in range(db.B):
                 if conf_pred[x][y][i] > conf_thresh:
                     bounds = db.xywh_to_p1p2([x_pred[x][y][i], y_pred[x][y][i], w_pred[x][y][i], h_pred[x][y][i]], x, y)
-                    bounds.append(conf_pred[x][y][i])
                     bounds.append(classes_pred[x][y][i*db.NUM_CLASSES:i*db.NUM_CLASSES+4])
                     boxes.append(bounds)
                 if conf_true[x][y][i] > conf_thresh:
                     bounds = db.xywh_to_p1p2([x_true[x][y][i], y_true[x][y][i], w_true[x][y][i], h_true[x][y][i]], x, y)
-                    bounds.append(conf_true[x][y][i])
                     bounds.append(classes_true[x][y][i*db.NUM_CLASSES:i*db.NUM_CLASSES+4])
                     labels.append(bounds)
     return boxes, labels
+
+# def non_max_suppression(boxes, iou_thresh, db):
+#
+#     for c in range(db.NUM_CLASSES):
+#         conf = boxes[:, 4 + c]
+#         final_detections = np.array([detections[0]])
+#         for bbox in detections:
+#             iou = intersection_over_union(bbox, final_detections)
+#             assert (iou >= 0).all() and (iou <= 1).all()
+#             overlap_idxs = np.where(iou > 0.5)
+#             if overlap_idxs[0].size == 0:
+#                 final_detections = np.vstack((final_detections, bbox))
+#         return final_detections
 
 def stats(boxes, labels, db, iou_thresh = 0.5, conf_thresh = 0.7):
     '''
@@ -51,6 +82,7 @@ def stats(boxes, labels, db, iou_thresh = 0.5, conf_thresh = 0.7):
     TP, FP, FN = 0., 0., 0.
 
     boxes, labels = confFilter(boxes, labels, db, conf_thresh)
+    #boxes = non_max_suppression(boxes, iou_thresh, db)
 
     for label_box in labels:
         for pred_box in boxes:

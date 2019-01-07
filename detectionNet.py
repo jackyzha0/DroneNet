@@ -12,6 +12,7 @@ from decimal import Decimal
 import os
 import subprocess
 from datetime import datetime
+from stats import stats
 
 subprocess.call("./tf_board.sh", shell=True)
 
@@ -294,12 +295,17 @@ with tf.Session(graph = graph, config = config) as sess:
 
             print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
             save_path = saver.save(sess, restore_path + 'save{0:06d}'.format(db.batches_elapsed))
-            f = open(restore_path + "epoch_marker")
-            f.write(db.batches_elapsed)
+            with open(restore_path + "epoch_marker", "w") as f:
+                f.write(db.batches_elapsed)
             print("Weights saved.")
 
             t_pred_labels = t_out[1]
             print(prettyPrint(t_out[0], db, test_eval=True))
+
+            stats = stats(np.reshape(t_pred_labels[i], (sx, sy, 27)), t_label[i], db)
+
+            with open(restore_path + "stats.txt", "a") as f2:
+                f2.write(stats)
 
             t_im = np.zeros((batchsize, 375, 375, 3))
             for i in range(len(img)):

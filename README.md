@@ -58,15 +58,17 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Define TP / TN / FP / FN
-- [ ] Fix non-max suppression
-- [ ] Calculate IOU and mAP
+- [ ] Reshape func
+- [ ] Loop through batch
 - [ ] Add documentation for detectionNet
 
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Define TP / TN / FP / FN
+- [x] Fix non-max suppression
+- [x] Calculate IOU
 - [x] Ensure weight saving saves current epoch
 - [x] Add test evaluation
 - [x] Add checkpoint saving

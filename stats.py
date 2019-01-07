@@ -1,35 +1,49 @@
 import tensorflow as tf
 import numpy as np
 
-def IOU(boxes, labels):
+def reformboxes(boxes, labels):
     '''
-    Returns IOU (Intersection over Union) scores between array of predicted boxes [5,5,27] and array of box labels [5,5,34]
+    Takes boxes in form [5, 5, B(C+5)] and reshapes to form [25, 27]
     '''
 
     # Convert pred to [25, 27]
+
+    x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3)
     # Convert label to [25, 34]
     # Slice label to [25,27]
     # tf.split to x1y1x2p2 form
-    # x = [25, ]
+    # x = [25, 3]
 
     #pred_x1, pred_y1, pred_x2, pred_y2 = tf.split(boxes, 4, axis = 1)
     #true_x1, true_y1, true_x2, true_y2 = tf.split(labels, 4, axis = 1)
 
-    xmax = tf.maximum(pred_x1, tf.transpose(true_x1))
-    xmin = tf.minimum(pred_x2, tf.transpose(true_x2))
-    ymin = tf.minimum(pred_y1, tf.transpose(true_y1))
-    ymax = tf.maximum(pred_y2, tf.transpose(true_y2))
 
-    intersection = tf.maximum((xmin - xmax), 0) * tf.maximum((ymin - ymax), 0)
+def IOU(boxes, labels):
+    '''
+    Returns IOU (Intersection over Union) scores between array of predicted boxes and array of box labels
+    '''
+    xA = max(boxes[0], labels[0])
+    yA = max(boxes[1], labels[1])
+    xB = min(boxes[2], labels[2])
+    yB = min(boxes[3], labels[3])
 
-    pred_boxes_area = (pred_x2 - pred_x1) * (pred_y1 - pred_y2)
-    labels_boxes_area = (pred_x2 - pred_x1) * (pred_y1 - pred_y2)
+    # compute the area of intersection rectangle
+    interArea = max(0, xB - xA) * max(0, yB - yA)
 
-    union = (pred_boxes_area + tf.transpose(labels_boxes_area)) - intersection
+    # compute the area of both the prediction and ground-truth
+    # rectangles
+    boxesArea = (boxes[2] - boxes[0]) * (boxes[3] - boxes[1])
+    labelsArea = (labels[2] - labels[0]) * (labels[3] - labels[1])
 
-    return intesection / (union + 1e-4)
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the interesection area
+    iou = interArea / float(boxesArea + labelsArea - interArea + 1e-8)
 
-def non_max_suppression(boxes, conf_scores, max_box_out = 12, iou_thresh = 0.5, conf_thresh = 0.7):
+    # return the intersection over union value
+    return iou
+
+def non_max_suppression(boxes, conf_scores, iou_thresh = 0.5, conf_thresh = 0.7):
     '''
     Return at most max_box_out non-max suppressed bounding boxes. Eliminates all boxes with
     confidence < conf_thresh and IOU > 0.5 with another box of the same class
@@ -67,5 +81,10 @@ def get_stats(boxes, labels, iou_thresh = 0.5):
 
     return TP, FP, FN
 
-    def mAP(boxes, labels):
-        pass
+def get_all(boxes,labels):
+    '''
+    Takes all predicted boxes [bn, sx, sy, B(C+4)] and all labels [bn, sx, sy, B(C+7)+1] and returns mAP, precision, recall,
+    F1 score, and number of TP / FP / FN
+    '''
+
+    #Crop dims

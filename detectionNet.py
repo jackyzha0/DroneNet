@@ -373,21 +373,34 @@ with tf.Session(graph = graph, config = config) as sess:
         #Output loss information to console
         print(prettyPrint(out[1], db))
 
+        #Fetch image
         im = np.zeros((batchsize, 375, 375, 3))
         for i in range(len(img)):
+            #Feed to dispImage to interpret output onto image
             im[i] = db.dispImage(img[i], boundingBoxes = label[i], preds = np.reshape(pred_labels[i], (sx, sy, 27)))
 
+        #Run image summary
         im_tf = sess.run(tf_im_out, feed_dict={tf_out: im})
+
+        #Write all text summaries to Tensorboard
         train_writer.add_summary(out[3], db.batches_elapsed)
 
+        #Local text debug and image writing
         if WRITE_DEBUG and (db.batches_elapsed % 16 == 0 or db.batches_elapsed == 1):
             write4DData(label, 'debug/lb$_act', db.batches_elapsed)
             write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
+
+            #Add image summaries to Tensorboard
             train_writer.add_summary(im_tf, db.batches_elapsed)
+
+        #Flush summaries
         train_writer.flush()
 
-        if not db.epochs_elapsed == prev_epoch:
-            t_img, t_label = db.minibatch(batchsize, training = False)
+        #Check if new epoch
+        if not db.epochs_elapsed == prev_epoch: #If so, evaluate on validation set
+            t_img, t_label = db.minibatch(batchsize, training = False) #Get validation batch
+
+            #Seperate labels
             t_label = np.array(t_label)
             t_x_in = t_label[:,:,:,:B]
             t_y_in = t_label[:,:,:,B:2*B]
@@ -398,37 +411,52 @@ with tf.Session(graph = graph, config = config) as sess:
             t_obj_in = t_label[:,:,:,9*B:10*B]
             t_noobj_in = t_label[:,:,:,10*B:11*B]
             t_objI_in = t_label[:,:,:,33]
+
+            #Expand dims if batchsize = 1
             if t_x_in.shape[0] == 1:
                 t_objI_in = [np.squeeze(t_objI_in)]
             else:
                 t_objI_in = np.squeeze(t_objI_in)
 
+            #Run validation batch
             t_out = sess.run([loss, net, merged],
                              feed_dict={images: img, x: t_x_in, y: t_y_in, w: t_w_in, h: t_h_in,
                                         conf: t_conf_in, probs: t_classes_in,
                                         obj: t_obj_in, no_obj: t_noobj_in, objI: t_objI_in, train: False},
                                         options=run_options, run_metadata=run_metadata)
 
+            #Print epoch
             print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
+
+            #Save weights
             save_path = saver.save(sess, restore_path + 'save{0:06d}'.format(db.batches_elapsed))
+
+            #Save train metadata
             with open(restore_path + "epoch_marker", "w") as f:
                 f.write(str(db.batches_elapsed)+"\n")
                 f.write(str(db.epochs_elapsed))
             print("Weights saved.")
 
+            #Get net out
             t_pred_labels = t_out[1]
+
+            #Pretty print validation out
             print(prettyPrint(t_out[0], db, test_eval=True))
 
+            #Get statistics
             stats = stats(np.reshape(t_pred_labels[i], (sx, sy, 27)), t_label[i], db)
-
-            with open(restore_path + "stats.txt", "a") as f2:
+            with open(restore_path + "stats.txt", "a") as f2: #Write to disk
                 f2.write(str(stats))
 
+            #Get test images
             t_im = np.zeros((batchsize, 375, 375, 3))
             for i in range(len(img)):
                 t_im[i] = db.dispImage(t_img[i], boundingBoxes = t_label[i], preds = np.reshape(t_pred_labels[i], (sx, sy, 27)))
 
+            #Run TF Image summary
             t_im_tf = sess.run(tf_im_out, feed_dict={tf_out: t_im})
+
+            #Add text summaries
             val_writer.add_summary(t_out[2], db.batches_elapsed)
             val_writer.flush()
 

@@ -29,7 +29,7 @@ config=tf.ConfigProto()
 
 restore_path = "saved_models/"
 WRITE_DEBUG = False
-RESTORE_SAVED = False
+RESTORE_SAVED = True
 
 ### PARAMETERS ###
 batchsize = 32
@@ -215,6 +215,7 @@ if RESTORE_SAVED:
     meta_name = meta_list[-1]
     imported_meta = tf.train.import_meta_graph(meta_name)
     rest_f = open(restore_path + "epoch_marker")
+    db.batches_elapsed = int(rest_f.readline())
     db.epochs_elapsed = int(rest_f.readline())
     with tf.Session() as sess:
         imported_meta.restore(sess, tf.train.latest_checkpoint(restore_path))
@@ -296,6 +297,7 @@ with tf.Session(graph = graph, config = config) as sess:
             save_path = saver.save(sess, restore_path + 'save{0:06d}'.format(db.batches_elapsed))
             with open(restore_path + "epoch_marker", "w") as f:
                 f.write(str(db.batches_elapsed))
+                f.write(str(db.epochs_elapsed))
             print("Weights saved.")
 
             t_pred_labels = t_out[1]

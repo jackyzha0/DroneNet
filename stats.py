@@ -98,8 +98,19 @@ def stats(boxes, labels, db, iou_thresh = 0.5, conf_thresh = 0.7):
         if not check:
             FN += 1
 
-    precision = TP / (TP + FP)
-    recall = TP / (TP + FN)
-    f1 = 2. * ((precision * recall) / (precision + recall))
+    try:
+        precision = TP / (TP + FP)
+    except ZeroDivisionError:
+        precision = 0
+
+    try:
+        recall = TP / (TP + FN)
+    except ZeroDivisionError:
+        recall = 0
+
+    try:
+        f1 = 2. * ((precision * recall) / (precision + recall))
+    except ZeroDivisionError:
+        f1 = 0
 
     return TP, FP, FN, precision, recall, f1

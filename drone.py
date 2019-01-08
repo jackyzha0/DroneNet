@@ -1,3 +1,7 @@
+'''
+Drone class for data storage of locations / camera details
+'''
+
 import numpy as np
 from time import sleep
 #from picamera import PiCamera
@@ -9,11 +13,13 @@ import os.path
 
 class drone():
 
+    #Array of all known drones
     d_arr = []
 
     #Drone Params
     max_comm_dist = 0.5
 
+    #Global tags
     next_id = 0
     totaldrones = 0
 
@@ -50,7 +56,7 @@ class drone():
             return 0
 
     def getPos(self):
-        return self.gi_x + self.r_x, self.gi_y + self.r_y, self.gi_z + self.r_z , self.xv, self.yv, self.zv
+        return self.gi_x + self.r_x, self.gi_y + self.r_y, self.gi_z + self.r_z, self.xv, self.yv, self.zv
 
     def __str__(self):
         return "g_x: " + str(self.r_x) + " g_y: " + str(self.r_y) + " g_z: " + str(self.r_z) + " x_vel: " + str(self.xv) + " y_vel: " + str(self.yv) + " z_vel: " + str(self.zv)
@@ -120,6 +126,7 @@ class camera(drone):
             self.k = np.array([[0.0, 0.0, 0.0],
                                [0.0, 0.0, 0.0],
                                [0.0, 0.0, 0.0]])
+
     def photo(self):
         rawCapture = PiRGBArray(self.physCamera)
         self.physCamera.capture(rawCapture, format="bgr")

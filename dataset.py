@@ -1,5 +1,5 @@
 '''
-Python script for parsing the KITTI Dataset
+Collection of Python scripts for parsing the KITTI Dataset
 '''
 import cv2 as cv
 import os
@@ -9,20 +9,30 @@ import numpy as np
 import math
 
 class dataHandler():
-
+    '''
+    Data Handler class which stores common information across training sessions. Helps with batching
+    and data display.
+    '''
+    #Directory strings
     train_img_dir = ""
     train_label_dir = ""
     val_img_dir = ""
 
+    #Array of string indices for location of examples
     train_arr = []
     val_arr = []
 
+    #Unused indices for training and validation
     train_unused = []
     val_unused = []
 
+    #Percent of dataset used for training
     val_percent = 0.8
 
+    #Number of horizontal grids
     sx = -1
+
+    #Number of vertical grids
     sy = -1
 
     epochs_elapsed = 0
@@ -31,7 +41,48 @@ class dataHandler():
     NUM_CLASSES = 4
     IMGDIMS = (1242, 375)
 
+    def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5, val_perc = 0.8, useNP = False):
+        if os.path.exists(train) and os.path.exists(val):
+            #Set string paths
+            self.train_img_dir = train + "/image"
+            self.train_label_dir = train + "/label"
+            self.val_img_dir = val + "/image"
+
+            self.val_percent = val_perc
+            self.NP = useNP #Whether to use pre-stored .npy data (speeds up computations)
+
+            self.NUM_CLASSES = NUM_CLASSES #Number of classes
+            self.B = B #Number of bounding boxes per grid cell
+
+            self.sx = sx
+            self.sy = sy
+
+            #Walk directory and trim extensions
+            self.train_arr = [x[:-4] for x in os.listdir(self.train_img_dir)]
+            self.val_arr = [x[:-4] for x in os.listdir(self.val_img_dir)]
+
+            #Shuffle and assign
+            self.train_unused = np.arange(len(self.train_arr))
+            np.random.shuffle(self.train_unused)
+            self.val_unused = np.arange(len(self.val_arr))
+            np.random.shuffle(self.val_unused)
+        else:
+            print("Invalid directory! Check path.")
+
     def seperate_labels(self, arr):
+        '''
+        Description:
+            Seperates labels in components
+        Input:
+            arr: [sx, sy, B(C+4) float32 np array] Label input
+        Output:
+            x: [sx, sy, B float32 np array]
+            y: [sx, sy, B float32 np array]
+            w: [sx, sy, B float32 np array]
+            h: [sx, sy, B float32 np array]
+            conf: [sx, sy, B float32 np array] Confidence score for presense of object
+            classes: [sx, sy, B*C float32 np array] Probability distribution for classes
+        '''
         arr = np.array(arr)
         B = self.B
         C = self.NUM_CLASSES
@@ -44,15 +95,30 @@ class dataHandler():
         return x,y,w,h,conf,classes
 
     def dispImage(self, image, boundingBoxes = None, preds = None, drawTime = 0, test=False):
-        if test:
-            im = ((image + 1.) / 2.)
+        '''
+        Description:
+            Uses im to show image with true bounding boxes and predictions if test = true,
+            else, return image array. Applies softmax to predictions if not None
+        Input:
+            image: [IMGDIMS[0], IMGDIMS[1], 3 float32 np array]
+            boudingBoxes: [sx, sy, B(C+4)]
+            preds: [sx, sy, B(C+4)]
+            drawTime: [int] Time to show image in ms if not 0
+            test: [bool] True if using imshow
+        Output:
+            im: [IMGDIMS[0], IMGDIMS[1], 3 float32 np array]
+        '''
+        if test: #Checks for im.show
+            im = ((image + 1.) / 2.) #im show does weird things with contrast
         else:
             im = ((image + 1.) / 2.) * 255.
+
         B = self.B
-        if boundingBoxes is not None:
+
+        if boundingBoxes is not None: #Iterate through all labels
             x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(boundingBoxes)
-            for x in range(0,x_.shape[0]):
-                for y in range(0,x_.shape[1]):
+            for x in range(0,x_.shape[0]): #Iterate through x cells
+                for y in range(0,x_.shape[1]): #Iterate through y cells
                     for i in range(B):
                         if not x_[x][y][i] == 0:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
@@ -78,6 +144,14 @@ class dataHandler():
             cv.waitKey(drawTime)
 
     def softmax(self, arr):
+        '''
+        Description:
+            Performs naive softmaxing (only confidence thresholding) on class probabilities
+        Input:
+            arr: [C float32 np array] Array of length C of class probabilities
+        Output:
+            string: [string] Class of object, "unkwn" if no class
+        '''
         maxind = np.argmax(arr)
         if maxind > 0.7:
             out = np.zeros(self.NUM_CLASSES)
@@ -222,8 +296,6 @@ class dataHandler():
             im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
         refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
         crop = im[:, refx:refx+self.IMGDIMS[1]]
-
-
         return crop, refx
 
     def get_img(self, num_arr):
@@ -238,11 +310,11 @@ class dataHandler():
 
                 #Data augmentation
                 crop = np.uint8(crop)
-                (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_RGB2HSV).astype("float32"))
+                (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
                 s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
                 s = np.clip((s * s_adj), 0, 255)
                 v = np.clip((v * v_adj), 0, 255)
-                crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2RGB)
+                crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
                 crop = crop / 255. * 2. - 1.
 
                 if imgs is not None:
@@ -250,7 +322,7 @@ class dataHandler():
                 else:
                     imgs = crop[np.newaxis, :]
 
-            return imgs, None
+            return imgs[..., ::-1], None
         else:
             for indice in num_arr:
                 imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
@@ -262,38 +334,13 @@ class dataHandler():
                 else:
                     imgs = crop[np.newaxis, :]
                 refdims[indice]= [refx, refx+self.IMGDIMS[1]]
-            return imgs[..., : :-1], refdims
+            return imgs[..., ::-1], refdims
 
     def minibatch(self, batchsize, training = True):
         indices = self.get_indices(batchsize, training = training)
         imgs, refdims = self.get_img(indices)
         labels = self.get_label(indices, refdims)
         return imgs, labels
-
-    def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5, val_perc = 0.8, useNP = False):
-        if os.path.exists(train) and os.path.exists(val):
-            self.train_img_dir = train + "/image"
-            self.train_label_dir = train + "/label"
-            self.val_img_dir = val + "/image"
-
-            self.val_percent = val_perc
-            self.NP = useNP
-
-            self.NUM_CLASSES = NUM_CLASSES
-            self.B = B
-
-            self.sx = sx
-            self.sy = sy
-
-            self.train_arr = [x[:-4] for x in os.listdir(self.train_img_dir)]
-            self.val_arr = [x[:-4] for x in os.listdir(self.val_img_dir)]
-
-            self.train_unused = np.arange(len(self.train_arr))
-            np.random.shuffle(self.train_unused)
-            self.val_unused = np.arange(len(self.val_arr))
-            np.random.shuffle(self.val_unused)
-        else:
-            print("Invalid directory! Check path.")
 
     def __str__(self):
         traindatalen = "Number of training examples: " + str(len(self.train_arr)) + "\n"

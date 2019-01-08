@@ -1,3 +1,7 @@
+'''
+Misc. functions for Raspberry Pi camera calibration and undistortion
+'''
+
 import glob
 import numpy as np
 import cv2 as cv

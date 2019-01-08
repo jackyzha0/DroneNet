@@ -28,7 +28,7 @@ options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE, output_partition_g
 config=tf.ConfigProto()
 
 restore_path = "saved_models/"
-WRITE_DEBUG = False
+WRITE_DEBUG = True
 RESTORE_SAVED = True
 
 ### PARAMETERS ###
@@ -209,17 +209,6 @@ def write4DData(arr, path, ind):
                 wfile.write('------ Dim separator ------\n')
                 np.savetxt(wfile, d_slice, fmt='%.2f', delimiter = '|')
 
-if RESTORE_SAVED:
-    tf.reset_default_graph()
-    meta_list = [f for f in glob.glob(restore_path+"*.meta")]
-    meta_name = meta_list[-1]
-    imported_meta = tf.train.import_meta_graph(meta_name)
-    rest_f = open(restore_path + "epoch_marker")
-    db.batches_elapsed = int(rest_f.readline())
-    db.epochs_elapsed = int(rest_f.readline())
-    with tf.Session() as sess:
-        imported_meta.restore(sess, tf.train.latest_checkpoint(restore_path))
-
 with tf.Session(graph = graph, config = config) as sess:
     tf.global_variables_initializer().run()
     tf.local_variables_initializer().run()
@@ -229,7 +218,13 @@ with tf.Session(graph = graph, config = config) as sess:
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE,output_partition_graphs=True)
     saver = tf.train.Saver()
 
-    prev_epoch = 0
+    if RESTORE_SAVED:
+        rest_f = open(restore_path + "epoch_marker")
+        db.batches_elapsed = int(rest_f.readline())
+        db.epochs_elapsed = int(rest_f.readline())
+        saver.restore(sess, tf.train.latest_checkpoint(restore_path))
+
+    prev_epoch = db.epochs_elapsed
     while db.epochs_elapsed < epochs:
 
         img, label = db.minibatch(batchsize)
@@ -296,7 +291,7 @@ with tf.Session(graph = graph, config = config) as sess:
             print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
             save_path = saver.save(sess, restore_path + 'save{0:06d}'.format(db.batches_elapsed))
             with open(restore_path + "epoch_marker", "w") as f:
-                f.write(str(db.batches_elapsed))
+                f.write(str(db.batches_elapsed)+"\n")
                 f.write(str(db.epochs_elapsed))
             print("Weights saved.")
 
@@ -306,7 +301,7 @@ with tf.Session(graph = graph, config = config) as sess:
             stats = stats(np.reshape(t_pred_labels[i], (sx, sy, 27)), t_label[i], db)
 
             with open(restore_path + "stats.txt", "a") as f2:
-                f2.write(stats)
+                f2.write(str(stats))
 
             t_im = np.zeros((batchsize, 375, 375, 3))
             for i in range(len(img)):

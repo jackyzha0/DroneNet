@@ -15,7 +15,10 @@ def IOU(boxes, labels):
     boxesArea = (boxes[2] - boxes[0]) * (boxes[3] - boxes[1])
     labelsArea = (labels[2] - labels[0]) * (labels[3] - labels[1])
 
-    iou = intersection / float(boxesArea + labelsArea - intersection + 1e-8)
+    try:
+        iou = intersection / float(boxesArea + labelsArea - intersection)
+    except ZeroDivisionError:
+        iou = 0
 
     return iou
 

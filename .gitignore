@@ -3,3 +3,4 @@ data/
 serialized_data/
 saved_models/
 *.npy
+debug/

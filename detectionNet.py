@@ -1,28 +1,29 @@
 '''
-Tensorflow Neural Network for human detection in aerial images
+Tensorflow Neural Network for human and vehicle detection
 '''
-import cv2 as cv
 import sugartensor as tf
 import dataset
 import random
 import glob
 import math
 import numpy as np
-from decimal import Decimal
 import os
 import subprocess
 from datetime import datetime
 from stats import stats
 
+#Call Tensorboard
 subprocess.call("./tf_board.sh", shell=True)
 
 from tensorflow.contrib.framework import add_arg_scope
 from tensorflow.contrib.framework import arg_scope
 from tensorflow.contrib.layers import conv2d, avg_pool2d, max_pool2d
 
+#Set debug level to hide warning messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
+#Set Tensorflow run options
 run_metadata = tf.RunMetadata()
 options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE, output_partition_graphs=True)
 config=tf.ConfigProto()
@@ -36,9 +37,8 @@ batchsize = 32
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
-#sx_dims = 120x120
-sx = 5 #448
-sy = 5 #448
+sx = 5
+sy = 5
 B = 3 #num bounding boxes per anchor box
 C = 4 #class probabilities, size num_classes
 lambda_coord = 5.0
@@ -55,7 +55,6 @@ with graph.as_default():
             channels = int(inputs.get_shape()[3])
             initializer = tf.contrib.layers.xavier_initializer_conv2d()
             weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
-            #tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=1e-1, mean=0.))
             biases = tf.Variable(tf.constant(0., shape=[filters]))
 
             pad_size = size // 2

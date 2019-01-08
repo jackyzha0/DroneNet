@@ -119,11 +119,11 @@ class dataHandler():
             x_,y_,w_,h_,conf_,classes_ = self.seperate_labels(boundingBoxes)
             for x in range(0,x_.shape[0]): #Iterate through x cells
                 for y in range(0,x_.shape[1]): #Iterate through y cells
-                    for i in range(B):
-                        if not x_[x][y][i] == 0:
-                            bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-                            classtype = self.onehot_to_text(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
-                            if not classtype == "unknwn":
+                    for i in range(B): #Iterate through B bounding boxes
+                        if not x_[x][y][i] == 0: #Check if empty entry
+                            bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y) #Convert xywh to p1p2 form
+                            classtype = self.onehot_to_text(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) #One hot encode class
+                            if not classtype == "unknwn": #Draw if class is determined
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (0, 0, 255), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255))
         if preds is not None:
@@ -131,9 +131,9 @@ class dataHandler():
             for x in range(0,x_.shape[0]):
                 for y in range(0,x_.shape[1]):
                     for i in range(B):
-                        if conf_[x][y][i] > 0.7:
+                        if conf_[x][y][i] > 0.7: #Check if confidence of box is over threshold
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-                            classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4])
+                            classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) #Call naive softmaxing
                             if not classtype == "unknwn":
                                 cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
                                 cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
@@ -152,15 +152,23 @@ class dataHandler():
         Output:
             string: [string] Class of object, "unkwn" if no class
         '''
-        maxind = np.argmax(arr)
-        if maxind > 0.7:
+        maxind = np.argmax(arr) #Get index of max value in arr
+        if arr[maxind] > 0.7: #Check if max prob > 0.7
             out = np.zeros(self.NUM_CLASSES)
-            out[maxind] = 1.
+            out[maxind] = 1. #Get one-hot array
             return self.onehot_to_text(out)
         else:
-            return "unknwn"
+            return "unknwn" #If less than class thresh, return unknwn class
 
     def onehot_to_text(self, arr):
+        '''
+        Description:
+            Converts one-hot embedding to text representation
+        Input:
+            arr: [C int np array] One-hot array
+        Output:
+            string: [string] Class of object, "unkwn" if no class
+        '''
         if arr[0] == 1:
             return "Misc. Vehicle"
         if arr[1] == 1:
@@ -173,11 +181,21 @@ class dataHandler():
             return "unknwn"
 
     def xywh_to_p1p2(self, inp, celly, cellx):
+        '''
+        Description:
+            Converts form xywh to x1y1x2y2 given grid coordinates
+        Input:
+            inp: [4 float32 np array] x,y,w,h details of one bounding box
+            celly: [int] Vertical cell number
+            cellx: [int] Horizontal cell number
+        Output:
+            string: [4 int np array] x1,y1,x2,y2 of same bounding box
+        '''
         y, x, h, w = inp
 
-        const = (self.IMGDIMS[1] / self.sx)
+        const = (self.IMGDIMS[1] / self.sx) #Width/height of one grid cell
 
-        true_x = (x * const) + const * cellx
+        true_x = (x * const) + const * cellx #Get normal values from normalized
         true_y = (y * const) + const * celly
         true_w = w * self.IMGDIMS[1]
         true_h = h * self.IMGDIMS[1]
@@ -187,21 +205,30 @@ class dataHandler():
         p2x = true_x + (true_w / 2)
         p2y = true_y + (true_h / 2)
         arr = [p1y, p1x, p2y, p2x]
-        return [int(x) for x in arr]
+        return [int(x) for x in arr] #Casting
 
     def get_indices(self, batchsize, training = True):
+        '''
+        Description:
+            Gets indices for training / validation batching
+        Input:
+            batchsize: [int] Number of training examples to batch
+            training: [bool] If training flag
+        Output:
+            string: [batchsize int np array] Array of integer indices
+        '''
         finarr = []
-        if training:
-            if len(self.train_unused) <= batchsize:
-                finarr = self.train_unused
+        if training: #Check if trianing
+            if len(self.train_unused) <= batchsize: #Check if train indices are depleted
+                finarr = self.train_unused #Rebatch and generate new indices
                 self.train_unused = np.arange(len(self.train_arr))
-                np.random.shuffle(self.train_unused)
+                np.random.shuffle(self.train_unused) #Random shuffling!
                 self.epochs_elapsed += 1
-            else:
+            else: #Pop batchsize length off of train_unused
                 finarr = self.train_unused[:batchsize]
                 self.train_unused = self.train_unused[batchsize:]
             self.batches_elapsed += 1
-        else:
+        else: #Validation batching
             if len(self.val_unused) <= batchsize:
                 finarr = self.val_unused
                 self.val_unused = np.arange(len(self.val_arr))
@@ -214,6 +241,17 @@ class dataHandler():
         return finarr
 
     def p1p2_to_xywh(self, p1x, p1y, p2x, p2y, xref):
+        '''
+        Description:
+            Converts form x1,y1,x2,y2 to x,y,w,h and adds crop offset
+        Input:
+            p1x: [int] x-coordinate for top left corner
+            p1y: [int] y-coordinate for top left corner
+            p2x: [int] x-coordinate for bottom right corner
+            p2y: [int] y-coordinate for bottom right corner
+        Output:
+            arr: [4 float32 array] x,y,w,h values rounded to two decimal places
+        '''
         w = (p2x - p1x)
         h = (p2y - p1y)
         x = p1x + (w / 2) - xref
@@ -222,21 +260,42 @@ class dataHandler():
         return [round(x,2) for x in arr]
 
     def getBox(self, x, y):
+        '''
+        Description:
+            Returns row,col grid coordinates. Determines grid cell responsible for prediction
+        Input:
+            x: [int] x-coordinate for box center
+            y: [int] y-coordinate for box center
+        Output:
+            arr: [2 int array] row, col values
+        '''
         row = int((y / self.IMGDIMS[1]) * (self.sy))
         col = int((x / self.IMGDIMS[1]) * (self.sx))
         return [row,col]
 
     def ret_label(self, fname, refdims, indice):
+        '''
+        Description:
+            Get label for image given path, refdims, and indice
+        Input:
+            fname: [string] Directory to label file
+            refdims: [int] Crop start index
+            indice: [int] Indice of image
+        Output:
+            labels: [sx, sy, B(C+7)+1] Label data, B is bounding boxes, C is number of classes, +7 for x,y,w,h,conf,obj,noobj, +1 for objI
+        '''
         with open(fname, "r") as f:
+            #Grid declaration
             pre_grid = np.zeros([self.sx, self.sy, self.B*(self.NUM_CLASSES + 5 + 1)])
-            noobj = np.ones([self.sx, self.sy, self.B])
-            objI = np.zeros([self.sx, self.sy, 1])
-            grid = np.concatenate((pre_grid, noobj, objI), axis=2)
-            for line in f:
-                box_det = line.split(" ")
-                C = [0.] * self.NUM_CLASSES
-                keep = True
+            noobj = np.ones([self.sx, self.sy, self.B]) #Ones grid for no_obj grid
+            objI = np.zeros([self.sx, self.sy, 1]) #Zeros grid, objI serves as object mask
+            grid = np.concatenate((pre_grid, noobj, objI), axis=2) #Concat all grids
+            for line in f: #Read lines of file
+                box_det = line.split(" ") #Items are space seperated
+                C = [0.] * self.NUM_CLASSES #Zeros array of classes
+                keep = True #Bool marker if class exists
 
+                #One-hot encode classes
                 if box_det[0] == "Car":
                     C[3] = 1.
                 elif box_det[0] == "Pedestrian":
@@ -246,23 +305,24 @@ class dataHandler():
                 elif box_det[0] == "Truck" or box_det[0] == "Van":
                     C[0] = 1.
                 else:
-                    keep = False
+                    keep = False #If not one of above classes, toggle marker
 
-                p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]]
-                xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0])
-                if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep:
-                    celly, cellx = self.getBox(xywh[0], xywh[1])
+                p1x, p1y, p2x, p2y = [float(x) for x in box_det[4:8]] #Fetch x1,y1,x2,y2 values from file (Values 4 to 8)
+                xywh = self.p1p2_to_xywh(p1x, p1y, p2x, p2y, refdims[indice][0]) #Convert to xywh form
+                if (xywh[0] > 0 and xywh[0] < self.IMGDIMS[1]) and keep: #Ensure bounding boxes are in range and has class
+                    celly, cellx = self.getBox(xywh[0], xywh[1]) #Get row/col values for bounding box
 
-                    const = (self.IMGDIMS[1] / self.sx)
+                    const = (self.IMGDIMS[1] / self.sx) #Fixed dims of offset per grid cell
 
-                    xywh[0] = (xywh[0] - cellx*const) / const
+                    #Normalize to range [0,1]
+                    xywh[0] = (xywh[0] - cellx*const) / const #Subtract number of cells by dims of offset then normalize per box
                     xywh[1] = (xywh[1] - celly*const) / const
-                    xywh[2] = xywh[2] / self.IMGDIMS[1]
+                    xywh[2] = xywh[2] / self.IMGDIMS[1] #Normalize by image dims
                     xywh[3] = xywh[3] / self.IMGDIMS[1]
 
-                    argcheck = 0
-                    for i in range(0, self.B):
-                        if grid[cellx][celly][i] == 0.0 and argcheck == 0:
+                    argcheck = 0 #Argcheck to limit number of bounding boxes written
+                    for i in range(0, self.B): #Iterate bounding boxes
+                        if grid[cellx][celly][i] == 0.0 and argcheck == 0: #Check if no values written
                             grid[cellx][celly][i] = xywh[0]
                             grid[cellx][celly][self.B + i] = xywh[1]
                             grid[cellx][celly][2*self.B + i] = xywh[2]
@@ -272,15 +332,24 @@ class dataHandler():
                             grid[cellx][celly][9*self.B + i] = 1. #obj
                             grid[cellx][celly][10*self.B + i] = 0. #noobj
                             grid[cellx][celly][33] = 1. #objI
-                            argcheck = 1
+                            argcheck = 1 #Toggle flag
         return grid
 
     def get_label(self, num_arr, refdims):
+        '''
+        Description:
+            Get labels for images given indices and refdims (if not NP)
+        Input:
+            num_arr: [batchsize int np array] Image indices
+            refdims: [int] Crop start index
+        Output:
+            labels: [len(num_arr), sx, sy, B(C+7)+1] Label data, B is bounding boxes, C is number of classes, +7 for x,y,w,h,conf,obj,noobj, +1 for objI
+        '''
         labels = []
-        if self.NP:
+        if self.NP: #Check if using pre-cached .npy labels
             for indice in num_arr:
-                fname = self.train_label_dir + "/" + self.train_arr[indice] + ".npy"
-                grid = np.load(fname)
+                fname = self.train_label_dir + "/" + self.train_arr[indice] + ".npy" #Get dir
+                grid = np.load(fname) #Load array from directory
                 grid = np.reshape(grid, [self.sx, self.sy, 34])
                 labels.append(grid)
         else:
@@ -291,43 +360,60 @@ class dataHandler():
         return labels
 
     def ret_img(self, imgdir):
-        im = cv.imread(imgdir)
-        if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]):
-            im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC)
-        refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1])
-        crop = im[:, refx:refx+self.IMGDIMS[1]]
+        '''
+        Description:
+            Read and get BGR array of image from path
+        Input:
+            imgdir: [string] Relative path to image
+        Output:
+            crop: [len(num_arr), IMGDIMS[1], IMGDIMS[1], 3 float32 array] BGR image crop randomly to uniform IMGDIMS[1] square
+            refx: [int] Bounds of cropping for label reference
+        '''
+        im = cv.imread(imgdir) #Read image to array
+        if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]): #Check if proper dims
+            im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC) #Resize with interpolation if necessary
+        refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1]) #Get crop
+        crop = im[:, refx:refx+self.IMGDIMS[1]] #Crop
         return crop, refx
 
     def get_img(self, num_arr):
+        '''
+        Description:
+            Fetches array of images given indices. Additional data augmentation with cropping and HSV adjustments
+        Input:
+            num_arr: [batchsize int np array] Image indices
+        Output:
+            imgs: [len(num_arr), IMGDIMS[1], IMGDIMS[1], 3 float32 array] Array of RGB images after augmentation
+        '''
         refdims = {}
         imgs = None
-        if self.NP:
-            for indice in num_arr:
-                imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".npy"
+        if self.NP: #Check if data handler is set to use pre-cached .npy data
+            for indice in num_arr: #Iterate through indices
+                imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".npy" #Get path to .npy data for that data instance
 
-                crop = np.load(imgdir)
-                crop = np.reshape(crop, [self.IMGDIMS[1], self.IMGDIMS[1], 3])
+                crop = np.load(imgdir) #Read image. Image as read as an 1D array
+                crop = np.reshape(crop, [self.IMGDIMS[1], self.IMGDIMS[1], 3]) #Reshape to right form
 
                 #Data augmentation
-                crop = np.uint8(crop)
-                (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32"))
-                s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #[0,1] to [0.8, 1.2]
-                s = np.clip((s * s_adj), 0, 255)
+                crop = np.uint8(crop) #Cast to uint8 before applying OpenCV2 operations
+                (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32")) #Split BGR(OpenCV reads as BGR format) to HSV
+                s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #Randomize saturation and vibrance adjustments. [0,1] to [0.8, 1.2]
+                s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
                 v = np.clip((v * v_adj), 0, 255)
-                crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR)
-                crop = crop / 255. * 2. - 1.
+                crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
+                crop = crop / 255. * 2. - 1. #Normalize from [0,1]
 
-                if imgs is not None:
-                    imgs = np.vstack((imgs, crop[np.newaxis, :]))
+                if imgs is not None: #Check if first img
+                    imgs = np.vstack((imgs, crop[np.newaxis, :])) #Stack if array exists
                 else:
-                    imgs = crop[np.newaxis, :]
+                    imgs = crop[np.newaxis, :] #New axis and set to arr otherwise
 
-            return imgs[..., ::-1], None
-        else:
+            return imgs[..., ::-1], None #Rotate axes from BGR to RGB, return None for refdims (none used)
+        else: #Fetch new image from indice
             for indice in num_arr:
-                imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png"
+                imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".png" #Get actual image path from train dir
 
-                crop, refx = self.ret_img(imgdir)
+                crop, refx = self.ret_img(imgdir) #Fetch image data
 
                 if imgs is not None:
                     imgs = np.vstack((imgs, crop[np.newaxis, :]))
@@ -337,12 +423,28 @@ class dataHandler():
             return imgs[..., ::-1], refdims
 
     def minibatch(self, batchsize, training = True):
+        '''
+        Description:
+            Fetches minibatch of images and labels of size batchsize
+        Input:
+            batchsize: [int] Number of images/labels to return
+            training: [bool] If training flag
+        Output:
+            imgs: [batchsize, IMGDIMS[1], IMGDIMS[1], 3 float32 array] Raw pixel data of input image after data augmentation
+            labels: [batchsize, sx, sy, B(C+7)+1] Label data, B is bounding boxes, C is number of classes, +7 for x,y,w,h,conf,obj,noobj, +1 for objI
+        '''
         indices = self.get_indices(batchsize, training = training)
         imgs, refdims = self.get_img(indices)
         labels = self.get_label(indices, refdims)
         return imgs, labels
 
     def __str__(self):
+        '''
+        Description:
+            Basic toString function
+        Output:
+            str: [string] Outputs print string containing dataset information
+        '''
         traindatalen = "Number of training examples: " + str(len(self.train_arr)) + "\n"
         valdatalen = "Number of validation examples: " + str(len(self.val_arr)) + "\n"
         unusedlentraining = "Number of training examples remaining: " + str(len(self.train_unused)) + "\n"

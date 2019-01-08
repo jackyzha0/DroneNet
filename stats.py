@@ -3,19 +3,29 @@ import numpy as np
 
 def IOU(boxes, labels):
     '''
-    Returns IOU (Intersection over Union) scores between array of predicted boxes and array of box labels
+    Description:
+        Returns IOU (Intersection over Union) scores between two boxes
+    Input:
+        boxes: [n, 4 float32 np array] n boxes in form p1p2
+        labels: [n, 4 float32 np array] n boxes in form p1p2
+    Output:
+        iou: [n float32 np array] IOU scores for each bounding box bair
     '''
+
+    #Get intersection bounds
     xA = max(boxes[0], labels[0])
     yA = max(boxes[1], labels[1])
     xB = min(boxes[2], labels[2])
     yB = min(boxes[3], labels[3])
 
+    #Get intersection area
     intersection = max(0, xB - xA) * max(0, yB - yA)
 
+    #Calculate union area
     boxesArea = (boxes[2] - boxes[0]) * (boxes[3] - boxes[1])
     labelsArea = (labels[2] - labels[0]) * (labels[3] - labels[1])
 
-    try:
+    try: #Catch div zero error
         iou = intersection / float(boxesArea + labelsArea - intersection)
     except ZeroDivisionError:
         iou = 0
@@ -23,19 +33,32 @@ def IOU(boxes, labels):
     return iou
 
 def confFilter(boxes, labels, db, conf_thresh):
+    '''
+    Description:
+        Given boxes and labels, filter all boxes under conf_thresh and convert x,y,w,h to p1p2 form
+    Input:
+        boxes: [sx, sy, B(C+5)] boxes in form xywh
+        labels: [sx, sy, B(C+5)] boxes in form xywh
+        conf_thres: [float] threshold for boxes to be filtered
+    Output:
+        boxes: [n, 4+C] boxes in form p1p2
+        labels: [n, 4+C] boxes in form p1p2
+    '''
+
+    #Seperate labels
     x_pred, y_pred, w_pred, h_pred, conf_pred, classes_pred = db.seperate_labels(boxes)
     x_true, y_true, w_true, h_true, conf_true, classes_true = db.seperate_labels(labels)
 
     boxes = []
     labels = []
 
-    for x in range(db.sx):
+    for x in range(db.sx): #Iterate through x,y,B
         for y in range(db.sy):
             for i in range(db.B):
-                if conf_pred[x][y][i] > conf_thresh:
+                if conf_pred[x][y][i] > conf_thresh: #Check if over threshold
                     bounds = db.xywh_to_p1p2([x_pred[x][y][i], y_pred[x][y][i], w_pred[x][y][i], h_pred[x][y][i]], x, y)
                     bounds.append(classes_pred[x][y][i*db.NUM_CLASSES:i*db.NUM_CLASSES+4])
-                    boxes.append(bounds)
+                    boxes.append(bounds) #Append p1p2 and class information
                 if conf_true[x][y][i] > conf_thresh:
                     bounds = db.xywh_to_p1p2([x_true[x][y][i], y_true[x][y][i], w_true[x][y][i], h_true[x][y][i]], x, y)
                     bounds.append(classes_true[x][y][i*db.NUM_CLASSES:i*db.NUM_CLASSES+4])
@@ -44,8 +67,17 @@ def confFilter(boxes, labels, db, conf_thresh):
 
 def stats(boxes, labels, db, iou_thresh = 0.5, conf_thresh = 0.7):
     '''
-    Returns number of True Positives (TP), False Positives (FP), and False Negatives (FN)
-    given prediction boxes and labels. True Negatives (TN) are not recorded
+    Description:
+        Given boxes and labels, filter all boxes under conf_thresh and convert x,y,w,h to p1p2 form
+    Input:
+        boxes: [sx, sy, B(C+5)] boxes in form xywh
+        labels: [sx, sy, B(C+5)] boxes in form xywh
+        db: [dataHandler object] Current dataset in use
+        iou_thresh: [float] Threshold to consider two boxes true positives
+        conf_thres: [float] threshold for boxes to be filtered
+    Output:
+        boxes: [n, 4+C] boxes in form p1p2
+        labels: [n, 4+C] boxes in form p1p2
     '''
 
     TP, FP, FN = 0., 0., 0.
@@ -67,17 +99,17 @@ def stats(boxes, labels, db, iou_thresh = 0.5, conf_thresh = 0.7):
         if not check:
             FN += 1
 
-    try:
+    try: #Try/catch zero div error in precision calculation
         precision = TP / (TP + FP)
     except ZeroDivisionError:
         precision = 0
 
-    try:
+    try: #Try/catch zero div error in recall calculation
         recall = TP / (TP + FN)
     except ZeroDivisionError:
         recall = 0
 
-    try:
+    try: #Try/catch zero div error in f1 calculation
         f1 = 2. * ((precision * recall) / (precision + recall))
     except ZeroDivisionError:
         f1 = 0

@@ -4,4 +4,4 @@ serialized_data/
 saved_models/
 *.npy
 debug/
-tf_writer/
+tf_writer/*

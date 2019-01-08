@@ -49,7 +49,7 @@ def confFilter(boxes, labels, db, conf_thresh):
 
     for x in range(db.sx):
         for y in range(db.sy):
-            for B in range(db.B):
+            for i in range(db.B):
                 if conf_pred[x][y][i] > conf_thresh:
                     bounds = db.xywh_to_p1p2([x_pred[x][y][i], y_pred[x][y][i], w_pred[x][y][i], h_pred[x][y][i]], x, y)
                     bounds.append(classes_pred[x][y][i*db.NUM_CLASSES:i*db.NUM_CLASSES+4])

@@ -32,7 +32,7 @@ WRITE_DEBUG = False
 RESTORE_SAVED = False
 
 ### PARAMETERS ###
-batchsize = 1#32
+batchsize = 32
 epochs = 100
 learning_rate = 1e-3
 momentum = 0.9
@@ -185,8 +185,8 @@ with graph.as_default():
         tf_out = tf.placeholder(tf.float32, shape=[None, 375, 375, 3])
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
-db = dataset.dataHandler(train = "data/overfit_test_large", val="data/overfit_test", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
-#db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
+#db = dataset.dataHandler(train = "data/overfit_test_large", val="data/overfit_test", NUM_CLASSES = 4, B = B, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
 
 def prettyPrint(loss, db, test_eval = False):
     if test_eval:
@@ -262,13 +262,12 @@ with tf.Session(graph = graph, config = config) as sess:
 
         im_tf = sess.run(tf_im_out, feed_dict={tf_out: im})
         train_writer.add_summary(out[3], db.batches_elapsed)
-        train_writer.flush()
 
         if WRITE_DEBUG and (db.batches_elapsed % 16 == 0 or db.batches_elapsed == 1):
             write4DData(label, 'debug/lb$_act', db.batches_elapsed)
             write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
             train_writer.add_summary(im_tf, db.batches_elapsed)
-            train_writer.flush()
+        train_writer.flush()
 
         if not db.epochs_elapsed == prev_epoch:
             t_img, t_label = db.minibatch(batchsize, training = False)
@@ -296,7 +295,7 @@ with tf.Session(graph = graph, config = config) as sess:
             print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
             save_path = saver.save(sess, restore_path + 'save{0:06d}'.format(db.batches_elapsed))
             with open(restore_path + "epoch_marker", "w") as f:
-                f.write(db.batches_elapsed)
+                f.write(str(db.batches_elapsed))
             print("Weights saved.")
 
             t_pred_labels = t_out[1]

@@ -1,3 +1,7 @@
+'''
+Collection of scripts to help calculate statistics
+'''
+
 import tensorflow as tf
 import numpy as np
 

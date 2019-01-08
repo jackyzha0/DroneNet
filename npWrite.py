@@ -1,12 +1,19 @@
+'''
+Script to pre-cache image and labels into .npy format
+'''
+
 import dataset
 import numpy as np
 import tensorflow as tf
+
+#Set and print dataset in use (note the omission of NP arg)
 db = dataset.dataHandler(train = "data/training", val = "data/testing", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
 print(db)
 
-VAL_PERCENT = 0.8
+VAL_PERCENT = 0.8 #Percent of dataset to use for training
 ind_val = (int(len(db.train_arr)*VAL_PERCENT))
 
+#Split training set into val/train
 train_arr = db.train_arr[:ind_val]
 val_arr = db.train_arr[ind_val:]
 

@@ -376,12 +376,13 @@ class dataHandler():
         crop = im[:, refx:refx+self.IMGDIMS[1]] #Crop
         return crop, refx
 
-    def get_img(self, num_arr):
+    def get_img(self, num_arr, training):
         '''
         Description:
             Fetches array of images given indices. Additional data augmentation with cropping and HSV adjustments
         Input:
             num_arr: [batchsize int np array] Image indices
+            training: [bool] Only augments data in train time
         Output:
             imgs: [len(num_arr), IMGDIMS[1], IMGDIMS[1], 3 float32 array] Array of RGB images after augmentation
         '''
@@ -395,12 +396,13 @@ class dataHandler():
                 crop = np.reshape(crop, [self.IMGDIMS[1], self.IMGDIMS[1], 3]) #Reshape to right form
 
                 #Data augmentation
-                crop = np.uint8(crop) #Cast to uint8 before applying OpenCV2 operations
-                (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32")) #Split BGR(OpenCV reads as BGR format) to HSV
-                s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #Randomize saturation and vibrance adjustments. [0,1] to [0.8, 1.2]
-                s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
-                v = np.clip((v * v_adj), 0, 255)
-                crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
+                if training:
+                    crop = np.uint8(crop) #Cast to uint8 before applying OpenCV2 operations
+                    (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32")) #Split BGR(OpenCV reads as BGR format) to HSV
+                    s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #Randomize saturation and vibrance adjustments. [0,1] to [0.8, 1.2]
+                    s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
+                    v = np.clip((v * v_adj), 0, 255)
+                    crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
                 crop = crop / 255. * 2. - 1. #Normalize from [0,1]
 
                 if imgs is not None: #Check if first img
@@ -434,7 +436,7 @@ class dataHandler():
             labels: [batchsize, sx, sy, B(C+7)+1] Label data, B is bounding boxes, C is number of classes, +7 for x,y,w,h,conf,obj,noobj, +1 for objI
         '''
         indices = self.get_indices(batchsize, training = training)
-        imgs, refdims = self.get_img(indices)
+        imgs, refdims = self.get_img(indices, training = training)
         labels = self.get_label(indices, refdims)
         return imgs, labels
 

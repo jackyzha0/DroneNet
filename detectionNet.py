@@ -32,7 +32,7 @@ config=tf.ConfigProto()
 restore_path = "saved_models/"
 
 WRITE_DEBUG = True #Whether to write img and txt summaries
-RESTORE_SAVED = True #Whether to restore saved weights and continue training
+RESTORE_SAVED = False #Whether to restore saved weights and continue training
 
 ### PARAMETERS ###
 batchsize = 32
@@ -387,8 +387,8 @@ with tf.Session(graph = graph, config = config) as sess:
 
         #Local text debug and image writing
         if WRITE_DEBUG and (db.batches_elapsed % 16 == 0 or db.batches_elapsed == 1):
-            write4DData(label, 'debug/lb$_act', db.batches_elapsed)
-            write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
+            #write4DData(label, 'debug/lb$_act', db.batches_elapsed)
+            #write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
 
             #Add image summaries to Tensorboard
             train_writer.add_summary(im_tf, db.batches_elapsed)
@@ -396,8 +396,7 @@ with tf.Session(graph = graph, config = config) as sess:
         #Flush summaries
         train_writer.flush()
 
-        #Check if new epoch
-        if not db.epochs_elapsed == prev_epoch: #If so, evaluate on validation set
+        if db.batches_elapsed % 64 == 0 or db.batches_elapsed == 1:
             t_img, t_label = db.minibatch(batchsize, training = False) #Get validation batch
 
             #Seperate labels
@@ -425,6 +424,27 @@ with tf.Session(graph = graph, config = config) as sess:
                                         obj: t_obj_in, no_obj: t_noobj_in, objI: t_objI_in, train: False},
                                         options=run_options, run_metadata=run_metadata)
 
+            #Get net out
+            t_pred_labels = t_out[1]
+
+            #Pretty print validation out
+            print(prettyPrint(t_out[0], db, test_eval=True))
+
+            #Get test images
+            t_im = np.zeros((batchsize, 375, 375, 3))
+            for i in range(len(img)):
+                t_im[i] = db.dispImage(t_img[i], boundingBoxes = t_label[i], preds = np.reshape(t_pred_labels[i], (sx, sy, 27)))
+
+            #Run TF Image summary
+            t_im_tf = sess.run(tf_im_out, feed_dict={tf_out: t_im})
+
+            #Add text summaries
+            val_writer.add_summary(t_out[2], db.batches_elapsed)
+            val_writer.add_summary(t_im_tf, db.batches_elapsed)
+            val_writer.flush()
+
+        #Check if new epoch
+        if not db.epochs_elapsed == prev_epoch: #If so, evaluate on validation set
             #Print epoch
             print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
 
@@ -437,27 +457,9 @@ with tf.Session(graph = graph, config = config) as sess:
                 f.write(str(db.epochs_elapsed))
             print("Weights saved.")
 
-            #Get net out
-            t_pred_labels = t_out[1]
-
-            #Pretty print validation out
-            print(prettyPrint(t_out[0], db, test_eval=True))
+            prev_epoch += 1
 
             #Get statistics
             stats = stats(np.reshape(t_pred_labels[i], (sx, sy, 27)), t_label[i], db)
             with open(restore_path + "stats.txt", "a") as f2: #Write to disk
                 f2.write(str(stats))
-
-            #Get test images
-            t_im = np.zeros((batchsize, 375, 375, 3))
-            for i in range(len(img)):
-                t_im[i] = db.dispImage(t_img[i], boundingBoxes = t_label[i], preds = np.reshape(t_pred_labels[i], (sx, sy, 27)))
-
-            #Run TF Image summary
-            t_im_tf = sess.run(tf_im_out, feed_dict={tf_out: t_im})
-
-            #Add text summaries
-            val_writer.add_summary(t_out[2], db.batches_elapsed)
-            val_writer.flush()
-
-            prev_epoch += 1

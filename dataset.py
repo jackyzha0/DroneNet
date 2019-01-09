@@ -233,11 +233,9 @@ class dataHandler():
                 finarr = self.val_unused
                 self.val_unused = np.arange(len(self.val_arr))
                 np.random.shuffle(self.val_unused)
-                self.epochs_elapsed += 1
             else:
                 finarr = self.val_unused[:batchsize]
                 self.val_unused = self.val_unused[batchsize:]
-            self.batches_elapsed += 1
         return finarr
 
     def p1p2_to_xywh(self, p1x, p1y, p2x, p2y, xref):
@@ -396,13 +394,13 @@ class dataHandler():
                 crop = np.reshape(crop, [self.IMGDIMS[1], self.IMGDIMS[1], 3]) #Reshape to right form
 
                 #Data augmentation
+                crop = np.uint8(crop) #Cast to uint8 before applying OpenCV2 operations
+                (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32")) #Split BGR(OpenCV reads as BGR format) to HSV
                 if training:
-                    crop = np.uint8(crop) #Cast to uint8 before applying OpenCV2 operations
-                    (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32")) #Split BGR(OpenCV reads as BGR format) to HSV
-                    s_adj, v_adj = (np.random.random(2) / 2.5) + 0.8 #Randomize saturation and vibrance adjustments. [0,1] to [0.8, 1.2]
+                    s_adj, v_adj = (np.random.random(2)) + 0.5 #Randomize saturation and vibrance adjustments. [0,1] to [0.5, 1.5]
                     s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
                     v = np.clip((v * v_adj), 0, 255)
-                    crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
+                crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
                 crop = crop / 255. * 2. - 1. #Normalize from [0,1]
 
                 if imgs is not None: #Check if first img

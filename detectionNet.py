@@ -90,7 +90,8 @@ with graph.as_default():
             conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name='leaky_relu')
 
             #Batch Norm
-            conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True), false_fn=lambda: conv_biased)
+            conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
+                                  false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
 
             return conv_biased
 
@@ -157,7 +158,8 @@ with graph.as_default():
             ip = tf.matmul(inputs_processed, weight) + biases
 
             #Use Batch norm if bn==true
-            ip = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(ip, training=True), false_fn=lambda: ip)
+            ip = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(ip, training=True),
+                         false_fn=lambda: tf.layers.batch_normalization(ip, training=False))
 
             if linear: #Check if linear
                 return ip #Linear

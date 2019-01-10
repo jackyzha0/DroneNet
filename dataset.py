@@ -41,7 +41,7 @@ class dataHandler():
     NUM_CLASSES = 4
     IMGDIMS = (1242, 375)
 
-    def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 5, sy = 5, val_perc = 0.8, useNP = False):
+    def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 7, sy = 7, val_perc = 0.8, useNP = False):
         if os.path.exists(train) and os.path.exists(val):
             #Set string paths
             self.train_img_dir = train + "/image"
@@ -131,12 +131,13 @@ class dataHandler():
             for x in range(0,x_.shape[0]):
                 for y in range(0,x_.shape[1]):
                     for i in range(B):
-                        if conf_[x][y][i] * np.amax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) > 0.1: #Check if confidence of box is over threshold
+                        if conf_[x][y][i] * np.amax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) > 0.0: #Check if confidence of box is over threshold
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) #Call naive softmaxing
                             if not classtype == "unknwn":
-                                cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (255, 0, 0), 1)
-                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                                col = conf_[x][y][i] * np.amax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) * 255.
+                                cv.rectangle(im, (bounds[0], bounds[1]), (bounds[2], bounds[3]), (col, 0, 0), 1)
+                                cv.putText(im, classtype, (bounds[0], bounds[1]-5), cv.FONT_HERSHEY_PLAIN, 1.0, (col, 0, 0))
         if drawTime == 0:
             return im
         else:
@@ -398,7 +399,7 @@ class dataHandler():
                     s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
                     v = np.clip((v * v_adj), 0, 255)
                 crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
-                crop = crop / 255. * 2. - 1. #Normalize from [0,1]
+                crop = crop / 255. #* 2. - 1. #Normalize from [0,1]
 
                 if imgs is not None: #Check if first img
                     imgs = np.vstack((imgs, crop[np.newaxis, :])) #Stack if array exists

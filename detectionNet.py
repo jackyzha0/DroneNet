@@ -34,16 +34,16 @@ restore_path = "saved_models/"
 WRITE_DEBUG = True #Whether to write img and txt summaries
 RESTORE_SAVED = False #Whether to restore saved weights and continue training
 USE_SQUEEZENET = False
-USE_TINY = True
+USE_TINY = False
 USE_YOLO = True
 
 ### PARAMETERS ###
-batchsize = 16
-iters = 2400
+batchsize = 4
+iters = 24000
 learning_rate = 1e-3
 momentum = 0.9
-sx = 5 #Number of horizontal grid cells
-sy = 5 #Nubmer of vertical grid cells
+sx = 6 #Number of horizontal grid cells
+sy = 6 #Nubmer of vertical grid cells
 B = 3 #num bounding boxes per anchor box
 C = 4 #class probabilities, size num_classes
 lambda_coord = 5.0 #Loss weighting for cells with objects
@@ -54,7 +54,7 @@ graph = tf.Graph()
 with graph.as_default():
 
     @add_arg_scope
-    def conv2d(inputs, filters, kernel_size, stride=1, name=None, training = True, alpha=0.1, bn = False):
+    def conv2d(inputs, filters, kernel_size, stride=1, idx=None, training = True, alpha=0.1, bn = False, trainable = True):
         '''
         Description:
             Creates 2D convolution kernel with batch normalization and leaky ReLu. Dims of next layer can be determined
@@ -71,34 +71,35 @@ with graph.as_default():
         Output:
             conv_biased: [rank 4 tf tensor] Tensor layer output
         '''
-        with tf.name_scope('conv2d'):
-            size = kernel_size[0]
-            channels = int(inputs.get_shape()[3])
-            initializer = tf.contrib.layers.xavier_initializer_conv2d() #Weight initializer
+        #with tf.name_scope('conv2d'):
+        size = kernel_size[0]
+        channels = int(inputs.get_shape()[3])
+        initializer = tf.contrib.layers.xavier_initializer_conv2d() #Weight initializer
 
-            #Define weight and bias variables
-            #weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
-            weight = tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=0.1))
-            biases = tf.Variable(tf.constant(0.1, shape=[filters]))
+        #Define weight and bias variables
+        #weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
+        weight = tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=0.1), trainable = trainable)
+        biases = tf.Variable(tf.constant(0.1, shape=[filters]), trainable = trainable)
 
-            #Input padding
-            pad_size = size // 2
-            pad_mat = np.array([[0, 0], [pad_size, pad_size], [pad_size, pad_size], [0, 0]])
-            inputs_pad = tf.pad(inputs, pad_mat)
+        #Input padding
+        pad_size = size // 2
+        pad_mat = np.array([[0, 0], [pad_size, pad_size], [pad_size, pad_size], [0, 0]])
+        inputs_pad = tf.pad(inputs, pad_mat)
 
-            #Conv function
-            conv = tf.nn.conv2d(inputs, weight, strides=[1, stride, stride, 1], padding='SAME')
-            conv_biased = tf.add(conv, biases)
+        #Conv function
+        conv = tf.nn.conv2d(inputs_pad, weight, strides=[1, stride, stride, 1], padding='VALID', name=idx+'_conv')
+        conv_biased = tf.add(conv, biases, name=idx+'_conv_biased')
 
-            #Leaky ReLU
-            conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name='leaky_relu')
+        #Leaky ReLU
+        conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name=idx+'_leaky_relu')
 
-            #Batch Norm
-            if bn:
-                conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
-                                      false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
+        #Batch Norm
+        if bn:
+            conv_biased = tf.layers.batch_normalization(conv_biased, training=training)
+            # conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
+            #                       false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
 
-            return conv_biased
+        return conv_biased
 
     def fire_module(inputs, squeeze_depth, expand_depth, scope=None, training = True):
         '''
@@ -127,7 +128,7 @@ with graph.as_default():
                 net = tf.concat([e1x1, e3x3], 3)
                 return net
 
-    def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, training=True, alpha=0.1, bn = False):
+    def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, training=True, alpha=0.1, bn = False, name=None):
         '''
         Description:
             Creates fully connected layer (FC) with options for ReLu and batch normalizatoin
@@ -160,12 +161,11 @@ with graph.as_default():
             biases = tf.Variable(tf.constant(0.1, shape=[hiddens]), trainable=trainable)
 
             #Linear activation
-            ip = tf.matmul(inputs_processed, weight) + biases
+            ip = tf.add(tf.matmul(inputs_processed, weight), biases, name=name)
 
             #Use Batch norm if bn==true
             if bn:
-                ip = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(ip, training=True),
-                             false_fn=lambda: tf.layers.batch_normalization(ip, training=False))
+                ip = tf.layers.batch_normalization(ip, training=training)
 
             if linear: #Check if linear
                 return ip #Linear
@@ -225,33 +225,72 @@ with graph.as_default():
     elif USE_TINY:
         net = conv2d(images, 16, [3, 3], stride=1, name='conv1', training = train)
         net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool2')
-
+        print(net.get_shape())
         net = conv2d(net, 32, [3, 3], stride=1, name='conv3', training = train)
         net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool4')
-
+        print(net.get_shape())
         net = conv2d(net, 64, [3, 3], stride=1, name='conv5', training = train)
         net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool6')
-
+        print(net.get_shape())
         net = conv2d(net, 128, [3, 3], stride=1, name='conv7', training = train)
         net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool8')
-
+        print(net.get_shape())
         net = conv2d(net, 256, [3, 3], stride=1, name='conv9', training = train)
         net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool10')
-
+        print(net.get_shape())
         net = conv2d(net, 512, [3, 3], stride=1, name='conv11', training = train)
         net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool12')
-
+        print(net.get_shape())
         net = conv2d(net, 1024, [3, 3], stride=1, name='conv13', training = train)
         net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool14')
-
+        print(net.get_shape())
         net = conv2d(net, 256, [3, 3], stride=1, name='conv15', training = train)
         net = conv2d(net, 512, [3, 3], stride=2, name='conv16', training = train)
-        #net = conv2d(net, 27, [1, 1], stride=1, name='conv17', training = train)
 
         net = fc_layer(net, 1024, flat=True, linear=False, trainable=True, training = train)
         #net = tf.layers.dropout(net, rate=0.5, training = train) #Dropout
         net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train)
         net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train)
+    else:
+        net = conv2d(images, 64, [7, 7], stride=2, idx='1', training = train, trainable=True)
+        print(net.get_shape())
+        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool2')
+        print(net.get_shape())
+        net = conv2d(net, 192, [3, 3], stride=1, idx='3', training = train, trainable=True)
+        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool4')
+        print(net.get_shape())
+        net = conv2d(net, 128, [1, 1], stride=1, idx='5', training = train, trainable=True)
+        net = conv2d(net, 256, [3, 3], stride=1, idx='6', training = train, trainable=True)
+        net = conv2d(net, 256, [1, 1], stride=1, idx='7', training = train, trainable=True)
+        net = conv2d(net, 512, [3, 3], stride=1, idx='8', training = train, trainable=True)
+        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool9')
+        print(net.get_shape())
+        net = conv2d(net, 256, [1, 1], stride=1, idx='10', training = train, trainable=True)
+        net = conv2d(net, 512, [3, 3], stride=1, idx='11', training = train, trainable=True)
+        net = conv2d(net, 256, [1, 1], stride=1, idx='12', training = train, trainable=True)
+        net = conv2d(net, 512, [3, 3], stride=1, idx='13', training = train, trainable=True)
+        net = conv2d(net, 256, [1, 1], stride=1, idx='14', training = train, trainable=True)
+        net = conv2d(net, 512, [3, 3], stride=1, idx='15', training = train, trainable=True)
+        net = conv2d(net, 256, [1, 1], stride=1, idx='16', training = train, trainable=True)
+        net = conv2d(net, 512, [3, 3], stride=1, idx='17', training = train, trainable=True)
+        net = conv2d(net, 512, [1, 1], stride=1, idx='18', training = train, trainable=True)
+        net = conv2d(net, 1024, [3, 3], stride=1, idx='19', training = train, trainable=True)
+        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool20')
+        print(net.get_shape())
+        net = conv2d(net, 512, [1, 1], stride=1, idx='21', training = train, trainable=True)
+        net = conv2d(net, 1024, [3, 3], stride=1, idx='22', training = train, trainable=True)
+        net = conv2d(net, 512, [1, 1], stride=1, idx='23', training = train, trainable=True)
+        net = conv2d(net, 1024, [3, 3], stride=1, idx='24', training = train, trainable=True)
+        print(net.get_shape())
+        net = conv2d(net, 1024, [3, 3], stride=1, idx='25', training = train)
+        net = conv2d(net, 1024, [3, 3], stride=2, idx='26', training = train)
+        net = conv2d(net, 1024, [3, 3], stride=1, idx='27', training = train)
+        net = conv2d(net, 1024, [3, 3], stride=1, idx='28', training = train)
+        print(net.get_shape())
+        net = fc_layer(net, 512, flat=True, linear=False, trainable=True, training = train, name='fc1')
+        #net = tf.layers.dropout(net, rate=0.5, training = train) #Dropout
+        net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train, name='fc2')
+        net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train, name='fc3')
 
     print("Total trainable parameters:")
     print(np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
@@ -317,7 +356,7 @@ with graph.as_default():
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
 #Creating dataset
-db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
+db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = C, B = B, sx = sx, sy = sy, useNP = True)
 #db = dataset.dataHandler(train = "data/serialized_small/TRAIN", val="data/serialized_small/TRAIN", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
 
 def prettyPrint(loss, db, test_eval = False):
@@ -375,15 +414,42 @@ with tf.Session(graph = graph, config = config) as sess:
 
     #Session run options
     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE,output_partition_graphs=True)
-    saver = tf.train.Saver()
 
-    if RESTORE_SAVED: #Check to see if program should restore saved weights
-        rest_f = open(restore_path + "epoch_marker")
-        #Set db information from marker file
-        db.batches_elapsed = int(rest_f.readline())
-        db.epochs_elapsed = int(rest_f.readline())
+    def get_tensors_in_checkpoint_file(file_name,all_tensors=True,tensor_name=None):
+        varlist=[]
+        var_value =[]
+        reader = tf.train.NewCheckpointReader(file_name)
+        if all_tensors:
+            var_to_shape_map = reader.get_variable_to_shape_map()
+            for key in sorted(var_to_shape_map):
+                varlist.append(key)
+                var_value.append(reader.get_tensor(key))
+        else:
+            varlist.append(tensor_name)
+            var_value.append(reader.get_tensor(tensor_name))
+        return (varlist, var_value)
 
-        saver.restore(sess, tf.train.latest_checkpoint(restore_path)) #Restore weights
+    def build_tensors_in_checkpoint_file(loaded_tensors):
+        full_var_list = list()
+        # Loop all loaded tensors
+        for i, tensor_name in enumerate(loaded_tensors[0]):
+            # Extract tensor
+            try:
+                tensor_aux = tf.get_default_graph().get_tensor_by_name(tensor_name+":0")
+            except:
+                print('Not found: '+tensor_name)
+            full_var_list.append(tensor_aux)
+        return full_var_list
+
+    if USE_YOLO:
+        CHECKPOINT_NAME = 'pretrained/YOLO_small.ckpt'
+        restored_vars = get_tensors_in_checkpoint_file(file_name=CHECKPOINT_NAME)
+        tensors_to_load = build_tensors_in_checkpoint_file(restored_vars)
+        print(tensors_to_load)
+        saver = tf.train.Saver(tensors_to_load)
+        saver.restore(sess, CHECKPOINT_NAME)
+    else:
+        saver = tf.train.Saver()
 
     prev_epoch = db.epochs_elapsed #Set prev_epoch
     while db.batches_elapsed < iters:

@@ -5,3 +5,4 @@ saved_models/
 *.npy
 debug/
 tf_writer/*
+pretrained/*

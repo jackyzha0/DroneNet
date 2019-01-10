@@ -131,7 +131,7 @@ class dataHandler():
             for x in range(0,x_.shape[0]):
                 for y in range(0,x_.shape[1]):
                     for i in range(B):
-                        if conf_[x][y][i] > 0.7: #Check if confidence of box is over threshold
+                        if conf_[x][y][i] * np.amax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) > 0.1: #Check if confidence of box is over threshold
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) #Call naive softmaxing
                             if not classtype == "unknwn":
@@ -153,12 +153,9 @@ class dataHandler():
             string: [string] Class of object, "unkwn" if no class
         '''
         maxind = np.argmax(arr) #Get index of max value in arr
-        if arr[maxind] > 0.7: #Check if max prob > 0.7
-            out = np.zeros(self.NUM_CLASSES)
-            out[maxind] = 1. #Get one-hot array
-            return self.onehot_to_text(out)
-        else:
-            return "unknwn" #If less than class thresh, return unknwn class
+        out = np.zeros(self.NUM_CLASSES)
+        out[maxind] = 1. #Get one-hot array
+        return self.onehot_to_text(out)
 
     def onehot_to_text(self, arr):
         '''
@@ -397,7 +394,7 @@ class dataHandler():
                 crop = np.uint8(crop) #Cast to uint8 before applying OpenCV2 operations
                 (h, s, v) = cv.split(cv.cvtColor(crop, cv.COLOR_BGR2HSV).astype("float32")) #Split BGR(OpenCV reads as BGR format) to HSV
                 if training:
-                    s_adj, v_adj = (np.random.random(2)) + 0.5 #Randomize saturation and vibrance adjustments. [0,1] to [0.5, 1.5]
+                    s_adj, v_adj = (np.random.random(2) / 2) + 0.75 #Randomize saturation and vibrance adjustments. [0,1] to [0.5, 1.5]
                     s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
                     v = np.clip((v * v_adj), 0, 255)
                 crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR

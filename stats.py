@@ -90,9 +90,8 @@ def stats(boxes, labels, db, iou_thresh = 0.5, conf_thresh = 0.7):
     #boxes = non_max_suppression(boxes, iou_thresh, db)
 
     for label_box in labels:
+        check = False
         for pred_box in boxes:
-            check = False
-
             iou = IOU(label_box, pred_box)
             if iou > iou_thresh:
                 TP += 1

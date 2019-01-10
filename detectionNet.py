@@ -10,7 +10,7 @@ import numpy as np
 import os
 import subprocess
 from datetime import datetime
-from stats import stats
+import stats
 
 #Call Tensorboard
 subprocess.call("./tf_board.sh", shell=True)
@@ -33,10 +33,13 @@ restore_path = "saved_models/"
 
 WRITE_DEBUG = True #Whether to write img and txt summaries
 RESTORE_SAVED = False #Whether to restore saved weights and continue training
+USE_SQUEEZENET = False
+USE_TINY = True
+USE_YOLO = True
 
 ### PARAMETERS ###
-batchsize = 32
-epochs = 100
+batchsize = 16
+iters = 2400
 learning_rate = 1e-3
 momentum = 0.9
 sx = 5 #Number of horizontal grid cells
@@ -51,7 +54,7 @@ graph = tf.Graph()
 with graph.as_default():
 
     @add_arg_scope
-    def conv2d(inputs, filters, kernel_size, stride=1, name=None, training = True, alpha=0.):
+    def conv2d(inputs, filters, kernel_size, stride=1, name=None, training = True, alpha=0.1, bn = False):
         '''
         Description:
             Creates 2D convolution kernel with batch normalization and leaky ReLu. Dims of next layer can be determined
@@ -74,8 +77,9 @@ with graph.as_default():
             initializer = tf.contrib.layers.xavier_initializer_conv2d() #Weight initializer
 
             #Define weight and bias variables
-            weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
-            biases = tf.Variable(tf.constant(0., shape=[filters]))
+            #weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
+            weight = tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=0.1))
+            biases = tf.Variable(tf.constant(0.1, shape=[filters]))
 
             #Input padding
             pad_size = size // 2
@@ -83,15 +87,16 @@ with graph.as_default():
             inputs_pad = tf.pad(inputs, pad_mat)
 
             #Conv function
-            conv = tf.nn.conv2d(inputs_pad, weight, strides=[1, stride, stride, 1], padding='VALID')
+            conv = tf.nn.conv2d(inputs, weight, strides=[1, stride, stride, 1], padding='SAME')
             conv_biased = tf.add(conv, biases)
 
             #Leaky ReLU
             conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name='leaky_relu')
 
             #Batch Norm
-            conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
-                                  false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
+            if bn:
+                conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
+                                      false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
 
             return conv_biased
 
@@ -122,7 +127,7 @@ with graph.as_default():
                 net = tf.concat([e1x1, e3x3], 3)
                 return net
 
-    def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, training=True, alpha=0.1, bn = True):
+    def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, training=True, alpha=0.1, bn = False):
         '''
         Description:
             Creates fully connected layer (FC) with options for ReLu and batch normalizatoin
@@ -151,15 +156,16 @@ with graph.as_default():
                 inputs_processed = inputs
 
             #Weight and bias declarations
-            weight = tf.Variable(tf.truncated_normal([dim, hiddens], stddev = 1e-1, mean=0.), trainable=trainable) #Works well empircally
-            biases = tf.Variable(tf.constant(0., shape=[hiddens]), trainable=trainable)
+            weight = tf.Variable(tf.zeros([dim, hiddens]), trainable=trainable)#tf.Variable(tf.truncated_normal([dim, hiddens], stddev = 1e-1, mean=0.), trainable=trainable) #Works well empircally
+            biases = tf.Variable(tf.constant(0.1, shape=[hiddens]), trainable=trainable)
 
             #Linear activation
             ip = tf.matmul(inputs_processed, weight) + biases
 
             #Use Batch norm if bn==true
-            ip = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(ip, training=True),
-                         false_fn=lambda: tf.layers.batch_normalization(ip, training=False))
+            if bn:
+                ip = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(ip, training=True),
+                             false_fn=lambda: tf.layers.batch_normalization(ip, training=False))
 
             if linear: #Check if linear
                 return ip #Linear
@@ -187,31 +193,68 @@ with graph.as_default():
         dim_mul = sx * sy
         dim_mul_B = dim_mul * B
 
-    #Network contruction, follows SqueezeNet architecture
-    net = conv2d(images, 96, [7, 7], stride=2, name='conv1', training = train)
-    net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool1')
+    #Network contruction
 
-    net = fire_module(net, 16, 64, scope='fire1', training = train)
-    net = fire_module(net, 16, 64, scope='fire2', training = train)
-    net = fire_module(net, 32, 128, scope='fire3', training = train)
+    if USE_SQUEEZENET:
+        net = conv2d(images, 96, [7, 7], stride=2, name='conv1', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool1')
 
-    net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool2')
+        net = fire_module(net, 16, 64, scope='fire1', training = train)
+        net = fire_module(net, 16, 64, scope='fire2', training = train)
+        net = fire_module(net, 32, 128, scope='fire3', training = train)
 
-    net = fire_module(net, 32, 128, scope='fire4', training = train)
-    net = fire_module(net, 48, 192, scope='fire5', training = train)
-    net = fire_module(net, 48, 192, scope='fire6', training = train)
-    net = fire_module(net, 64, 256, scope='fire7', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool2')
 
-    net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool3')
+        net = fire_module(net, 32, 128, scope='fire4', training = train)
+        net = fire_module(net, 48, 192, scope='fire5', training = train)
+        net = fire_module(net, 48, 192, scope='fire6', training = train)
+        net = fire_module(net, 64, 256, scope='fire7', training = train)
 
-    net = fire_module(net, 64, 256, scope='fire8', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [3, 3], stride=2, scope='maxpool3')
 
-    #Average pooling reduces layer connections while maintaining high accuracy
-    net = tf.layers.average_pooling2d(net, [7,7], strides=1)
+        net = fire_module(net, 64, 256, scope='fire8', training = train)
 
-    net = fc_layer(net, 512, flat=True, linear=False, trainable=True, training = train)
-    net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train)
-    net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train)
+        #Average pooling reduces layer connections while maintaining high accuracy
+        net = tf.layers.average_pooling2d(net, [7,7], strides=1)
+
+        net = fc_layer(net, 1024, flat=True, linear=False, trainable=True, training = train)
+        #net = tf.layers.dropout(net, rate=0.5, training = train) #Dropout
+        net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train)
+        net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train)
+
+    elif USE_TINY:
+        net = conv2d(images, 16, [3, 3], stride=1, name='conv1', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool2')
+
+        net = conv2d(net, 32, [3, 3], stride=1, name='conv3', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool4')
+
+        net = conv2d(net, 64, [3, 3], stride=1, name='conv5', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool6')
+
+        net = conv2d(net, 128, [3, 3], stride=1, name='conv7', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool8')
+
+        net = conv2d(net, 256, [3, 3], stride=1, name='conv9', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool10')
+
+        net = conv2d(net, 512, [3, 3], stride=1, name='conv11', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool12')
+
+        net = conv2d(net, 1024, [3, 3], stride=1, name='conv13', training = train)
+        net = tf.contrib.layers.max_pool2d(net, [2, 2], stride=2, padding="SAME", scope='maxpool14')
+
+        net = conv2d(net, 256, [3, 3], stride=1, name='conv15', training = train)
+        net = conv2d(net, 512, [3, 3], stride=2, name='conv16', training = train)
+        #net = conv2d(net, 27, [1, 1], stride=1, name='conv17', training = train)
+
+        net = fc_layer(net, 1024, flat=True, linear=False, trainable=True, training = train)
+        #net = tf.layers.dropout(net, rate=0.5, training = train) #Dropout
+        net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train)
+        net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train)
+
+    print("Total trainable parameters:")
+    print(np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
 
     bn = tf.shape(x)[0] #Get batchsize at run-time
     net = tf.reshape(net, (bn, sx, sy, B*(C+5))) #Reshape flattened output
@@ -219,9 +262,9 @@ with graph.as_default():
     #Output Extraction
     with tf.name_scope('reshape_ops'):
         x_, y_, w_, h_, conf_, prob_ = tf.split(net, [B, B, B, B, B, B * C], axis=3) #Split output
-        prob__n = tf.reshape(prob_, (bn, sx, sy, B, C)) #Reshape to increase dims
-        probs_n = tf.reshape(probs, (bn, sx, sy, B, C))
-        obj_n = tf.expand_dims(obj, axis=-1) #Ensuring mask has same dimensionality
+        #prob__n = tf.reshape(prob_, (bn, sx, sy, B, C)) #Reshape to increase dims
+        #probs_n = tf.reshape(probs, (bn, sx, sy, B, C))
+        #obj_n = tf.expand_dims(obj, axis=-1) #Ensuring mask has same dimensionality
 
     #Define cost function
     with tf.name_scope('loss_func'):
@@ -233,7 +276,7 @@ with graph.as_default():
         subW = tf.sqrt(w + delta) - tf.sqrt(tf.abs(w_) + delta) #Square root W/H is used to lessen impact of large W/H differences in small boxes
         subH = tf.sqrt(h + delta) - tf.sqrt(tf.abs(h_) + delta) #being overweighted
         subC = conf - conf_ #Confidences
-        subP = probs_n - prob__n #Class probs
+        subP = probs - prob_ #Class probs
 
         #Square and dimension reduction operations
         lossX = lambda_coord * tf.reduce_sum(obj * tf.square(subX), axis=[1, 2, 3]) #Squared difference, reduce_sum across all except batches
@@ -242,8 +285,7 @@ with graph.as_default():
         lossH = lambda_coord * tf.reduce_sum(obj * tf.square(subH), axis=[1, 2, 3])
         lossCObj = tf.reduce_sum(obj * tf.square(subC), axis=[1, 2, 3])
         lossCNobj = lambda_no_obj * tf.reduce_sum(no_obj * tf.square(subC), axis=[1, 2, 3])
-        lossP = tf.reduce_sum(obj_n * tf.square(subP), axis=[1, 2, 3, 4]) #Increased dimension for class probability
-
+        lossP = tf.reduce_sum(objI * tf.reduce_sum(tf.square(subP), axis=3), axis=[1, 2])
         lossT = tf.add_n((lossX, lossY, lossW, lossH, lossCObj, lossCNobj, lossP)) #Sum losses
         loss = tf.reduce_mean(lossT) #Reduce mean across all examples in minibatch
 
@@ -263,7 +305,9 @@ with graph.as_default():
 
     #Parameter optimizer
     with tf.name_scope('optimizer'):
+        #optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=momentum)
         optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate, epsilon = 1e-1) #Used epsilon described in Inception Net paper (0.1)
+        #optimizer = tf.train.RMSPropOptimizer(learning_rate = learning_rate, momentum = momentum)
         grads = optimizer.compute_gradients(loss)
         train_op = optimizer.apply_gradients(grads) #Apply gradients. Call this operation to actually optimize network
 
@@ -274,6 +318,7 @@ with graph.as_default():
 
 #Creating dataset
 db = dataset.dataHandler(train = "serialized_data/TRAIN", val="serialized_data/VAL", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
+#db = dataset.dataHandler(train = "data/serialized_small/TRAIN", val="data/serialized_small/TRAIN", NUM_CLASSES = 4, B = B, sx = 5, sy = 5, useNP = True)
 
 def prettyPrint(loss, db, test_eval = False):
     '''
@@ -341,7 +386,7 @@ with tf.Session(graph = graph, config = config) as sess:
         saver.restore(sess, tf.train.latest_checkpoint(restore_path)) #Restore weights
 
     prev_epoch = db.epochs_elapsed #Set prev_epoch
-    while db.epochs_elapsed < epochs:
+    while db.batches_elapsed < iters:
 
         img, label = db.minibatch(batchsize) #Fetch minibatch
 
@@ -389,8 +434,8 @@ with tf.Session(graph = graph, config = config) as sess:
 
         #Local text debug and image writing
         if WRITE_DEBUG and (db.batches_elapsed % 16 == 0 or db.batches_elapsed == 1):
-            #write4DData(label, 'debug/lb$_act', db.batches_elapsed)
-            #write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
+            write4DData(label, 'debug/lb$_act', db.batches_elapsed)
+            write4DData(pred_labels, 'debug/lb$_pred', db.batches_elapsed)
 
             #Add image summaries to Tensorboard
             train_writer.add_summary(im_tf, db.batches_elapsed)
@@ -398,7 +443,7 @@ with tf.Session(graph = graph, config = config) as sess:
         #Flush summaries
         train_writer.flush()
 
-        if db.batches_elapsed % 64 == 0 or db.batches_elapsed == 1:
+        if db.batches_elapsed % 32 == 0 or db.batches_elapsed == 1:
             t_img, t_label = db.minibatch(batchsize, training = False) #Get validation batch
 
             #Seperate labels
@@ -447,13 +492,13 @@ with tf.Session(graph = graph, config = config) as sess:
 
         #Check if new epoch
         if not db.epochs_elapsed == prev_epoch: #If so, evaluate on validation set
-            #Print epoch
-            print("Epoch %s reached! Saving weights..." %str(db.batches_elapsed))
-
-            #Save weights
+            # Print epoch
+            print("Iteration %s reached! Saving weights..." %str(db.batches_elapsed))
+            #
+            # Save weights
             save_path = saver.save(sess, restore_path + 'save{0:06d}'.format(db.batches_elapsed))
-
-            #Save train metadata
+            #
+            # Save train metadata
             with open(restore_path + "epoch_marker", "w") as f:
                 f.write(str(db.batches_elapsed)+"\n")
                 f.write(str(db.epochs_elapsed))
@@ -462,6 +507,6 @@ with tf.Session(graph = graph, config = config) as sess:
             prev_epoch += 1
 
             #Get statistics
-            stats = stats(np.reshape(t_pred_labels[i], (sx, sy, 27)), t_label[i], db)
+            out_stats = stats.stats(np.reshape(t_pred_labels[i], (sx, sy, 27)), t_label[i], db)
             with open(restore_path + "stats.txt", "a") as f2: #Write to disk
-                f2.write(str(stats))
+                f2.write(str(out_stats))

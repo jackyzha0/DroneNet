@@ -7,7 +7,8 @@ import numpy as np
 import tensorflow as tf
 
 #Set and print dataset in use (note the omission of NP arg)
-db = dataset.dataHandler(train = "data/training", val = "data/testing", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
+#db = dataset.dataHandler(train = "data/training", val = "data/testing", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
+db = dataset.dataHandler(train = "data/overfit_test_large", val = "data/overfit_test_large", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
 print(db)
 
 VAL_PERCENT = 0.8 #Percent of dataset to use for training
@@ -17,7 +18,8 @@ ind_val = (int(len(db.train_arr)*VAL_PERCENT))
 train_arr = db.train_arr[:ind_val]
 val_arr = db.train_arr[ind_val:]
 
-serialized_path = 'serialized_data/'
+#serialized_path = 'serialized_data/'
+serialized_path = 'data/serialized_small/'
 
 #Write Training Data
 serialized_train = serialized_path + 'TRAIN/'

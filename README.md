@@ -58,10 +58,16 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
+- [ ] Reimplement batch norm
+- [ ] Add YOLOv1 Full Architecture
+- [ ] Attempt restore weights
+
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Switch to dropout
+- [x] Switch to tiny-YOLO architecture
 - [x] Make validation testing more frequent
 - [x] Validation time image saving
 - [x] Refresh dataset

@@ -399,7 +399,7 @@ class dataHandler():
                     s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
                     v = np.clip((v * v_adj), 0, 255)
                 crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
-                crop = crop / 255. #* 2. - 1. #Normalize from [0,1]
+                crop = crop / 255. * 2. - 1. #Normalize from [0,1]
 
                 if imgs is not None: #Check if first img
                     imgs = np.vstack((imgs, crop[np.newaxis, :])) #Stack if array exists

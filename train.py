@@ -24,7 +24,7 @@ USE_YOLO = True
 
 ### PARAMETERS ###
 batchsize = 4
-iters = 24000
+iters = 1#24000
 learning_rate = 1e-3
 momentum = 0.9
 sx = 6 #Number of horizontal grid cells
@@ -148,10 +148,23 @@ with tf.Session(graph = graph, config = config) as sess:
         #Set db information from marker file
         db.batches_elapsed = int(rest_f.readline())
         db.epochs_elapsed = int(rest_f.readline())
+        saver = tf.train.Saver()
         saver.restore(sess, tf.train.latest_checkpoint(restore_path)) #Restore weights
     elif USE_WARM:
-        varlist=print_tensors_in_checkpoint_file(file_name=restore_path+'yolo.ckpt',all_tensors=True,tensor_name=None)
-        print(varlist)
+        CHECKPOINT_NAME = restore_path+'yolo.ckpt'
+        restored_vars = get_tensors_in_checkpoint_file(file_name=CHECKPOINT_NAME)
+        tensors_to_load = build_tensors_in_checkpoint_file(restored_vars)
+        saver = tf.train.Saver(tensors_to_load)
+        saver.restore(sess, CHECKPOINT_NAME)
+        #varlist=print_tensors_in_checkpoint_file(file_name=restore_path+'yolo.ckpt',all_tensors=True,tensor_name=None)
+        # print(varlist)
+        # print('_____')
+        # new_i = []
+        # for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
+        #     if 'yolo' in i.name and 'fc_35' not in i.name and 'Adam' not in i.name:
+        #         print(i.name[:-2])
+        #         new_i.append(i.name[:-2])
+        # print(set(varlist) - set(new_i))
 
     prev_epoch = db.epochs_elapsed #Set prev_epoch
     while db.batches_elapsed < iters:
@@ -177,6 +190,7 @@ with tf.Session(graph = graph, config = config) as sess:
             objI_in = np.squeeze(objI_in)
 
         #One step of training
+        print(sess.run(tf.get_default_graph().get_tensor_by_name('yolo/conv_11/weights:0')))
         out = sess.run([train_op, loss, net, merged],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,

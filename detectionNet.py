@@ -35,33 +35,33 @@ def conv2d(inputs, filters, kernel_size, stride=1, idx=None, training = None, al
     Output:
         conv_biased: [rank 4 tf tensor] Tensor layer output
     '''
-    #with tf.name_scope('conv2d'):
-    size = kernel_size[0]
-    channels = int(inputs.get_shape()[3])
-    initializer = tf.contrib.layers.xavier_initializer_conv2d() #Weight initializer
+    with tf.name_scope('conv_'+idx):
+        size = kernel_size[0]
+        channels = int(inputs.get_shape()[3])
+        initializer = tf.contrib.layers.xavier_initializer_conv2d() #Weight initializer
 
-    #Define weight and bias variables
-    #weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
-    weight = tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=0.1), trainable = trainable)
-    biases = tf.Variable(tf.constant(0.1, shape=[filters]), trainable = trainable)
+        #Define weight and bias variables
+        #weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
+        weight = tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=0.1), trainable = trainable, name = 'weights')
+        biases = tf.Variable(tf.constant(0.1, shape=[filters]), trainable = trainable, name = 'biases')
 
-    #Input padding
-    pad_size = size // 2
-    pad_mat = np.array([[0, 0], [pad_size, pad_size], [pad_size, pad_size], [0, 0]])
-    inputs_pad = tf.pad(inputs, pad_mat)
+        #Input padding
+        pad_size = size // 2
+        pad_mat = np.array([[0, 0], [pad_size, pad_size], [pad_size, pad_size], [0, 0]])
+        inputs_pad = tf.pad(inputs, pad_mat)
 
-    #Conv function
-    conv = tf.nn.conv2d(inputs_pad, weight, strides=[1, stride, stride, 1], padding='VALID', name=idx+'_conv')
-    conv_biased = tf.add(conv, biases, name=idx+'_conv_biased')
+        #Conv function
+        conv = tf.nn.conv2d(inputs_pad, weight, strides=[1, stride, stride, 1], padding='VALID', name=idx+'_conv')
+        conv_biased = tf.add(conv, biases, name=idx+'_conv_biased')
 
-    #Leaky ReLU
-    conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name=idx+'_leaky_relu')
+        #Leaky ReLU
+        conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name=idx+'_leaky_relu')
 
-    #Batch Norm
-    if bn:
-        conv_biased = tf.layers.batch_normalization(conv_biased, training=training, momentum = 0.9, epsilon=1e-5)
-        # conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
-        #                       false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
+        #Batch Norm
+        if bn:
+            conv_biased = tf.layers.batch_normalization(conv_biased, training=training, momentum = 0.9, epsilon=1e-5)
+            # conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
+            #                       false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
 
     return conv_biased
 
@@ -108,7 +108,7 @@ def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, trainin
     Output:
         net: [rank 4 tf tensor] Tensor layer output
     '''
-    with tf.name_scope('fc'):
+    with tf.name_scope(name):
         #Fetch input shape
         input_shape = inputs.get_shape().as_list()
 
@@ -121,8 +121,8 @@ def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, trainin
             inputs_processed = inputs
 
         #Weight and bias declarations
-        weight = tf.Variable(tf.zeros([dim, hiddens]), trainable=trainable)#tf.Variable(tf.truncated_normal([dim, hiddens], stddev = 1e-1, mean=0.), trainable=trainable) #Works well empircally
-        biases = tf.Variable(tf.constant(0.1, shape=[hiddens]), trainable=trainable)
+        weight = tf.Variable(tf.zeros([dim, hiddens]), trainable=trainable, name = 'weights')#tf.Variable(tf.truncated_normal([dim, hiddens], stddev = 1e-1, mean=0.), trainable=trainable) #Works well empircally
+        biases = tf.Variable(tf.constant(0.1, shape=[hiddens]), trainable=trainable, name = 'biases')
 
         #Linear activation
         ip = tf.add(tf.matmul(inputs_processed, weight), biases, name=name)
@@ -200,45 +200,47 @@ def ret_net(images, nettype, train = False, sx = 6, sy = 6, B = 3, C = 4):
         net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train)
         net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train)
     else:
-        net = conv2d(images, 64, [7, 7], stride=2, idx='2', training = train, trainable=True)
+        with tf.name_scope('yolo'):
+            net = conv2d(images, 64, [7, 7], stride=2, idx='2', training = train, trainable=False)
 
-        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool3')
+            net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool3')
 
-        net = conv2d(net, 192, [3, 3], stride=1, idx='4', training = train, trainable=True)
-        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool5')
+            net = conv2d(net, 192, [3, 3], stride=1, idx='4', training = train, trainable=False)
+            net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool5')
 
-        net = conv2d(net, 128, [1, 1], stride=1, idx='6', training = train, trainable=True)
-        net = conv2d(net, 256, [3, 3], stride=1, idx='7', training = train, trainable=True)
-        net = conv2d(net, 256, [1, 1], stride=1, idx='8', training = train, trainable=True)
-        net = conv2d(net, 512, [3, 3], stride=1, idx='9', training = train, trainable=True)
-        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool9')
+            net = conv2d(net, 128, [1, 1], stride=1, idx='6', training = train, trainable=False)
+            net = conv2d(net, 256, [3, 3], stride=1, idx='7', training = train, trainable=False)
+            net = conv2d(net, 256, [1, 1], stride=1, idx='8', training = train, trainable=False)
+            net = conv2d(net, 512, [3, 3], stride=1, idx='9', training = train, trainable=False)
+            net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool10')
 
-        net = conv2d(net, 256, [1, 1], stride=1, idx='11', training = train, trainable=True)
-        net = conv2d(net, 512, [3, 3], stride=1, idx='12', training = train, trainable=True)
-        net = conv2d(net, 256, [1, 1], stride=1, idx='13', training = train, trainable=True)
-        net = conv2d(net, 512, [3, 3], stride=1, idx='14', training = train, trainable=True)
-        net = conv2d(net, 256, [1, 1], stride=1, idx='15', training = train, trainable=True)
-        net = conv2d(net, 512, [3, 3], stride=1, idx='16', training = train, trainable=True)
-        net = conv2d(net, 256, [1, 1], stride=1, idx='17', training = train, trainable=True)
-        net = conv2d(net, 512, [3, 3], stride=1, idx='18', training = train, trainable=True)
-        net = conv2d(net, 512, [1, 1], stride=1, idx='19', training = train, trainable=True)
-        net = conv2d(net, 1024, [3, 3], stride=1, idx='20', training = train, trainable=True)
-        net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool20')
+            net = conv2d(net, 256, [1, 1], stride=1, idx='11', training = train, trainable=False)
+            net = conv2d(net, 512, [3, 3], stride=1, idx='12', training = train, trainable=False)
+            net = conv2d(net, 256, [1, 1], stride=1, idx='13', training = train, trainable=False)
+            net = conv2d(net, 512, [3, 3], stride=1, idx='14', training = train, trainable=False)
+            net = conv2d(net, 256, [1, 1], stride=1, idx='15', training = train, trainable=False)
+            net = conv2d(net, 512, [3, 3], stride=1, idx='16', training = train, trainable=False)
+            net = conv2d(net, 256, [1, 1], stride=1, idx='17', training = train, trainable=False)
+            net = conv2d(net, 512, [3, 3], stride=1, idx='18', training = train, trainable=False)
+            net = conv2d(net, 512, [1, 1], stride=1, idx='19', training = train, trainable=False)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='20', training = train, trainable=False)
+            net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME", name='maxpool21')
 
-        net = conv2d(net, 512, [1, 1], stride=1, idx='22', training = train, trainable=True)
-        net = conv2d(net, 1024, [3, 3], stride=1, idx='23', training = train, trainable=True)
-        net = conv2d(net, 512, [1, 1], stride=1, idx='24', training = train, trainable=True)
-        net = conv2d(net, 1024, [3, 3], stride=1, idx='25', training = train, trainable=True)
+            net = conv2d(net, 512, [1, 1], stride=1, idx='22', training = train, trainable=False)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='23', training = train, trainable=False)
+            net = conv2d(net, 512, [1, 1], stride=1, idx='24', training = train, trainable=False)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='25', training = train, trainable=False)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='26', training = train)
 
-        net = conv2d(net, 1024, [3, 3], stride=1, idx='26', training = train)
-        net = conv2d(net, 1024, [3, 3], stride=2, idx='29', training = train)
-        net = conv2d(net, 1024, [3, 3], stride=1, idx='30', training = train)
+            net = conv2d(net, 1024, [3, 3], stride=2, idx='28', training = train)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='29', training = train)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='30', training = train)
 
-        net = fc_layer(net, 512, flat=True, linear=False, trainable=True, training = train, name='fc33')
-        #net = tf.layers.dropout(net, rate=0.5, training = train) #Dropout
-        net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train, name='fc34')
-        net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train, name='fc35')
-        return net
+            net = fc_layer(net, 512, flat=True, linear=False, trainable=True, training = train, name='fc_33')
+            #net = tf.layers.dropout(net, rate=0.5, training = train) #Dropout
+            net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training = train, name='fc_34')
+            net = fc_layer(net, dim_mul_B*(C+5), flat=False, linear=True, trainable=True, training = train, name='fc_35')
+            return net
 
 def prettyPrint(loss, db, test_eval = False):
     '''
@@ -281,11 +283,30 @@ def write4DData(arr, path, ind):
                 wfile.write('------ Dim separator ------\n')
                 np.savetxt(wfile, d_slice, fmt='%.2f', delimiter = '|')
 
-def print_tensors_in_checkpoint_file(file_name, tensor_name, all_tensors):
+def get_tensors_in_checkpoint_file(file_name,all_tensors=True,tensor_name=None):
     varlist=[]
+    var_value =[]
     reader = pywrap_tensorflow.NewCheckpointReader(file_name)
     if all_tensors:
-      var_to_shape_map = reader.get_variable_to_shape_map()
-      for key in sorted(var_to_shape_map):
-        varlist.append(key)
-    return varlist
+        var_to_shape_map = reader.get_variable_to_shape_map()
+        for key in sorted(var_to_shape_map):
+            varlist.append(key)
+            var_value.append(reader.get_tensor(key))
+    else:
+        varlist.append(tensor_name)
+        var_value.append(reader.get_tensor(tensor_name))
+    return (varlist, var_value)
+
+def build_tensors_in_checkpoint_file(loaded_tensors):
+    full_var_list = list()
+    # Loop all loaded tensors
+    for i, tensor_name in enumerate(loaded_tensors[0]):
+        # Extract tensor
+        try:
+            tensor_aux = tf.get_default_graph().get_tensor_by_name(tensor_name+":0")
+            if 'fc' not in tensor_aux.name:
+                full_var_list.append(tensor_aux)
+                print('Aux tensor: '+ tensor_aux.name)
+        except:
+            print('Not found: '+tensor_name)
+    return full_var_list

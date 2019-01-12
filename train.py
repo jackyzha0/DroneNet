@@ -24,11 +24,11 @@ USE_YOLO = True
 
 ### PARAMETERS ###
 batchsize = 4
-iters = 1#24000
+iters = 24000
 learning_rate = 1e-3
 momentum = 0.9
-sx = 6 #Number of horizontal grid cells
-sy = 6 #Nubmer of vertical grid cells
+sx = 7 #Number of horizontal grid cells
+sy = 7 #Nubmer of vertical grid cells
 B = 3 #num bounding boxes per anchor box
 C = 4 #class probabilities, size num_classes
 lambda_coord = 5.0 #Loss weighting for cells with objects
@@ -112,12 +112,14 @@ with graph.as_default():
         merged = tf.summary.merge([tf_lossX, tf_lossY, tf_lossW, tf_lossH, tf_lossC_obj, tf_lossC_no_obj, tf_lossP, tf_loss])
 
     #Parameter optimizer
-    with tf.name_scope('optimizer'):
-        #optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=momentum)
-        optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate, epsilon = 1e-1) #Used epsilon described in Inception Net paper (0.1)
-        #optimizer = tf.train.RMSPropOptimizer(learning_rate = learning_rate, momentum = momentum)
-        grads = optimizer.compute_gradients(loss)
-        train_op = optimizer.apply_gradients(grads) #Apply gradients. Call this operation to actually optimize network
+    extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+    with tf.control_dependencies(extra_update_ops):
+        with tf.name_scope('optimizer'):
+            #optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=momentum)
+            optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate, epsilon = 1e-3) #Used epsilon described in Inception Net paper (0.1)
+            #optimizer = tf.train.RMSPropOptimizer(learning_rate = learning_rate, momentum = momentum)
+            grads = optimizer.compute_gradients(loss)
+            train_op = optimizer.apply_gradients(grads) #Apply gradients. Call this operation to actually optimize network
 
     #Placeholders for image visualization in Tensorboard, not used in training
     with tf.name_scope('tboard_outimages'):
@@ -190,7 +192,15 @@ with tf.Session(graph = graph, config = config) as sess:
             objI_in = np.squeeze(objI_in)
 
         #One step of training
-        print(sess.run(tf.get_default_graph().get_tensor_by_name('yolo/conv_11/weights:0')))
+        # conv28_w = sess.run(tf.get_default_graph().get_tensor_by_name('yolo/conv_28/weights:0'))
+        # write4DData(conv28_w, 'kernel_debug/conv28_w_$', db.batches_elapsed)
+        # conv23_w = sess.run(tf.get_default_graph().get_tensor_by_name('yolo/conv_23/weights:0'))
+        # write4DData(conv23_w, 'kernel_debug/conv23_w_$', db.batches_elapsed)
+        #
+        # fc33_w = sess.run(tf.get_default_graph().get_tensor_by_name('yolo/fc_33/weights:0'))
+        # with open('kernel_debug/fc33_w' + str(db.batches_elapsed) + '.txt', 'w') as wfile:
+        #     np.savetxt(wfile, fc33_w, fmt='%.2f', delimiter = '|')
+
         out = sess.run([train_op, loss, net, merged],
                        feed_dict={images: img, x: x_in, y: y_in, w: w_in, h: h_in,
                                   conf: conf_in, probs: classes_in,

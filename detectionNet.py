@@ -42,8 +42,8 @@ def conv2d(inputs, filters, kernel_size, stride=1, idx=None, training = None, al
 
         #Define weight and bias variables
         #weight = tf.Variable(initializer(shape=[size, size, channels, filters]))
-        weight = tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=0.1), trainable = trainable, name = 'weights')
-        biases = tf.Variable(tf.constant(0.1, shape=[filters]), trainable = trainable, name = 'biases')
+        weight = tf.Variable(tf.truncated_normal([size, size, channels, filters], stddev=1e-2), trainable = trainable, name = 'weights')
+        biases = tf.Variable(tf.constant(0., shape=[filters]), trainable = trainable, name = 'biases')
 
         #Input padding
         pad_size = size // 2
@@ -58,7 +58,7 @@ def conv2d(inputs, filters, kernel_size, stride=1, idx=None, training = None, al
         conv_biased = tf.maximum((alpha * conv_biased), conv_biased, name=idx+'_leaky_relu')
 
         #Batch Norm
-        if bn:
+        if bn and trainable:
             conv_biased = tf.layers.batch_normalization(conv_biased, training=training, momentum = 0.9, epsilon=1e-5)
             # conv_biased = tf.cond(training, true_fn=lambda: tf.layers.batch_normalization(conv_biased, training=True),
             #                       false_fn=lambda: tf.layers.batch_normalization(conv_biased, training=False))
@@ -121,8 +121,8 @@ def fc_layer(inputs, hiddens, flat=False, linear=False, trainable=False, trainin
             inputs_processed = inputs
 
         #Weight and bias declarations
-        weight = tf.Variable(tf.zeros([dim, hiddens]), trainable=trainable, name = 'weights')#tf.Variable(tf.truncated_normal([dim, hiddens], stddev = 1e-1, mean=0.), trainable=trainable) #Works well empircally
-        biases = tf.Variable(tf.constant(0.1, shape=[hiddens]), trainable=trainable, name = 'biases')
+        weight = tf.Variable(tf.truncated_normal([dim, hiddens], stddev = 1e-2, mean=0.), trainable=trainable, name = 'weights') #Works well empircally
+        biases = tf.Variable(tf.constant(0., shape=[hiddens]), trainable=trainable, name = 'biases')
 
         #Linear activation
         ip = tf.add(tf.matmul(inputs_processed, weight), biases, name=name)
@@ -230,11 +230,11 @@ def ret_net(images, nettype, train = False, sx = 6, sy = 6, B = 3, C = 4):
             net = conv2d(net, 1024, [3, 3], stride=1, idx='23', training = train, trainable=False)
             net = conv2d(net, 512, [1, 1], stride=1, idx='24', training = train, trainable=False)
             net = conv2d(net, 1024, [3, 3], stride=1, idx='25', training = train, trainable=False)
-            net = conv2d(net, 1024, [3, 3], stride=1, idx='26', training = train)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='26', training = train, trainable=True)
 
-            net = conv2d(net, 1024, [3, 3], stride=2, idx='28', training = train)
-            net = conv2d(net, 1024, [3, 3], stride=1, idx='29', training = train)
-            net = conv2d(net, 1024, [3, 3], stride=1, idx='30', training = train)
+            net = conv2d(net, 1024, [3, 3], stride=2, idx='28', training = train, trainable=True)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='29', training = train, trainable=True)
+            net = conv2d(net, 1024, [3, 3], stride=1, idx='30', training = train, trainable=True)
 
             net = fc_layer(net, 512, flat=True, linear=False, trainable=True, training = train, name='fc_33')
             #net = tf.layers.dropout(net, rate=0.5, training = train) #Dropout
@@ -276,10 +276,16 @@ def write4DData(arr, path, ind):
     '''
     n_split = path.split('$') #Split string with seperator
     name = n_split[0] + str(ind) + n_split[1] #Insert index
-    for i in range(len(arr)):
-        #Write to file with delimiters
-        with open(name+'_'+str(i)+'.txt', 'w') as wfile:
-            for d_slice in arr[i]:
+    if len(arr) > 1:
+        for i in range(len(arr)):
+            #Write to file with delimiters
+            with open(name+'_'+str(i)+'.txt', 'w') as wfile:
+                for d_slice in arr[i]:
+                    wfile.write('------ Dim separator ------\n')
+                    np.savetxt(wfile, d_slice, fmt='%.2f', delimiter = '|')
+    else:
+        with open(name+'.txt', 'w') as wfile:
+            for d_slice in arr:
                 wfile.write('------ Dim separator ------\n')
                 np.savetxt(wfile, d_slice, fmt='%.2f', delimiter = '|')
 

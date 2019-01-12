@@ -58,6 +58,8 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
+- [ ] Visualize convolutional kernels
+
 - [ ] Buy USB Wifi Dongle
 - [ ] Buy micro-HDMI to HDMI Adapter
 - [ ] Setup hotspot on laptop

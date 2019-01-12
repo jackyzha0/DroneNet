@@ -6,3 +6,4 @@ saved_models/
 debug/
 tf_writer/*
 pretrained/*
+kernel_debug/*

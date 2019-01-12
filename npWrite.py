@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 #Set and print dataset in use (note the omission of NP arg)
-db = dataset.dataHandler(train = "data/training", val = "data/testing", NUM_CLASSES = 4, B = 3, sx = 6, sy = 6)
+db = dataset.dataHandler(train = "data/training", val = "data/testing", NUM_CLASSES = 4, B = 3, sx = 7, sy = 7)
 #db = dataset.dataHandler(train = "data/overfit_test_large", val = "data/overfit_test_large", NUM_CLASSES = 4, B = 3, sx = 5, sy = 5)
 print(db)
 

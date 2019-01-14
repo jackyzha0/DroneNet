@@ -11,15 +11,16 @@ import cv2 as cv
 from calibrate import calibrate
 import os.path
 
+
 class drone():
 
-    #Array of all known drones
+    # Array of all known drones
     d_arr = []
 
-    #Drone Params
+    # Drone Params
     max_comm_dist = 0.5
 
-    #Global tags
+    # Global tags
     next_id = 0
     totaldrones = 0
 
@@ -33,11 +34,11 @@ class drone():
         self.xv = x_vel
         self.yv = y_vel
         self.zv = z_vel
-        self.dataArr = np.zeros((n-1,3))
+        self.dataArr = np.zeros((n - 1, 3))
         #self.c = camera(self.id, rot)
         drone.totaldrones = n
 
-    def populateDataArr(self, simulation = True):
+    def populateDataArr(self, simulation=True):
         dataArr = []
         if simulation:
             for i in range(drone.totaldrones):
@@ -48,11 +49,11 @@ class drone():
                         dataArr.append(dist_arr)
                     else:
                         splice = dist_arr[1:]
-                        d = (1e99,splice[0],splice[1])
+                        d = (1e99, splice[0], splice[1])
                         dataArr.append(d)
             return dataArr
         else:
-            #Handle with real world sensor data etc.
+            # Handle with real world sensor data etc.
             return 0
 
     def getPos(self):
@@ -61,18 +62,18 @@ class drone():
     def __str__(self):
         return "g_x: " + str(self.r_x) + " g_y: " + str(self.r_y) + " g_z: " + str(self.r_z) + " x_vel: " + str(self.xv) + " y_vel: " + str(self.yv) + " z_vel: " + str(self.zv)
 
-    def getDistDet(self,drone):
+    def getDistDet(self, drone):
         selfpos = self.getPos()
         dronepos = drone.getPos()
-        raw = np.subtract(dronepos,selfpos)
-        r = np.sqrt(np.square(raw[0]) + np.square(raw[1]) + np.square(raw[2])) #r = sqrt(x^2+y+^2+z^2)
-        theta = np.arccos(raw[2] / r)   #theta =arccos(z/r))
-        phi = np.arctan2(raw[1], raw[0])   #phi = arctan(y/x).
+        raw = np.subtract(dronepos, selfpos)
+        r = np.sqrt(np.square(raw[0]) + np.square(raw[1]) + np.square(raw[2]))  # r = sqrt(x^2+y+^2+z^2)
+        theta = np.arccos(raw[2] / r)  # theta =arccos(z/r))
+        phi = np.arctan2(raw[1], raw[0])  # phi = arctan(y/x).
         #THETA is Elevation
         #PHI is Azimuth
         return r, phi, theta
 
-    def updateVels(self, dvx, dvy, dvz, abs = False):
+    def updateVels(self, dvx, dvy, dvz, abs=False):
         if abs:
             self.xv = dvx
             self.yv = dvy
@@ -102,6 +103,7 @@ class drone():
             dvz = 0
         self.updateVels(dvx, dvy, dvz, abs)
 
+
 class camera(drone):
     def __init__(self, id, rot):
         self.id = id
@@ -109,7 +111,7 @@ class camera(drone):
         self.physCamera = PiCamera(resolution=(1920, 1080))
         #self.physCamera.iso = 400
         sleep(0.1)
-        #self.physCamera.shutter_speed = 5556 #1/180
+        # self.physCamera.shutter_speed = 5556 #1/180
         self.physCamera.exposure_mode = 'auto'
         #g = self.physCamera.awb_gains
         self.physCamera.awb_mode = 'auto'
@@ -118,10 +120,10 @@ class camera(drone):
         if os.path.exists("intrinsic/intrinsic_%s.dat" % self.id):
             with open("intrinsic/intrinsic_%s.dat" % id, 'r') as f:
                 contents = (f.read().split('|')[:9])
-                arr = [[],[],[]]
+                arr = [[], [], []]
                 for i in range(3):
                     for j in range(3):
-                        arr[i].append(float(contents[i+j]))
+                        arr[i].append(float(contents[i + j]))
         else:
             self.k = np.array([[0.0, 0.0, 0.0],
                                [0.0, 0.0, 0.0],
@@ -132,9 +134,9 @@ class camera(drone):
         self.physCamera.capture(rawCapture, format="bgr")
         img = rawCapture.array
         # Take photo and return as array
-        return img[:,:,::-1]
+        return img[:, :, ::-1]
 
     def cal_k():
-        #get img_ar
+        # get img_ar
 
         self.k = calibrate(img_arr)[0]

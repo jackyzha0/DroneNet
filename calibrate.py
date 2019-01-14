@@ -6,7 +6,8 @@ import glob
 import numpy as np
 import cv2 as cv
 
-def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
+
+def calibrate(imgarr, pattern_size=(9, 6), drawTime=0):
     '''
     Description
         Calibrates rpi camera given array of checkerboard calibration images
@@ -22,16 +23,16 @@ def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
     objpoints = []
     imgpoints = []
 
-    #Ensure length > 10
+    # Ensure length > 10
     if len(imgarr) <= 10:
         raise Exception("Size of imgarr should be greater than 10. Size was {}".format(len(imgarr)))
 
-    #Prepare Object Grid of size pattern_size where pattern_size[0] is columns and pattern_size[1] is rows
-    #Create empty grid
+    # Prepare Object Grid of size pattern_size where pattern_size[0] is columns and pattern_size[1] is rows
+    # Create empty grid
 
     a_object_point = np.zeros((pattern_size[1] * pattern_size[0], 3), np.float32)
 
-    #Fill with row and column information and reshape
+    # Fill with row and column information and reshape
     a_object_point[:, :2] = np.mgrid[0:pattern_size[0], 0:pattern_size[1]].T.reshape(-1, 2)
 
     stop_criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -45,32 +46,33 @@ def calibrate(imgarr, pattern_size = (9,6), drawTime = 0):
         print("Found corners!")
         if ret:
             objpoints.append(a_object_point)
-            corners2 = cv.cornerSubPix(grayscale, corners, (7,7), (-1,-1), stop_criteria)
+            corners2 = cv.cornerSubPix(grayscale, corners, (7, 7), (-1, -1), stop_criteria)
             imgpoints.append(corners2)
             print("Appended corners")
             if drawTime > 0:
                 img = cv.drawChessboardCorners(img, (pattern_size[0], pattern_size[1]), corners2, ret)
-                cv.imshow('img',img)
+                cv.imshow('img', img)
                 cv.waitKey(drawTime)
 
     if drawTime > 0:
         cv.destroyAllWindows()
 
     print("Calibrating intrinsic camera matrix")
-    _, intrinsic, distortion, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, grayscale.shape[::-1],None,None)
+    _, intrinsic, distortion, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, grayscale.shape[::-1], None, None)
 
     error = 0
     print("Calculating error")
     for ind in range(len(objpoints)):
         imgpoints2, _ = cv.projectPoints(objpoints[ind], rvecs[ind], tvecs[ind], intrinsic, distortion)
-        err = cv.norm(imgpoints[ind],imgpoints2, cv.NORM_L2)/len(imgpoints2)
+        err = cv.norm(imgpoints[ind], imgpoints2, cv.NORM_L2) / len(imgpoints2)
         error += err
 
-        out = intrinsic, distortion, error/len(objpoints)
+        out = intrinsic, distortion, error / len(objpoints)
 
     return out
 
-def undistort(imgarr, intrinsic, distortion, drawTime = 0):
+
+def undistort(imgarr, intrinsic, distortion, drawTime=0):
     '''
     Description
         Undistorts array of images given intrinsic and distortion matrices
@@ -88,10 +90,10 @@ def undistort(imgarr, intrinsic, distortion, drawTime = 0):
         h, w = img.shape[:2]
         newcameraintrinsic, roi = cv.getOptimalNewCameraMatrix(intrinsic, distortion, (w, h), 1, (w, h))
 
-        #Undistort
+        # Undistort
         dst = cv.undistort(img, intrinsic, distortion, None, newcameraintrinsic)
 
-        #Crop
+        # Crop
         x, y, w, h = roi
         dst = dst[y:y + h, x:x + w]
         if drawTime > 0:

@@ -28,7 +28,7 @@ if test:
             _f = dr.c.photo()
             print(_f)
             print(_f.shape)
-            strformat = "%d.jpg"  % i
+            strformat = "%d.jpg" % i
             cv.imwrite(strformat, _f)
             print("Successfully saved image %d" % i)
             sleep(3)
@@ -36,10 +36,10 @@ if test:
 images = glob.glob("../calPiCamera/*.jpg")
 print("Images globbed")
 print(images)
-intrinsic, distortion, _, _, err = calibrate.calibrate(images, drawTime = 1000)
+intrinsic, distortion, _, _, err = calibrate.calibrate(images, drawTime=1000)
 print(intrinsic, err)
 
-#Clear up dat file
+# Clear up dat file
 if test:
     id = str(dr.c.id)
 else:
@@ -50,5 +50,5 @@ f.close()
 with open("../intrinsic/intrinsic_%s.dat" % id, 'w') as f:
     for i in intrinsic:
         for j in i:
-             print(j)
-             f.write("%s|" % j)
+            print(j)
+            f.write("%s|" % j)

@@ -58,17 +58,16 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Visualize convolutional kernels
-
+- [ ] Fix documentation for project
 - [ ] Buy USB Wifi Dongle
 - [ ] Buy micro-HDMI to HDMI Adapter
 - [ ] Setup hotspot on laptop
 - [ ] Configure Erle PXFMini
-
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Visualize convolutional kernels
 - [x] Reimplement batch norm
 - [x] Add YOLOv1 Full Architecture
 - [x] Attempt restore weights

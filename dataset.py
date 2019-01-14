@@ -39,7 +39,7 @@ class dataHandler():
     batches_elapsed = 0
 
     NUM_CLASSES = 4
-    IMGDIMS = (1242, 375)
+    IMGDIMS = (1242, 448)
 
     def __init__(self, train, val, NUM_CLASSES = 4, B = 3, sx = 7, sy = 7, val_perc = 0.8, useNP = False):
         if os.path.exists(train) and os.path.exists(val):
@@ -131,7 +131,7 @@ class dataHandler():
             for x in range(0,x_.shape[0]):
                 for y in range(0,x_.shape[1]):
                     for i in range(B):
-                        if conf_[x][y][i] * np.amax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) > 0.0: #Check if confidence of box is over threshold
+                        if conf_[x][y][i] * np.amax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) > 0.3: #Check if confidence of box is over threshold
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
                             classtype = self.softmax(classes_[x][y][i*self.NUM_CLASSES:i*self.NUM_CLASSES+4]) #Call naive softmaxing
                             if not classtype == "unknwn":
@@ -198,10 +198,10 @@ class dataHandler():
         true_w = w * self.IMGDIMS[1]
         true_h = h * self.IMGDIMS[1]
 
-        p1x = true_x - (true_w / 2)
-        p1y = true_y - (true_h / 2)
-        p2x = true_x + (true_w / 2)
-        p2y = true_y + (true_h / 2)
+        p1x = true_x - (true_w / 2) + 36
+        p1y = true_y - (true_h / 2) + 36
+        p2x = true_x + (true_w / 2) + 36
+        p2y = true_y + (true_h / 2) + 36
         arr = [p1y, p1x, p2y, p2x]
         return [int(x) for x in arr] #Casting
 
@@ -366,10 +366,12 @@ class dataHandler():
             refx: [int] Bounds of cropping for label reference
         '''
         im = cv.imread(imgdir) #Read image to array
-        if not im.shape[:2] == (self.IMGDIMS[1], self.IMGDIMS[0]): #Check if proper dims
-            im = cv.resize(im, (self.IMGDIMS[0], self.IMGDIMS[1]), interpolation = cv.INTER_CUBIC) #Resize with interpolation if necessary
-        refx = np.random.randint(self.IMGDIMS[0]-self.IMGDIMS[1]) #Get crop
-        crop = im[:, refx:refx+self.IMGDIMS[1]] #Crop
+        if not im.shape[:2] == (375, self.IMGDIMS[0]): #Check if proper dims
+            im = cv.resize(im, (self.IMGDIMS[0], 375), interpolation = cv.INTER_CUBIC) #Resize with interpolation if necessary
+
+        refx = np.random.randint(self.IMGDIMS[0]-375) #Get crop
+        crop = im[:, refx:refx+375] #Crop
+        #print(crop.shape)
         return crop, refx
 
     def get_img(self, num_arr, training):
@@ -389,7 +391,7 @@ class dataHandler():
                 imgdir = self.train_img_dir + "/" + self.train_arr[indice] + ".npy" #Get path to .npy data for that data instance
 
                 crop = np.load(imgdir) #Read image. Image as read as an 1D array
-                crop = np.reshape(crop, [self.IMGDIMS[1], self.IMGDIMS[1], 3]) #Reshape to right form
+                crop = np.reshape(crop, [375, 375, 3]) #Reshape to right form
 
                 #Data augmentation
                 crop = np.uint8(crop) #Cast to uint8 before applying OpenCV2 operations
@@ -399,6 +401,7 @@ class dataHandler():
                     s = np.clip((s * s_adj), 0, 255) #Clip back to [0,255] range
                     v = np.clip((v * v_adj), 0, 255)
                 crop = cv.cvtColor(cv.merge([h,s,v]).astype("uint8"), cv.COLOR_HSV2BGR) #Merge channels and convert to BGR
+                crop = np.pad(crop, ((36,37),(36,37),(0,0)), mode='constant')
                 crop = crop / 255. * 2. - 1. #Normalize from [0,1]
 
                 if imgs is not None: #Check if first img

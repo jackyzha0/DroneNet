@@ -39,7 +39,7 @@ graph = tf.Graph()
 with graph.as_default():
     #Image placeholder for feed_dict
     with tf.name_scope('img_in'):
-        images = tf.placeholder(tf.float32, [None, 375, 375, 3], name="im_inp")
+        images = tf.placeholder(tf.float32, [None, 448, 448, 3], name="im_inp")
 
     #Label placeholders for feed_dict
     with tf.name_scope('label_in'):
@@ -116,14 +116,14 @@ with graph.as_default():
     with tf.control_dependencies(extra_update_ops):
         with tf.name_scope('optimizer'):
             #optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=momentum)
-            optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate, epsilon = 1e-3) #Used epsilon described in Inception Net paper (0.1)
+            optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate, epsilon = 1e-0) #Used epsilon described in Inception Net paper (0.1)
             #optimizer = tf.train.RMSPropOptimizer(learning_rate = learning_rate, momentum = momentum)
             grads = optimizer.compute_gradients(loss)
             train_op = optimizer.apply_gradients(grads) #Apply gradients. Call this operation to actually optimize network
 
     #Placeholders for image visualization in Tensorboard, not used in training
     with tf.name_scope('tboard_outimages'):
-        tf_out = tf.placeholder(tf.float32, shape=[None, 375, 375, 3])
+        tf_out = tf.placeholder(tf.float32, shape=[None, 448, 448, 3])
         tf_im_out = tf.summary.image("tf_im_out", tf_out, max_outputs=batchsize)
 
 #Creating dataset
@@ -158,15 +158,6 @@ with tf.Session(graph = graph, config = config) as sess:
         tensors_to_load = build_tensors_in_checkpoint_file(restored_vars)
         saver = tf.train.Saver(tensors_to_load)
         saver.restore(sess, CHECKPOINT_NAME)
-        #varlist=print_tensors_in_checkpoint_file(file_name=restore_path+'yolo.ckpt',all_tensors=True,tensor_name=None)
-        # print(varlist)
-        # print('_____')
-        # new_i = []
-        # for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
-        #     if 'yolo' in i.name and 'fc_35' not in i.name and 'Adam' not in i.name:
-        #         print(i.name[:-2])
-        #         new_i.append(i.name[:-2])
-        # print(set(varlist) - set(new_i))
 
     prev_epoch = db.epochs_elapsed #Set prev_epoch
     while db.batches_elapsed < iters:
@@ -213,7 +204,7 @@ with tf.Session(graph = graph, config = config) as sess:
         print(prettyPrint(out[1], db))
 
         #Fetch image
-        im = np.zeros((batchsize, 375, 375, 3))
+        im = np.zeros((batchsize, 448, 448, 3))
         for i in range(len(img)):
             #Feed to dispImage to interpret output onto image
             im[i] = db.dispImage(img[i], boundingBoxes = label[i], preds = np.reshape(pred_labels[i], (sx, sy, 27)))
@@ -270,7 +261,7 @@ with tf.Session(graph = graph, config = config) as sess:
             print(prettyPrint(t_out[0], db, test_eval=True))
 
             #Get test images
-            t_im = np.zeros((batchsize, 375, 375, 3))
+            t_im = np.zeros((batchsize, 448, 448, 3))
             for i in range(len(img)):
                 t_im[i] = db.dispImage(t_img[i], boundingBoxes = t_label[i], preds = np.reshape(t_pred_labels[i], (sx, sy, 27)))
 

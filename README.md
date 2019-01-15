@@ -40,9 +40,10 @@ Heavily reliant on global communication methods such as GPS and central communic
       - Bounding boxes and collisions
       - Air Resistance
   - Object Detection
-    - YOLOv1 implemented with SqueezeNet, input size [375, 375]
+    - YOLOv1 with modified class output, input size [448, 448]
     - Dataset
       - KITTI Vision Benchmark
+      - [WIP] COCO Dataset
   - Hardware interfacing
 
 ## Temporary Notes Section
@@ -59,14 +60,14 @@ RPI_GPIO26
 
 ## TODO
 - [ ] Fix documentation for project
-- [ ] Buy USB Wifi Dongle
-- [ ] Buy micro-HDMI to HDMI Adapter
 - [ ] Setup hotspot on laptop
 - [ ] Configure Erle PXFMini
 - [ ] Build and compile APM for PXFMini and Pi0
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Buy USB Wifi Dongle
+- [x] Buy micro-HDMI to HDMI Adapter
 - [x] Visualize convolutional kernels
 - [x] Reimplement batch norm
 - [x] Add YOLOv1 Full Architecture
@@ -139,31 +140,98 @@ RPI_GPIO26
 - [x] Create drone class (Completed Sept. 26)
 
 ## detectionNet Explained
-A modified version of YOLOv1 with SqueezeNet is implemented
+A modified version of YOLOv1 is implemented
 
 Dimensionality of the next layer can be computed as follows:
 ![fig. 1](http://mathurl.com/ybw6b7yt.png)
 
+3 Different models have been implemented as follows:
+
+1) SqueezeNet
+
 | Layer | Output Dimensions | Filter Size | Stride | Depth |
 |-------|------------|-------------|--------|-------|
-| images | [375, 375, 3] | - | - | - |
-| conv1 | [188, 188, 96] | [7, 7] | [2, 2] | 96 |
-| maxpool1 | [93, 93, 96] | [3, 3] | [2, 2] | - |
-| fire1 | [93, 93, 128] | - | - | 128 |
-| fire2 | [93, 93, 128] | - | - | 128 |
-| fire3 | [93, 93, 256] | - | - | 256 |
-| maxpool2 | [46, 46, 256] | [3, 3] | [2, 2] | - |
-| fire4 | [46, 46, 256] | - | - | 256 |
-| fire5 | [46, 46, 384] | - | - | 384 |
-| fire6 | [46, 46, 384] | - | - | 384 |
-| fire7 | [46, 46, 512] | - | - | 512 |
-| maxpool3 | [23, 23, 512] | [3, 3] | [2, 2] | - |
-| fire8 | [23, 23, 512] | - | - | 512 |
-| maxpool4 | [5, 5, 512] | [7, 7] | [4, 4] | - |
-| conv2 | [5, 5, 27] | [1, 1] | [1, 1] | 27 |
+| images | [448, 448, 3] | - | - | - |
+| conv1 | [224, 224, 96] | [7, 7] | [2, 2] | 96 |
+| maxpool1 | [112, 112, 96] | [3, 3] | [2, 2] | - |
+| fire1 | [112, 112, 64] | - | - | 64 |
+| fire2 | [112, 112, 64] | - | - | 64 |
+| fire3 | [112, 112, 128] | - | - | 128 |
+| maxpool2 | [56, 56, 128] | [3, 3] | [2, 2] | - |
+| fire4 | [56, 56, 128] | - | - | 256 |
+| fire5 | [56, 56, 192] | - | - | 384 |
+| fire6 | [56, 56, 192] | - | - | 384 |
+| fire7 | [56, 56, 256] | - | - | 512 |
+| maxpool3 | [28, 28, 256] | [3, 3] | [2, 2] | - |
+| fire8 | [28, 28, 256] | - | - | 512 |
+| avgpool1 | [12, 12, 256] | [7, 7] | [2, 2] | - |
+| fc1 | [1024] | - | - | -1 (flatten) |
+| fc2 | [4096] | - | - | - |
+| fc3 | [675] | - | - | - |
+
+2) Tiny YOLOv1
+
+| Layer | Output Dimensions | Filter Size | Stride | Depth |
+|-------|------------|-------------|--------|-------|
+| images | [448, 448, 3] | - | - | - |
+| conv1 | [448, 448, 16] | [3, 3] | [1, 1] | 16 |
+| maxpool1 | [224, 224, 16] | [2, 2] | [2, 2] | - |
+| conv2 | [224, 224, 32] | [3, 3] | [1, 1] | 32 |
+| maxpool2 | [112, 112, 32] | [2, 2] | [2, 2] | - |
+| conv3 | [112, 112, 64] | [3, 3] | [1, 1] | 64 |
+| maxpool3 | [56, 56, 64] | [2, 2] | [2, 2] | - |
+| conv4 | [56, 56, 128] | [3, 3] | [1, 1] | 128 |
+| maxpool4 | [28, 28, 128] | [2, 2] | [2, 2] | - |
+| conv5 | [28, 28, 256] | [3, 3] | [1, 1] | 256 |
+| maxpool5 | [14, 14, 256] | [2, 2] | [2, 2] | - |
+| conv6 | [14, 14, 512] | [3, 3] | [1, 1] | 512 |
+| maxpool6 | [7, 7, 512] | [2, 2] | [2, 2] | - |
+| conv7 | [7, 7, 1024] | [3, 3] | [1, 1] | 1024 |
+| conv8 | [7, 7, 256] | [3, 3] | [1, 1] | 256 |
+| conv9 | [7, 7, 512] | [3, 3] | [1, 1] | 512 |
+| fc1 | [1024] | - | - | -1 (flatten) |
+| fc2 | [4096] | - | - | - |
+| fc3 | [675] | - | - | - |
+
+3) YOLOv1
+
+| Layer | Output Dimensions | Filter Size | Stride | Depth |
+|-------|------------|-------------|--------|-------|
+| images | [448, 448, 3] | - | - | - |
+| conv1 | [224, 224, 64] | [7, 7] | [2, 2] | 64 |
+| maxpool1 | [112, 112, 64] | [2, 2] | [2, 2] | - |
+| conv2 | [112, 112, 192] | [3, 3] | [1, 1] | 192 |
+| maxpool2 | [56, 56, 192] | [2, 2] | [2, 2] | - |
+| conv3 | [56, 56, 128] | [1, 1] | [1, 1] | 128 |
+| conv4 | [56, 56, 256] | [3, 3] | [1, 1] | 256 |
+| conv5 | [56, 56, 256] | [1, 1] | [1, 1] | 256 |
+| conv6 | [56, 56, 512] | [3, 3] | [1, 1] | 512 |
+| maxpool3 | [28, 28, 512] | [2, 2] | [2, 2] | - |
+| conv7 | [28, 28, 256] | [1, 1] | [1, 1] | 256 |
+| conv8 | [28, 28, 512] | [3, 3] | [1, 1] | 512 |
+| conv9 | [28, 28, 256] | [1, 1] | [1, 1] | 256 |
+| conv10 | [28, 28, 512] | [3, 3] | [1, 1] | 512 |
+| conv11 | [28, 28, 256] | [1, 1] | [1, 1] | 256 |
+| conv12 | [28, 28, 512] | [3, 3] | [1, 1] | 512 |
+| conv13 | [28, 28, 256] | [1, 1] | [1, 1] | 256 |
+| conv14 | [28, 28, 512] | [3, 3] | [1, 1] | 512 |
+| conv15 | [28, 28, 512] | [1, 1] | [1, 1] | 512 |
+| conv16 | [28, 28, 1024] | [3, 3] | [1, 1] | 1024 |
+| maxpool4 | [14, 14, 1024] | [2, 2] | [2, 2] | - |
+| conv17 | [14, 14, 512] | [1, 1] | [1, 1] | 512 |
+| conv18 | [14, 14, 1024] | [3, 3] | [1, 1] | 1024 |
+| conv19 | [14, 14, 512] | [1, 1] | [1, 1] | 512 |
+| conv20 | [14, 14, 1024] | [3, 3] | [1, 1] | 1024 |
+| conv21 | [14, 14, 1024] | [3, 3] | [1, 1] | 1024 |
+| conv22 | [7, 7, 1024] | [3, 3] | [2, 2] | 1024 |
+| conv23 | [7, 7, 1024] | [3, 3] | [1, 1] | 1024 |
+| conv24 | [7, 7, 1024] | [3, 3] | [1, 1] | 1024 |
+| fc2 | [4096] | - | - | -1 (flatten) |
+| fc3 | [675] | - | - | - |
+
 
 Input Format:
-img - [batchsize, 375, 375, 3]
+img - [batchsize, 448, 448, 3]
 
 labels - [batchsize, sx, sy, B * (C + 4)] where B is number of bounding boxes per grid cell (3) and C is number of classes (4)
 

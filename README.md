@@ -274,17 +274,29 @@ A fire module (described in SqueezeNet) is defined as 3 1x1 conv2d layers follow
 
 ## Train Details
 Tensorflow version == 1.2.0
+
 GPU == NVIDIA 970M
+
 Batchsize == 4
+
 Learning Rate == 1e-3
+
 Optimizer == Adam Optimizer
+
 Adam Epsilon == 1e-0
+
 Batch Normalization Momentum == 0.9
+
 Batch Normalization Epsilon == 1e-5
+
 sx == 7
+
 sy == 7
+
 B == 3
+
 C == 4
+
 Alpha (Leaky ReLu coefficient) = 0.1
 
 ## Data formatting of the KITTI Vision Dataset
@@ -294,10 +306,21 @@ Training set size: ~7500 images
 Testing set size: ~7500 images
 Various dimensions from [1224, 370] to [1242, 375]
 ##### Processing
+Images
 1. Resizing all uniform [1242, 375] with cubic interpolation
 2. Crop random to [375, 375]
 3. Normalize to range [0., 1.]
 4. Pad size to [448, 448]
+
+Labels
+1. Discard all labels that are not Car / Pedestrian / Cyclist / Misc. Vehicle (Truck or Van)
+2. Discard all labels outside crop range
+3. One-hot encode labels
+4. Convert p1p2 to xywh
+5. Assign boxes to cells
+5. Normalize w,h to cell dimensions
+6. Normalize x,y to image dimensions
+7. Append obj, no_obj, objI boolean masks
 
 ### Annotations
 All annotations are white-space delimited <br/>

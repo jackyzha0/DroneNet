@@ -1,7 +1,7 @@
 '''
 Tensorflow Neural Network for human and vehicle detection
 '''
-import sugartensor as tf
+import tensorflow as tf
 import dataset
 import random
 import glob

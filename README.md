@@ -59,13 +59,15 @@ RPI_GPIO22
 RPI_GPIO26
 
 ## TODO
-- [ ] Fix documentation for project
-- [ ] Setup hotspot on laptop
-- [ ] Configure Erle PXFMini
-- [ ] Build and compile APM for PXFMini and Pi0
+- [ ] Check for remote sensing datasets
+- [ ] Look at IR Cameras
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario
+- [x] Fix documentation for project
+- [x] Setup hotspot on laptop
+- [x] Configure Erle PXFMini
+- [x] Build and compile APM for PXFMini and Pi0
 - [x] Buy USB Wifi Dongle
 - [x] Buy micro-HDMI to HDMI Adapter
 - [x] Visualize convolutional kernels
@@ -138,6 +140,21 @@ RPI_GPIO26
 - [x] Particle based display for drone (Completed Sept. 28)
 - [x] Create initial variables for drones (Completed Sept. 26)
 - [x] Create drone class (Completed Sept. 26)
+
+## Network Debug Notes
+##### Network interfaces
+ra0 -- LinkSys AE6000 WiFi Adapter -- Used for WiFi Access
+
+wlp2s0 -- Builtin Intel Wifi Adapter -- Used for creating wireless access point
+
+##### Debug Commands
+nmcli device status -- lists network interfaces and status
+
+dmesg -- general debug
+
+modprobe mt7610u_sta -- starts ra0 wifi interface, use -r flag to stop
+
+service network-manager restart -- restarts wifi service
 
 ## detectionNet Explained
 A modified version of YOLOv1 is implemented
@@ -362,10 +379,6 @@ For simplicity sake, only columns 1,5,6,7,8 will be used.
 | 1x | Pi Camera | 18.14g | $14.99 |
 | N/A | Misc. Wires | 20.0g | N/A |
 | Totals | N/A | 560.84g | $298.91 |
-
-## Erle Robotics PXFMini SSH
-Connect to WiFi network "erle-robotics-frambuesa"
-ssh erle@10.0.0.1
 
 ## Drone Stats
 __Battery:__ 1300mAh at 45C. Max recommended current draw = Capacity (Ah) * C Rating = 1.3*45 = ___58.5A___<br/>

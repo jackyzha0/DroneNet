@@ -137,8 +137,7 @@ class dataHandler():
                         # Check if confidence of box is over threshold
                         if conf_[x][y][i] * np.amax(classes_[x][y][i * self.NUM_CLASSES:i * self.NUM_CLASSES + 4]) > 0.3:
                             bounds = self.xywh_to_p1p2([x_[x][y][i], y_[x][y][i], w_[x][y][i], h_[x][y][i]], x, y)
-                            classtype = self.softmax(classes_[x][y][i * self.NUM_CLASSES:i *
-                                                                    * self.NUM_CLASSES + 4])  # Call naive softmaxing
+                            classtype = self.softmax(classes_[x][y][i * self.NUM_CLASSES:i * self.NUM_CLASSES + 4])  # Call naive softmaxing
                             if not classtype == "unknwn":
                                 col = conf_[x][y][i] * \
                                     np.amax(classes_[x][y][i * self.NUM_CLASSES:i * self.NUM_CLASSES + 4]) * 255.

@@ -143,18 +143,21 @@ RPI_GPIO26
 
 ## Network Debug Notes
 ##### Network interfaces
-ra0 -- LinkSys AE6000 WiFi Adapter -- Used for WiFi Access
+wlx4cedfbb833a6 -- Asus AC56R Wifi Adapter (rtl8812au driver) -- Used for WiFi Access
 
 wlp2s0 -- Builtin Intel Wifi Adapter -- Used for creating wireless access point
 
 ##### Debug Commands
+
 nmcli device status -- lists network interfaces and status
 
 dmesg -- general debug
 
-modprobe mt7610u_sta -- starts ra0 wifi interface, use -r flag to stop
+arp -a -- Lists all devices connected to hotspot
 
 service network-manager restart -- restarts wifi service
+
+ssh pi@10.42.0.74
 
 ## detectionNet Explained
 A modified version of YOLOv1 is implemented

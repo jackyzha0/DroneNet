@@ -203,7 +203,7 @@ loss_{noobjconf} = \sum\limits_{i=0}^{s_x}\sum\limits_{j=0}^{s_y}\sum\limits_{h=
 $loss_{prob}$ is the sum of the squared errors in predicted class probabilities across all grid cells
 
 \begin{equation}
-loss_{prob} = \sum\limits_{i=0}^{s_x}\sum\limits_{j=0}^{s_y}\sum\limits_{c\in classes}^{}\phi_{i,j,h}^{noobj}(p(c)_{i,j} - \hat{p(c)}_{i,j})^2
+loss_{prob} = \sum\limits_{i=0}^{s_x}\sum\limits_{j=0}^{s_y}\sum\limits_{c\in classes}^{}\phi_{i,j,h}^{obj}(p(c)_{i,j} - \hat{p(c)}_{i,j})^2
 \end{equation}
 
 We also batch normalize every convolutional layer and fully connected layer before activations. This reduces the internal covariate shift, decreasing the time for convergence. In addition, we use a leaky rectified linear unit (ReLU) with an $\alpha = 0.1$. We then define some other parameters for training the network.

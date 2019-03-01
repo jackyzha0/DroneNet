@@ -11,7 +11,7 @@
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
-\usepackage{mathtools} 
+\usepackage{mathtools}
 
 \usepackage{graphicx}
 \graphicspath{ {./images/} }
@@ -31,7 +31,7 @@
 
 \begin{abstract}
 \texttt{
-Current search and rescue methods are very reliant on global communication methods like GPS or a central control unit. This limits the range and efficiency of search and rescue operations. A decentralized drone swarm would alleviate these problems by having a theoretically infinite range given number of drones. So far, we have designed and assembled the first drone using 3D printed components and ordered parts, built the recognition network by retraining a YOLOv3 model on the KITTI dataset. The next component would be to implement the decentralized autopilot using a Deep Q-learning Agent or another reinforcement learning algorithm to output velocity deltas. 
+Current search and rescue methods are very reliant on global communication methods like GPS or a central control unit. This limits the range and efficiency of search and rescue operations. A decentralized drone swarm would alleviate these problems by having a theoretically infinite range given number of drones. So far, we have designed and assembled the first drone using 3D printed components and ordered parts, built the recognition network by retraining a YOLOv3 model on the KITTI dataset. The next component would be to implement the decentralized autopilot using a Deep Q-learning Agent or another reinforcement learning algorithm to output velocity deltas.
 } \\
 \end{abstract}
 
@@ -41,7 +41,7 @@ Search and rescue (SAR) operations are some of the most important in the world, 
 
 \section{Proposal}
 \label{sec:headings}
-we propose a novel end-to-end algorithm for controlling drone swarms for autonomous search and rescue. This algorithms would be able to
+We propose a novel end-to-end algorithm for controlling drone swarms for autonomous search and rescue. This algorithms would be able to,
 
 \begin{enumerate}
   \item Efficiently navigate a 3D search space,
@@ -49,7 +49,7 @@ we propose a novel end-to-end algorithm for controlling drone swarms for autonom
   \item Detect and identify humans
 \end{enumerate}
 
-As this task is extremely difficult, we plan to tackle this task in multiple stages. In the first stage, we plan to create a singular functioning drone which is able to navigate a 2D air space above a clear area, and efficiently find a human. 
+As this task is extremely difficult, we plan to tackle this task in multiple stages. In the first stage, we plan to create a singular functioning drone which is able to navigate a 2D air space above a clear area, and efficiently find a human.
 
 \subsection{Hardware}
 \subsubsection{Frame}
@@ -67,12 +67,12 @@ Quantity & Item                                    & Total Weight (g) & Price   
 4x       & 20A 2-4S ESC                            & 28.0g            & \$50.68  \\ \hline
 1x       & HobbyKing Lite Power Distribution Board & 19.3g            & \$4.13   \\ \hline
 4x       & 100mm x 6mm Carbon Fiber Tubes          & 45.2g            & \$7.99   \\ \hline
-1x       & PXFMinwe Power Module                    & 50.0g            & \$44.94  \\ \hline
-1x       & PXFMinwe                                 & 15.0g            & \$103.36 \\ \hline
+1x       & PXFMini Power Module                    & 50.0g            & \$44.94  \\ \hline
+1x       & PXFMini                                 & 15.0g            & \$103.36 \\ \hline
 4x       & EMAX RS2205 Brushless Motor             & 120.0g           & \$39.96  \\ \hline
 4x       & GEMFAN 5045 GRP 3-BLADE Propellers      & 21.2g            & \$8.76   \\ \hline
-1x       & Pwe Zero W                               & 9.0g             & \$5.00   \\ \hline
-1x       & Pwe Camera v1 5MP                        & 18.1g            & \$14.99  \\ \hline
+1x       & Pi Zero W                               & 9.0g             & \$5.00   \\ \hline
+1x       & Pi Camera v1 5MP                        & 18.1g            & \$14.99  \\ \hline
 N/A      & Misc. wires, bolts, and nuts            & 20.0g            & N/A      \\ \hline
 Totals   & N/A                                     & 560.8g           & \$298.91 \\ \hline
 \end{tabular}
@@ -80,7 +80,7 @@ Totals   & N/A                                     & 560.8g           & \$298.91
 \end{table}
 
 \subsubsection{Flight}
-In calculating the thrust required, we consider that the drone will not be used for racing. As a result, a thrust to weight ratio of 4:1 works well. Using the weight of the drone calculated in 2.1.2, we get a thrust requirement of 2.43kg. Dividing this by the 4 motors, we require 560g of thrust per motor. we decided on using the GEMFAN 5045 propellers (5" diameter, 4.5" pitch). This allows the drone to achieve a thrust of roughly 560g per motor at only 13A draw or 52A total. 
+In calculating the thrust required, we consider that the drone will not be used for racing. As a result, a thrust to weight ratio of 4:1 works well. Using the weight of the drone calculated in 2.1.2, we get a thrust requirement of 2.43kg. Dividing this by the 4 motors, we require 560g of thrust per motor. we decided on using the GEMFAN 5045 propellers (5" diameter, 4.5" pitch). This allows the drone to achieve a thrust of roughly 560g per motor at only 13A draw or 52A total.
 
 \begin{table}[h!]
 \centering
@@ -107,19 +107,19 @@ As such, we needed to choose a battery that would allow reasonable flight time g
 I_{max} = Capacity_{Ah} \cdot C Rating
 \end{equation}
 
-For this project, a 1300mAh 4S 45C LiPo Battery was used. 
+For this project, a 1300mAh 4S 45C LiPo Battery was used.
 
 \[
 I_{max} = 1.3Ah \cdot 4C = 58.5A
 \]
 
-This max current is greater than the maximum theoretical usage, thus, this battery is safe to use. Using this information, we can calculate the theoretical maximum flight time. To keep the drone in the air, we require approximately thrust equal to the weight of the drone (560g). This translates to roughly $140g$ of thrust per motor. we assume that the capacity is only 80\% effective, meaning $1.04Ah$ is available. We can then convert to minutes by multiplying by $h/60min$ and dividing by the current draw of $3A$. This attains a total flight time of 20.8 minutes.  
+This max current is greater than the maximum theoretical usage, thus, this battery is safe to use. Using this information, we can calculate the theoretical maximum flight time. To keep the drone in the air, we require approximately thrust equal to the weight of the drone (560g). This translates to roughly $140g$ of thrust per motor. we assume that the capacity is only 80\% effective, meaning $1.04Ah$ is available. We can then convert to minutes by multiplying by $h/60min$ and dividing by the current draw of $3A$. This attains a total flight time of 20.8 minutes.
 
 \subsubsection{Positioning}
 A PXFMinwe is used as the data sensor hub and auto-pilot shield. This shield runs on top of the Raspberry Pwe Zero W and allows the drone to be controlled using the APM flight stack. The PXFMinwe is able to get data such as height, global position, velocity, and acceleration. The APM outputs through the PWM Outputs on the back of the PXFMini.
 
 \subsubsection{Communications}
-Two main options are available for communication, WiFwe and Radio. WiFwe communication is achieved by connecting the Raspberry Pwe Zero W to a local Wireless Access Point (WAP) hosted on my laptop. Two network interfaces are used. The Asus AC56R Wifwe Adapter (rtl8812au driver) is used for WiFwe Access while the Builtin Intel Wifwe Adapter is used for creating wireless access point. The RPwe attempts to start the ArduCopter APM at port 6000 with a UDP link. However, at this point in time, the APM Planner 2 program on my laptop refuses to connect to the port. For now, we will be resorting to traditional RC methods. Currently, we am using a RC controller with a PPMSUM-enabled receiver attached to the PXFMini. 
+Two main options are available for communication, WiFi and Radio. WiFi communication is achieved by connecting the Raspberry Pi Zero W to a local Wireless Access Point (WAP) hosted on my laptop. Two network interfaces are used. The Asus AC56R Wifi Adapter (rtl8812au driver) is used for WiFi Access while the Builtin Intel Wifi Adapter is used for creating wireless access point. The RPi attempts to start the ArduCopter APM at port 6000 with a UDP link. However, at this point in time, the APM Planner 2 program on my laptop refuses to connect to the port. For now, we will be resorting to traditional RC methods. Currently, we am using a RC controller with a PPMSUM-enabled receiver attached to the PXFMini.
 
 \subsection{Software}
 \subsubsection{Detection Network}
@@ -170,7 +170,7 @@ As seen above, the Tiny YOLOv1 architecture is a simple convolutional network. A
 
 \begin{equation}
 loss = \lambda_{obj}(loss_{dims} + loss_{objconf}  + loss_{prob}) + \lambda_{noobj}(loss_{noobjconf})
-\end{equation} 
+\end{equation}
 
 We define two constants that help to correct the unbalance between obj and no\_obj boxes, $\lambda_{obj}$ and $\lambda_{noobj}$. We set these to \textit{5.0} and \textit{0.5} respectively. Additionally, we define $\phi$ as a function that asks like a boolean mask, returning $0$ if the object is in that cell and has that bounding box responsible for its prediction and $1$ otherwise.
 
@@ -182,7 +182,7 @@ We define two constants that help to correct the unbalance between obj and no\_o
 \end{cases}
 \end{equation}
 
-We define a few variables for the formulas below. $s_x$ and $s_y$ are defined as number of horizontal grid cells and vertical grid cells respectively. $classes$ is the list of total possible classes. $B$ is the number of bounding boxes per grid cell. $\delta$ is defined as a small constant to prevent extremely small numbers. Then, we define the individual terms in the loss function. $loss_{dims}$ is the sum of the squared errors of the x,y,w,h values of bounding boxes for all squares and bounding boxes responsible. 
+We define a few variables for the formulas below. $s_x$ and $s_y$ are defined as number of horizontal grid cells and vertical grid cells respectively. $classes$ is the list of total possible classes. $B$ is the number of bounding boxes per grid cell. $\delta$ is defined as a small constant to prevent extremely small numbers. Then, we define the individual terms in the loss function. $loss_{dims}$ is the sum of the squared errors of the x,y,w,h values of bounding boxes for all squares and bounding boxes responsible.
 
 \begin{equation}
 loss_{dims} = \sum\limits_{i=0}^{s_x}\sum\limits_{j=0}^{s_y}\sum\limits_{h=0}^{B}\phi_{i,j,h}^{obj}[(x_{i,j} - \hat{x}_{i,j})^2 + (y_{i,j} - \hat{y}_{i,j})^2 + (\sqrt{w_{i,j} + \delta} - \sqrt{\hat{w_{i,j}} + \delta})^2 + (\sqrt{h_{i,j} + \delta} - \sqrt{\hat{h_{i,j}} + \delta})^2]

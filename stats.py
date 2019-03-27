@@ -14,7 +14,7 @@ def IOU(boxes, labels):
         boxes: [n, 4 float32 np array] n boxes in form p1p2
         labels: [n, 4 float32 np array] n boxes in form p1p2
     Output:
-        iou: [n float32 np array] IOU scores for each bounding box bair
+        iou: [n float32 np array] IOU scores for each bounding box pair
     '''
 
     # Get intersection bounds

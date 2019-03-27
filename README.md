@@ -7,6 +7,26 @@ Decentralized drone swarm communication for search and rescue missions
 Problems with current methods:
 Heavily reliant on global communication methods such as GPS and central communication unit
 
+## Network Debug Notes
+##### Network interfaces
+wlx4cedfbb833a6 -- Asus AC56R Wifi Adapter (rtl8812au driver) -- Used for WiFi Access
+
+wlp2s0 -- Builtin Intel Wifi Adapter -- Used for creating wireless access point
+
+##### Debug Commands
+
+nmcli device status -- lists network interfaces and status
+
+arp -a -- Lists all devices connected to hotspot
+
+service network-manager restart -- restarts wifi service
+
+ssh pi@10.42.0.74
+
+sudo ./ArduCopter.elf -A tcp:10.42.0.74:8080 -B /dev/ttyAMA0 -- starts AutoPilot service where -A is serial connection and -B is GPS connection
+
+
+
 ## Implementation
 1. Hardware
   - Positioning
@@ -45,18 +65,6 @@ Heavily reliant on global communication methods such as GPS and central communic
       - KITTI Vision Benchmark
       - [WIP] COCO Dataset
   - Hardware interfacing
-
-## Temporary Notes Section
-Free GPIO pins:
-RPI_GPIO5
-RPI_GPIO6
-RPI_GPIO12
-RPI_GPIO13
-RPI_GPIO16
-RPI_GPIO20
-RPI_GPIO21
-RPI_GPIO22
-RPI_GPIO26
 
 ## TODO
 - [ ] Check for remote sensing datasets
@@ -140,24 +148,6 @@ RPI_GPIO26
 - [x] Particle based display for drone (Completed Sept. 28)
 - [x] Create initial variables for drones (Completed Sept. 26)
 - [x] Create drone class (Completed Sept. 26)
-
-## Network Debug Notes
-##### Network interfaces
-wlx4cedfbb833a6 -- Asus AC56R Wifi Adapter (rtl8812au driver) -- Used for WiFi Access
-
-wlp2s0 -- Builtin Intel Wifi Adapter -- Used for creating wireless access point
-
-##### Debug Commands
-
-nmcli device status -- lists network interfaces and status
-
-dmesg -- general debug
-
-arp -a -- Lists all devices connected to hotspot
-
-service network-manager restart -- restarts wifi service
-
-ssh pi@10.42.0.74
 
 ## detectionNet Explained
 A modified version of YOLOv1 is implemented

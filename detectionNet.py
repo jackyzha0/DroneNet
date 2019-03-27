@@ -256,7 +256,7 @@ def ret_net(images, nettype, train=False, sx=6, sy=6, B=3, C=4):
             # net = tf.layers.dropout(net, rate=0.5, training=train)  # Dropout
             net = fc_layer(net, 4096, flat=False, linear=False, trainable=True, training=train, name='fc_34')
             net = fc_layer(net, dim_mul_B * (C + 5), flat=False, linear=True, trainable=True, training=train, name='fc_35')
-            return net
+    return net
 
 
 def prettyPrint(loss, db, test_eval=False):

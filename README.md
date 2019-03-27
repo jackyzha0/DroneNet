@@ -25,8 +25,6 @@ ssh pi@10.42.0.74
 
 sudo ./ArduCopter.elf -A tcp:10.42.0.74:8080 -B /dev/ttyAMA0 -- starts AutoPilot service where -A is serial connection and -B is GPS connection
 
-
-
 ## Implementation
 1. Hardware
   - Positioning
@@ -67,8 +65,6 @@ sudo ./ArduCopter.elf -A tcp:10.42.0.74:8080 -B /dev/ttyAMA0 -- starts AutoPilot
   - Hardware interfacing
 
 ## TODO
-- [ ] Check for remote sensing datasets
-- [ ] Look at IR Cameras
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario

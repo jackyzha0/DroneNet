@@ -1,29 +1,9 @@
 # DroneNet
-### Jacky Zhao - Science Fair Project 2018-19
-
 ## Summary
 Decentralized drone swarm communication for search and rescue missions
 
 Problems with current methods:
 Heavily reliant on global communication methods such as GPS and central communication unit
-
-## Network Debug Notes
-##### Network interfaces
-wlx4cedfbb833a6 -- Asus AC56R Wifi Adapter (rtl8812au driver) -- Used for WiFi Access
-
-wlp2s0 -- Builtin Intel Wifi Adapter -- Used for creating wireless access point
-
-##### Debug Commands
-
-nmcli device status -- lists network interfaces and status
-
-arp -a -- Lists all devices connected to hotspot
-
-service network-manager restart -- restarts wifi service
-
-ssh pi@10.42.0.74
-
-sudo ./ArduCopter.elf -A tcp:10.42.0.74:8080 -B /dev/ttyAMA0 -- starts AutoPilot service where -A is serial connection and -B is GPS connection
 
 ## Implementation
 1. Hardware
@@ -64,7 +44,31 @@ sudo ./ArduCopter.elf -A tcp:10.42.0.74:8080 -B /dev/ttyAMA0 -- starts AutoPilot
       - [WIP] COCO Dataset
   - Hardware interfacing
 
+## Network Debug Notes
+##### Network interfaces
+wlx4cedfbb833a6 -- Asus AC56R Wifi Adapter (rtl8812au driver) -- Used for WiFi Access
+
+wlp2s0 -- Builtin Intel Wifi Adapter -- Used for creating wireless access point
+
+##### Debug Commands
+
+nmcli device status -- lists network interfaces and status
+
+arp -a -- Lists all devices connected to hotspot
+
+service network-manager restart -- restarts wifi service
+
+ssh pi@10.42.0.74
+
+sudo ./ArduCopter.elf -A tcp:10.42.0.74:8080 -B /dev/ttyAMA0 -- starts AutoPilot service where -A is serial connection and -B is GPS connection
+
+ssh -i NVIDIA.pem ubuntu@ec2-100-26-181-209.compute-1.amazonaws.com -- Connect to AWS Training Instance
+
 ## TODO
+- [ ] Calibrate GPS Outside (if this doesn't work try http://forum.erlerobotics.com/t/gps-tutorial-how-to-address-a-no-fix/1009)
+- [ ] Fix RPi Camera
+- [ ] Calibrate ESCs
+
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)
 - [ ] Create training scenario

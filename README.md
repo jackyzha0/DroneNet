@@ -68,6 +68,8 @@ ssh -i NVIDIA.pem ubuntu@ec2-100-26-181-209.compute-1.amazonaws.com -- Connect t
 - [ ] Calibrate GPS Outside (if this doesn't work try http://forum.erlerobotics.com/t/gps-tutorial-how-to-address-a-no-fix/1009)
 - [ ] Fix RPi Camera
 - [ ] Calibrate ESCs
+- [ ] Test Motors
+- [ ] Flight test
 
 - [ ] Get location from PXFMini
 - [ ] Evaluate types of machine learning (look into DQNs)

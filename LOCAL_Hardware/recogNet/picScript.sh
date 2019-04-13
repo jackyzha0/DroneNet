@@ -6,6 +6,6 @@ while ;; do
   done
 
   echo 'Lock found! Taking picture...'
-  raspistill -o "imgs/tmp.jpg"
+  raspistill -w 640 -h 480 -q 75 -o "imgs/tmp.jpg"
   rm /home/pi/recogNet/locks/IM_LOCK
 done

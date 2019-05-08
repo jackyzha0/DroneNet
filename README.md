@@ -65,6 +65,7 @@ sudo ./ArduCopter.elf -A tcp:10.42.0.74:8080 -B /dev/ttyAMA0 -- starts AutoPilot
 ssh -i NVIDIA.pem ubuntu@ec2-100-26-181-209.compute-1.amazonaws.com -- Connect to AWS Training Instance
 
 ## TODO
+http://forum.erlerobotics.com/t/gps-tutorial-how-to-address-a-no-fix/1009
 - [ ] Calibrate GPS Outside (if this doesn't work try http://forum.erlerobotics.com/t/gps-tutorial-how-to-address-a-no-fix/1009)
 - [ ] Fix RPi Camera
 - [ ] Calibrate ESCs

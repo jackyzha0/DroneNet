@@ -1,4 +1,5 @@
-# DroneNet
+# DroneNet - Now archived
+So some of the components were damaged while transporting the drone back and forth through multiple airplane trips. This means that I would need to buy new components to continue work on this project, which unfortunately, I don't have funds for :( This project will be put on hold until I can put together enough stuff to continue.
 ## Summary
 Decentralized drone swarm communication for search and rescue missions
 
